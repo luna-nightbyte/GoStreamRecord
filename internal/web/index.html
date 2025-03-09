@@ -654,8 +654,9 @@
           method: "POST",
           body: formData
         });
+        console.log(res)
         const data = await res.json();
-        showResponse(data.message, false);
+        showResponse(data.ok, false);
         //         showResponse("File uploaded: " + JSON.stringify(data));
       } catch (err) {
         console.error(err);

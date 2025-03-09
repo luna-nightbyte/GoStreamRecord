@@ -3,6 +3,7 @@ package streamers
 import (
 	"GoStreamRecord/modules/db"
 	"GoStreamRecord/modules/handlers/cookies"
+	"encoding/json"
 	"net/http"
 )
 
@@ -18,13 +19,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Dummy file content
-	fileContent := ""
-
-	for _, s := range db.Config.Streamers.Streamers {
-		fileContent = fileContent + s.Name + "\n"
-	}
+	fileContent, _ := json.Marshal(db.Config.Streamers.Streamers)
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment; filename=export.txt")
+	w.Header().Set("Content-Disposition", "attachment; filename=export.json")
 	w.Write([]byte(fileContent))
 }
