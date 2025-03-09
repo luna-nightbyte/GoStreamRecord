@@ -2,7 +2,7 @@ package users
 
 import (
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
+
 	"GoStreamRecord/internal/handlers/cookies"
 	"GoStreamRecord/internal/handlers/login"
 	"GoStreamRecord/internal/handlers/status"
@@ -48,7 +48,7 @@ func UpdateUsers(w http.ResponseWriter, r *http.Request) {
 
 	modified := db.Config.Users.Modify(reqData.OldUsername, reqData.NewUsername, string(login.HashedPassword(reqData.NewPassword)))
 	if modified {
-		db.Config.Update("users", file.Users_json, db.Config.Users)
+		db.Config.Update("users", "users.json", db.Config.Users)
 	}
 
 	resp := status.Response{
@@ -90,7 +90,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.Config.Users.Add(reqData.Username, string(login.HashedPassword(reqData.Password)))
-	db.Config.Update("users", file.Users_json, &db.Config.Users)
+	db.Config.Update("users", "users.json", &db.Config.Users)
 
 	resp := status.Response{
 		Message: reqData.Username + " added!",

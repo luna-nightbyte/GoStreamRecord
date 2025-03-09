@@ -1,7 +1,6 @@
 package dbapi
 
 import (
-	"GoStreamRecord/internal/file"
 	"crypto/rand"
 	"encoding/hex"
 
@@ -16,10 +15,6 @@ type ApiKeys struct {
 	User string `json:user`
 	Name string `json:name`
 	Key  string `json:secret`
-}
-
-func (a *API_secrets) Load() error {
-	return file.ReadJson("api", file.API_json, &a)
 }
 
 func (a API_secrets) NewKey() ApiKeys {

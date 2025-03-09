@@ -3,7 +3,6 @@ package bot
 import (
 	"GoStreamRecord/internal/bot/recorder"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
 	"fmt"
 	"log"
 	"os"
@@ -118,7 +117,7 @@ func getProcess(name string, b *controller) recorder.Recorder {
 
 // writeYoutubeDLdb writes the youtube-dl configuration file.
 func (b *controller) writeYoutubeDLdb() error {
-	f, err := os.Create(file.YoutubeDL_configPath)
+	f, err := os.Create("youtube-dl.config")
 	if err != nil {
 		return err
 	}

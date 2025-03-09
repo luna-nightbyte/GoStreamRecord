@@ -3,7 +3,7 @@ package cookies
 import (
 	"GoStreamRecord/internal/db"
 	dbapi "GoStreamRecord/internal/db/api"
-	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
@@ -76,11 +76,13 @@ func (s *session) IsLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 // isValidAPIKey compares the provided API key against the preloaded valid keys.
 func (s *session) isValidAPIKey(providedKey string) bool {
 	if len(s.apiKeys) == 0 {
-		err := db.Config.APIKeys.Load()
+
+		err := db.Read("api", "api.json", &db.Config.APIKeys)
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Error getting existing keys..", err)
 			return false
 		}
+
 		for _, k := range db.Config.APIKeys.Keys {
 
 			exist := false

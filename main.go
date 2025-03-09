@@ -3,10 +3,10 @@ package main
 import (
 	"GoStreamRecord/internal/bot"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
 	"GoStreamRecord/internal/handlers"
 	"GoStreamRecord/internal/handlers/cookies"
 	"GoStreamRecord/internal/handlers/login"
+	"GoStreamRecord/internal/logger"
 	"context"
 	_ "embed"
 	"fmt"
@@ -61,7 +61,7 @@ func init() {
 	}
 	os.Mkdir("./output", 0755)
 	cookies.Session = cookies.New([]byte(os.Getenv("SESSION_KEY")))
-	file.InitLog(file.Log_path)
+	logger.Init(logger.Log_path)
 	bot.Init()
 
 }
@@ -105,7 +105,7 @@ func main() {
 			fmt.Println("No matching username found.")
 			return
 		}
-		db.Config.Update("users", file.Users_json, &db.Config.Users)
+		db.Config.Update("users", "users.json", &db.Config.Users)
 		log.Println("Password updated for", username)
 		fmt.Println("Password updated for", username)
 		return // Exit after resetting password

@@ -1,7 +1,6 @@
 package recorder
 
 import (
-	"GoStreamRecord/internal/file"
 	"fmt"
 	"log"
 	"os/exec"
@@ -16,7 +15,7 @@ func (rec *Recorder) StartRecording(streamerName string) {
 
 	args := strings.Fields("yt-dlp --no-part")
 
-	args = append(args, fmt.Sprintf("%s%s/", rec.Website.Url, streamerName), "--config-location", file.YoutubeDL_configPath)
+	args = append(args, fmt.Sprintf("%s%s/", rec.Website.Url, streamerName), "--config-location", "youtube-dl.config")
 
 	rec.Cmd = exec.Command(args[0], args[1:]...)
 

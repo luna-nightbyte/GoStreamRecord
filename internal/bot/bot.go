@@ -3,7 +3,6 @@ package bot
 import (
 	"GoStreamRecord/internal/bot/recorder"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
 	"context"
 	"fmt"
 	"log"
@@ -111,7 +110,7 @@ func (b *controller) RecordLoop(streamerName string) {
 							}
 							b.mux.Unlock()
 
-							file.ReadJson("settings", file.Settings_json, &db.Config.Settings)
+							db.Read("settings", "settings.json", &db.Config.Settings)
 
 							log.Printf("Checking %s online status...", sName)
 							if !status.Website.Interface.IsOnline(sName) {

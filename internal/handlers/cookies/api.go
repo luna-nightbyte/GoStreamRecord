@@ -3,9 +3,10 @@ package cookies
 import (
 	"GoStreamRecord/internal/db"
 	dbapi "GoStreamRecord/internal/db/api"
-	"GoStreamRecord/internal/file"
+
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,9 +23,9 @@ func GenAPIKeyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := db.Config.APIKeys.Load()
+	err := db.Read("api","api.json", &db.Config.APIKeys)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error getting existing keys..", err)
 		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
 		return
 	}
@@ -61,7 +62,7 @@ func GenAPIKeyHandler(w http.ResponseWriter, r *http.Request) {
 	new_api_config.Key = hashedKey
 
 	db.Config.APIKeys.Keys = append(db.Config.APIKeys.Keys, new_api_config)
-	err = file.WriteJson("api", file.API_json, db.Config.APIKeys)
+	err = db.Write("api", "api.json", db.Config.APIKeys)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "error saving new key..", http.StatusBadRequest)
@@ -78,10 +79,10 @@ func GetAPIkeys(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := db.Config.APIKeys.Load()
+	err := db.Read("api", "api.json", &db.Config.APIKeys)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Error retrieving API keys: "+err.Error(), http.StatusInternalServerError)
+		log.Println("Error getting existing keys..", err)
+		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
 		return
 	}
 
@@ -115,20 +116,21 @@ func DeleteAPIKeyHandler(w http.ResponseWriter, r *http.Request) {
 	var reqData request
 
 	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		log.Println("Invalid request payload:", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	err := db.Config.APIKeys.Load()
+	err := db.Read("api", "api.json", &db.Config.APIKeys)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error getting existing keys..", err)
 		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
 		return
 	}
 
 	session, err := Session.Store().Get(r, "session")
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error getting session..", err)
 		http.Error(w, "Error getting session..", http.StatusBadRequest)
 		return
 	}
@@ -144,9 +146,9 @@ func DeleteAPIKeyHandler(w http.ResponseWriter, r *http.Request) {
 
 	db.Config.APIKeys.Keys = tmp_secrets.Keys
 
-	err = file.WriteJson("api", file.API_json, db.Config.APIKeys)
+	err = db.Write("api", "api.json", db.Config.APIKeys)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error saving new key..", err)
 		http.Error(w, "error saving new key..", http.StatusBadRequest)
 		return
 	}

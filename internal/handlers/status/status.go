@@ -4,7 +4,7 @@ import (
 	"GoStreamRecord/internal/bot"
 	"GoStreamRecord/internal/bot/recorder"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
+	
 	"GoStreamRecord/internal/handlers/cookies"
 	"encoding/json"
 	"net/http"
@@ -29,7 +29,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reload streamer list from config file
-	file.ReadJson("streamers", file.Streamers_json, &db.Config.Streamers)
+	db.Write("streamers", "streamers.json", &db.Config.Streamers)
 
 	bot.Bot.StopRunningEmpty()
 	// Fetch current recording status

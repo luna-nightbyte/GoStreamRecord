@@ -2,7 +2,6 @@ package controller
 
 import (
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/file"
 	"GoStreamRecord/internal/handlers/cookies"
 	"GoStreamRecord/internal/handlers/status"
 	"encoding/json"
@@ -37,7 +36,7 @@ func GetVideos(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && file.IsVideoFile(info.Name()) {
+		if !info.IsDir() && isVideoFile(info.Name()) {
 
 			videos = append(videos, Video{URL: "/videos/" + filepath.Join(filepath.Base(filepath.Dir(path)), info.Name()), Name: info.Name()})
 		}
@@ -65,6 +64,18 @@ func GetVideos(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(paginatedVideos)
+}
+
+// isVideoFile returns true if the file extension indicates a video file.
+func isVideoFile(filename string) bool {
+	extensions := []string{".mp4", ".avi", ".mov", ".mkv"}
+	lower := strings.ToLower(filename)
+	for _, ext := range extensions {
+		if strings.HasSuffix(lower, ext) {
+			return true
+		}
+	}
+	return false
 }
 
 // DeleteVideosRequest represents the expected JSON payload.

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"GoStreamRecord/internal/file"
 	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/logger"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -16,13 +16,13 @@ func HandleLogs(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	if _, err := os.Stat(file.Log_path); os.IsNotExist(err) {
+	if _, err := os.Stat(logger.Log_path); os.IsNotExist(err) {
 		// If no log file exists, return an empty array.
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode([]string{})
 		return
 	}
-	content, err := ioutil.ReadFile(file.Log_path)
+	content, err := ioutil.ReadFile(logger.Log_path)
 	if err != nil {
 		http.Error(w, "Error reading log file", http.StatusInternalServerError)
 		return
