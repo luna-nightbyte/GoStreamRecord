@@ -1,4 +1,4 @@
-module GoRecordurbate
+module GoStreamRecord
 
 go 1.23.0
 
