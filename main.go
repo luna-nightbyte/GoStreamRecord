@@ -1,12 +1,12 @@
 package main
 
 import (
-	"GoStreamRecord/modules/bot"
-	"GoStreamRecord/modules/db"
-	"GoStreamRecord/modules/file"
-	"GoStreamRecord/modules/handlers"
-	"GoStreamRecord/modules/handlers/cookies"
-	"GoStreamRecord/modules/handlers/login"
+	"GoStreamRecord/internal/bot"
+	"GoStreamRecord/internal/db"
+	"GoStreamRecord/internal/file"
+	"GoStreamRecord/internal/handlers"
+	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/handlers/login"
 	"context"
 	_ "embed"
 	"fmt"
@@ -24,10 +24,10 @@ import (
 
 // Embed static HTML files
 //
-//go:embed internal/web/index.html
+//go:embed internal/app/web/index.html
 var IndexHTML string
 
-//go:embed internal/web/login.html
+//go:embed internal/app/web/login.html
 var LoginHTML string
 
 func init() {
@@ -105,7 +105,7 @@ func main() {
 			fmt.Println("No matching username found.")
 			return
 		}
-		db.Config.Update(file.Users_json_path, db.Config.Users)
+		db.Config.Update("users", file.Users_json, &db.Config.Users)
 		log.Println("Password updated for", username)
 		fmt.Println("Password updated for", username)
 		return // Exit after resetting password
