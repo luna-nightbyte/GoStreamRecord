@@ -8,6 +8,7 @@ x-defaults: &default-opts
     - ./internal/settings:/app/internal/settings
     - ./output:/app/output #Safest to alway have output files in this folder.
 services:
+
 # App
   GoRecord:
     <<: *default-opts
@@ -20,9 +21,14 @@ services:
 
 # BUILD
 # Core dependencies
-  base: 
+  dev: 
+    <<: *default-opts
     image:  docker.io/lunanightbyte/gorecord-base:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.base 
 
+    volumes:
+      - ./:/app
+    tty: true
+    privileged: true
