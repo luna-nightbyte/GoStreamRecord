@@ -1,19 +1,22 @@
+x-defaults: &default-opts
+  tty: true
+  privileged: true
+  ports:
+    - "8050:80"
+  volumes:
+    - ./.env:/app/.env
+    - ./internal/settings:/app/internal/settings
+    - ./output:/app/output #Safest to alway have output files in this folder.
 services:
 # App
   GoRecord:
+    <<: *default-opts
     container_name: Go-Record-WebUI
     image:  docker.io/lunanightbyte/gorecord:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.run 
-    ports:
-      - "8050:80"
-    volumes:
-      - ./.env:/app/.env
-      - ./internal/settings:/app/internal/settings
-      - ./output:/app/output #Safest to alway have output files in this folder.
-    tty: true
-    privileged: true
+
 
 # BUILD
 # Core dependencies
