@@ -21,12 +21,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
       - name: Build Base
         run: |
+          echo "VERSION=${{ env.VERSION }}"
           docker build -f docker/Dockerfile.base -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
           docker tag lunanightbyte/gorecord-base:${{ env.VERSION }} lunanightbyte/gorecord-base:latest
       - name: Push Base image
