@@ -76,6 +76,20 @@ There is two docker images available:
 - [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size > 1.5GB )
 - [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 30MB )
 
+#### Building images
+Use the Makefile to build images to ensure proper tagging.
+```bash
+make build # Builds all
+
+# or 
+
+make base # Only base
+
+# or 
+
+make app # Only app
+```
+
 #### docker-compose.yml
 
 ##### Usage
