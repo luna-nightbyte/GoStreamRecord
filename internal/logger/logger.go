@@ -1,4 +1,4 @@
-package file
+package logger
 
 import (
 	"fmt"
@@ -14,6 +14,18 @@ var (
 
 // logWriter implements io.Writer to format logs with timestamp & caller info
 type logWriter struct{}
+
+func Init(logPath string) {
+	var err error
+	logFile, err = os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	// Set our custom writer as the output for Go's log package
+	log.SetOutput(logWriter{})
+	log.SetFlags(0) // Disable default flags, since we're adding our own timestamp
+}
 
 func (w logWriter) Write(p []byte) (n int, err error) {
 	_, file, line, ok := runtime.Caller(3) // Adjust stack depth to get the actual caller
@@ -39,19 +51,6 @@ func trimPath(fullPath string) string {
 	}
 	return relPath
 }
-
-func InitLog(logPath string) {
-	var err error
-	logFile, err = os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
-	}
-
-	// Set our custom writer as the output for Go's log package
-	log.SetOutput(logWriter{})
-	log.SetFlags(0) // Disable default flags, since we're adding our own timestamp
-}
-
 func Close() {
 	if logFile != nil {
 		logFile.Close()
