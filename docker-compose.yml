@@ -16,12 +16,6 @@ services:
     privileged: true
 
 # BUILD
-# Vue dependencies
-  vue: 
-    image:  docker.io/lunanightbyte/gorecord-extra:v0.0.1
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.extra 
 # Core dependencies
   base: 
     image:  docker.io/lunanightbyte/gorecord-base:latest
