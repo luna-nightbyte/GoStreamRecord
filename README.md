@@ -149,7 +149,7 @@ go mod tidy
 go run main.go
 ```
 
-## WebUI (outdated)
+## WebUI (v0.1.x)
 
 
 <p align="center">
