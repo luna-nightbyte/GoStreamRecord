@@ -34,10 +34,8 @@ COPY go.mod go.sum ./
 # Source code
 #- backend
 COPY main.go ./
-COPY modules/ modules/
+COPY internal/ internal/
 
-#-frontends
-COPY internal/app/web internal/app/web
 RUN go mod tidy && go mod download
 
 
