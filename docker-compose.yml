@@ -5,7 +5,7 @@ x-defaults: &default-opts
     - "8050:80"
   volumes:
     - ./.env:/app/.env
-    - ./internal/settings:/app/internal/settings
+    - ./internal/app/db:/app/internal/db
     - ./output:/app/output #Safest to alway have output files in this folder.
 services:
 
@@ -29,6 +29,6 @@ services:
       dockerfile: docker/Dockerfile.base 
 
     volumes:
-      - ./:/app
+      - ./:/app # We use the entire workdir for development.
     tty: true
     privileged: true

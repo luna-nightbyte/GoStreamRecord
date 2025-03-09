@@ -7,8 +7,8 @@ WORKDIR /app
 
 COPY --from=lunanightbyte/gorecord-base:latest /compiled/server ./server
 RUN mkdir -p /app/internal/settings
-COPY ./internal/settings/* /app/internal/settings
-COPY ./internal/settings/db /app/internal/settings/db
+
+COPY ./internal/app/db /app/internal/app/db
 # Expose the port the server listens on
 EXPOSE 80
 

@@ -37,7 +37,7 @@ COPY main.go ./
 COPY modules/ modules/
 
 #-frontends
-COPY internal/web internal/web
+COPY internal/app/web internal/app/web
 RUN go mod tidy && go mod download
 
 
