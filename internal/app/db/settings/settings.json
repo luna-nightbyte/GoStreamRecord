@@ -2,8 +2,7 @@
   "app": {
     "port": 8055,
     "loop_interval_in_minutes": 2,
-    "video_output_folder": "output/videos",
-    "default_export_location": "./output/list.txt",
+    "video_output_folder": "videos",
     "rate_limit": {
       "enable": true,
       "time": 5
