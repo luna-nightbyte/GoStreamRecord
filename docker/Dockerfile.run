@@ -1,5 +1,7 @@
 FROM alpine:latest AS final
 
+# Install yt-dlp and Python dependencies
+RUN apk add --no-cache yt-dlp python3
 
 WORKDIR /app
 
@@ -10,6 +12,4 @@ COPY ./internal/settings/db /app/internal/settings/db
 # Expose the port the server listens on
 EXPOSE 80
 
-# Start the application
 CMD ["./server"]
-
