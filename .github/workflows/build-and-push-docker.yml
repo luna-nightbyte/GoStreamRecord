@@ -23,7 +23,6 @@ jobs:
 
       - name: Build Base
         run: |
-          echo VERSION=${{ env.VERSION }}
           docker build -f docker/Dockerfile.base -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
           docker tag lunanightbyte/gorecord-base:${{ env.VERSION }} lunanightbyte/gorecord-base:latest
       - name: Push Base image
