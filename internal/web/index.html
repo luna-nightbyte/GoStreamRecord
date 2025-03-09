@@ -546,7 +546,7 @@
               body: JSON.stringify({ data: { new: name } })
             });
             const data = await res.json();
-            showResponse(data.message, false);
+            showResponse("API key deleted!", false);
           } catch (err) {
             console.error(err);
             showResponse("Error deleting api key.", true);
@@ -575,7 +575,7 @@
           body: JSON.stringify({ data: name })
         });
         const data = await res.json();
-        showResponse(data.message, false);
+        showResponse("Added '"+name+"' to the list", false);
         input.value = "";
         populateStreamers();
       } catch (err) {
@@ -614,7 +614,7 @@
           body: JSON.stringify({ selected: name })
         });
         const data = await res.json();
-        showResponse(data.message, false);
+        showResponse("Removed "+name+" from the list of streamers.", false);
         populateStreamers();
       } catch (err) {
         console.error(err);
@@ -631,7 +631,7 @@
           body: JSON.stringify({ command, name })
         });
         const data = await res.json();
-        showResponse(data.message, false);
+        showResponse("Success!", false);
 
       } catch (err) {
         console.error(err);
@@ -656,7 +656,7 @@
         });
         console.log(res)
         const data = await res.json();
-        showResponse(data.ok, false);
+        showResponse("Success!", false);
         //         showResponse("File uploaded: " + JSON.stringify(data));
       } catch (err) {
         console.error(err);
@@ -778,12 +778,12 @@
         // Remove deleted videos from the list
         const result = await res.json();
         if (result.data.success) {
-          showResponse(result.data.message, false);
+          showResponse("Videos deleted!", false);
           populateVideos(); // refresh list
         }
       } catch (err) {
         console.error(err);
-        showResponse(result.data.message, result.data.success);
+        showResponse("Error deleting videos.", result.data.success);
       }
     };
 
@@ -995,7 +995,7 @@
           body: JSON.stringify({ username, password })
         });
         const data = await res.json();
-        showResponse(data.message, false);
+        showResponse("Add", false);
         document.getElementById("addUserName").value = "";
         document.getElementById("addUserPassword").value = "";
         populateUsers();
