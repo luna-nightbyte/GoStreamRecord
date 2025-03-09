@@ -6,7 +6,7 @@ RUN apk add --no-cache yt-dlp python3
 WORKDIR /app
 
 COPY --from=lunanightbyte/gorecord-base:latest /compiled/server ./server
-RUN mkdir -p /app/internal/settings
+RUN mkdir -p /app/internal/app
 
 COPY ./internal/app/db /app/internal/app/db
 # Expose the port the server listens on
