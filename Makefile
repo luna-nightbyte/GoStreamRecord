@@ -7,11 +7,20 @@ GIT_TAG := $(shell git describe --tags --always --dirty)
 # DEV
 
 .PHONY: run
-run:
-	go build -ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" -o server main.go && ./server
+run gen-loutput-key:
+	mkdir -p output/internal/app
+	cp -r internal/app/* output/internal/app
+	go build \
+		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" \
+		-o ./output/server main.go && \
+	cd output && \
+	./server
 
 
-
+.PHONY: gen-output-key
+gen-loutput-key:
+	rm -rf /output/.env
+	echo "SESSION_KEY=$(shell head -c 32 /dev/urandom | base64)" >> ./output/.env
 
 
 # DOCKER
