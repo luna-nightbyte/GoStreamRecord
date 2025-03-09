@@ -55,12 +55,9 @@ func init() {
 	fmt.Println(cyan("📂 Docs: https://github.com/luna-nightbyte/GoStreamRecord"))
 	handlers.IndexHTML = IndexHTML
 	handlers.LoginHTML = LoginHTML
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
-	}
+
 	os.Mkdir("./output", 0755)
-	cookies.Session = cookies.New([]byte(os.Getenv("SESSION_KEY")))
+	cookies.Session = cookies.New()
 	logger.Init(logger.Log_path)
 	bot.Init()
 
