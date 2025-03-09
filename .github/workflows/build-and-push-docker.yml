@@ -12,15 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Debug Secrets
-        run: |
-          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ] || [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
-            echo "DOCKERHUB secrets are missing!"
-            exit 1
-          else
-            echo "DOCKERHUB secrets found."
-          fi
+        with:
+          fetch-depth: 0 
       - name: Log in to DockerHub
         uses: docker/login-action@v3
         with:
