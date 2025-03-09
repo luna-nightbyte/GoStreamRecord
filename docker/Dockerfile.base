@@ -42,4 +42,4 @@ RUN go mod tidy && go mod download
 
 
 # Build
-RUN mkdir -p /compiled && CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-X 'GoRecordurbate/modules/db.Version=$(git describe --tags --always --dirty)'" -a -installsuffix cgo -o /compiled/server main.go
+RUN mkdir -p /compiled && CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-X 'GoStreamRecord/modules/db.Version=$(git describe --tags --always --dirty)'" -a -installsuffix cgo -o /compiled/server main.go
