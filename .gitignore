@@ -10,8 +10,6 @@ output/videos
 **.avi
 **.mp4
 
-go.mod
-go.sum
 tmp
 vue
 
