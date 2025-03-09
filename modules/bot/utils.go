@@ -1,9 +1,9 @@
 package bot
 
 import (
-	"GoRecordurbate/modules/bot/recorder"
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/file"
+	"GoStreamRecord/modules/bot/recorder"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/file"
 	"fmt"
 	"log"
 	"os"

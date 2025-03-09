@@ -1,9 +1,9 @@
 package login
 
 import (
-	"GoRecordurbate/modules/handlers/cookies"
-	"GoRecordurbate/modules/handlers/status"
-	web_status "GoRecordurbate/modules/handlers/status"
+	"GoStreamRecord/modules/handlers/cookies"
+	"GoStreamRecord/modules/handlers/status"
+	web_status "GoStreamRecord/modules/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"

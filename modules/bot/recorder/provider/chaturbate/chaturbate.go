@@ -1,7 +1,7 @@
 package chaturbate
 
 import (
-	"GoRecordurbate/modules/db"
+	"GoStreamRecord/modules/db"
 	"encoding/json"
 	"fmt"
 	"log"

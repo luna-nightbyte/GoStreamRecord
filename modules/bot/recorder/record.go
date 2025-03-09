@@ -1,7 +1,7 @@
 package recorder
 
 import (
-	"GoRecordurbate/modules/file"
+	"GoStreamRecord/modules/file"
 	"fmt"
 	"log"
 	"os/exec"

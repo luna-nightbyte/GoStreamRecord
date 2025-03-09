@@ -1,11 +1,11 @@
 package streamers
 
 import (
-	"GoRecordurbate/modules/bot"
-	"GoRecordurbate/modules/bot/recorder"
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/handlers/cookies"
-	"GoRecordurbate/modules/handlers/status"
+	"GoStreamRecord/modules/bot"
+	"GoStreamRecord/modules/bot/recorder"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/handlers/cookies"
+	"GoStreamRecord/modules/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"

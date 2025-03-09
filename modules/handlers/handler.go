@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/handlers/controller"
-	"GoRecordurbate/modules/handlers/cookies"
-	"GoRecordurbate/modules/handlers/login"
-	web_status "GoRecordurbate/modules/handlers/status"
-	"GoRecordurbate/modules/handlers/streamers"
-	"GoRecordurbate/modules/handlers/users"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/handlers/controller"
+	"GoStreamRecord/modules/handlers/cookies"
+	"GoStreamRecord/modules/handlers/login"
+	web_status "GoStreamRecord/modules/handlers/status"
+	"GoStreamRecord/modules/handlers/streamers"
+	"GoStreamRecord/modules/handlers/users"
 	"encoding/json"
 	"net/http"
 	"text/template"

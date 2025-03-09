@@ -1,11 +1,11 @@
 package status
 
 import (
-	"GoRecordurbate/modules/bot"
-	"GoRecordurbate/modules/bot/recorder"
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/file"
-	"GoRecordurbate/modules/handlers/cookies"
+	"GoStreamRecord/modules/bot"
+	"GoStreamRecord/modules/bot/recorder"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/file"
+	"GoStreamRecord/modules/handlers/cookies"
 	"encoding/json"
 	"net/http"
 )

@@ -1,11 +1,11 @@
 package users
 
 import (
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/file"
-	"GoRecordurbate/modules/handlers/cookies"
-	"GoRecordurbate/modules/handlers/login"
-	"GoRecordurbate/modules/handlers/status"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/file"
+	"GoStreamRecord/modules/handlers/cookies"
+	"GoStreamRecord/modules/handlers/login"
+	"GoStreamRecord/modules/handlers/status"
 	"encoding/json"
 	"net/http"
 )

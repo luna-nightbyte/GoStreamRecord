@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"GoRecordurbate/modules/bot"
-	"GoRecordurbate/modules/handlers/cookies"
-	web_status "GoRecordurbate/modules/handlers/status"
+	"GoStreamRecord/modules/bot"
+	"GoStreamRecord/modules/handlers/cookies"
+	web_status "GoStreamRecord/modules/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"

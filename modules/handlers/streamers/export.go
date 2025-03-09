@@ -1,8 +1,8 @@
 package streamers
 
 import (
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/handlers/cookies"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/handlers/cookies"
 	"net/http"
 )
 

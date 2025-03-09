@@ -1,11 +1,11 @@
 package db
 
 import (
-	dbapi "GoRecordurbate/modules/db/api"
-	dblogin "GoRecordurbate/modules/db/login"
-	"GoRecordurbate/modules/db/settings"
-	"GoRecordurbate/modules/db/streamers"
-	"GoRecordurbate/modules/file"
+	dbapi "GoStreamRecord/modules/db/api"
+	dblogin "GoStreamRecord/modules/db/login"
+	"GoStreamRecord/modules/db/settings"
+	"GoStreamRecord/modules/db/streamers"
+	"GoStreamRecord/modules/file"
 	"encoding/json"
 	"fmt"
 	"log"

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"GoRecordurbate/modules/bot"
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/file"
-	"GoRecordurbate/modules/handlers"
-	"GoRecordurbate/modules/handlers/cookies"
-	"GoRecordurbate/modules/handlers/login"
+	"GoStreamRecord/modules/bot"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/file"
+	"GoStreamRecord/modules/handlers"
+	"GoStreamRecord/modules/handlers/cookies"
+	"GoStreamRecord/modules/handlers/login"
 	"context"
 	_ "embed"
 	"fmt"
@@ -69,14 +69,14 @@ func init() {
 func main() {
 	if len(os.Args) > 1 {
 		if os.Args[1] != "reset-pwd" {
-			fmt.Println("Usage: ./GoRecordurbate reset-pwd <username> <new-password>")
+			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
 			fmt.Println("Otherwise run the server without any arguments.")
 			return
 		}
 
 		if len(os.Args) <= 2 {
 			fmt.Println("No username provided.")
-			fmt.Println("Usage: ./GoRecordurbate reset-pwd <username> <new-password>")
+			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
 			fmt.Println("Otherwise run the server without any arguments.")
 			return
 		}
@@ -84,7 +84,7 @@ func main() {
 		username := os.Args[2]
 		if len(os.Args) <= 3 {
 			fmt.Println("No new password provided.")
-			fmt.Println("Usage: ./GoRecordurbate reset-pwd <username> <new-password>")
+			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
 			fmt.Println("Otherwise run the server without any arguments.")
 			return
 		}

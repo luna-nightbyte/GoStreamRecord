@@ -1,9 +1,9 @@
 package cookies
 
 import (
-	"GoRecordurbate/modules/db"
-	dbapi "GoRecordurbate/modules/db/api"
-	"GoRecordurbate/modules/file"
+	"GoStreamRecord/modules/db"
+	dbapi "GoStreamRecord/modules/db/api"
+	"GoStreamRecord/modules/file"
 	"encoding/json"
 	"fmt"
 	"net/http"

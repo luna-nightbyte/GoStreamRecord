@@ -11,7 +11,7 @@ var (
 	Index_path           string = "./internal/web/index.html"
 	Login_path           string = "./internal/web/login.html"
 	Videos_folder        string = "./output/videos"
-	Log_path             string = "./output/GoRecordurbate.log"
+	Log_path             string = "./output/GoStreamRecord.log"
 )
 
 // isVideoFile returns true if the file extension indicates a video file.

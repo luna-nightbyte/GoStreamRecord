@@ -1,7 +1,7 @@
 package dbapi
 
 import (
-	"GoRecordurbate/modules/file"
+	"GoStreamRecord/modules/file"
 	"crypto/rand"
 	"encoding/hex"
 

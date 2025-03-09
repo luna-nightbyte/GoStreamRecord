@@ -1,8 +1,8 @@
 package provider
 
 import (
-	"GoRecordurbate/modules/bot/recorder/provider/bongacams"
-	"GoRecordurbate/modules/bot/recorder/provider/chaturbate"
+	"GoStreamRecord/modules/bot/recorder/provider/bongacams"
+	"GoStreamRecord/modules/bot/recorder/provider/chaturbate"
 	"encoding/json"
 	"fmt"
 )

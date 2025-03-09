@@ -1,9 +1,9 @@
 package streamers
 
 import (
-	"GoRecordurbate/modules/db"
-	"GoRecordurbate/modules/handlers/cookies"
-	web_status "GoRecordurbate/modules/handlers/status"
+	"GoStreamRecord/modules/db"
+	"GoStreamRecord/modules/handlers/cookies"
+	web_status "GoStreamRecord/modules/handlers/status"
 	"encoding/json"
 	"fmt"
 	"io"

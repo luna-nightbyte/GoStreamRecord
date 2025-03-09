@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"GoRecordurbate/modules/bot/recorder"
+	"GoStreamRecord/modules/bot/recorder"
 	"context"
 	"log"
 	"strings"

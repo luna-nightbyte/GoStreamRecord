@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"GoRecordurbate/modules/file"
-	"GoRecordurbate/modules/handlers/cookies"
+	"GoStreamRecord/modules/file"
+	"GoStreamRecord/modules/handlers/cookies"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
