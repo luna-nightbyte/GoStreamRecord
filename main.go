@@ -18,8 +18,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-
-	"github.com/joho/godotenv"
 )
 
 // Embed static HTML files
@@ -31,6 +29,7 @@ var IndexHTML string
 var LoginHTML string
 
 func init() {
+	
 	cyan := color.New(color.FgCyan).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
