@@ -26,7 +26,7 @@ jobs:
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - name: Build Base
         run: |
-          docker build -f docker/Dockerfile.base -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
+          docker build -f docker/Dockerfile.base --build-arg VERSION=${{ env.VERSION }} -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
           docker tag lunanightbyte/gorecord-base:${{ env.VERSION }} lunanightbyte/gorecord-base:latest
       - name: Push Base image
         run: |
