@@ -42,7 +42,7 @@ __important__: You will still need to have the `internal/settings` folder and it
       ```
 
 #### Optional config settings
-The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/Recordurbate-WebUI/blob/main/internal/settings/settings.json):
+The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/Recordurbate-WebUI/blob/main/internal/app/db/settings/settings.json):
 ```json
 {
   "app": {
@@ -68,25 +68,55 @@ To change forgotten password, start the program with the `reset-pwd` argument. I
 ./GoRecordurbate reset-pwd admin newpassword 
 ```
 New login for the user `admin` would then be `newpassword`
+
 ### Docker
+
+There is two docker images available:
+- [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size > 1.5GB )
+- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 30MB )
+
+#### docker-compose.yml
+
+##### Usage
+
+```
+docker compose up GoRecord -d
+
+# or
+
+docker compose up dev -d
+
+```
+
+##### Logs
+
+Docker logs can be found using `docker logs --tail 200 -f CONTAINER_NAME`. 
+
+#### APP (Minimalistic image)
 Files / folders needed to save app settings is (only need env file to just test the container):
 - [`.env`](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/tools/examples/.env.example) for password hashing.
-- [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/internal/settings) save login, api and streamer lists.
+- [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/internal/app/settings) save login, api and streamer lists.
 - `output` folder for saving output videos.
 
 App uses port __80__ by default internally.
 ```bash
 user@hostname:~$ docker run \
   -v ./.env:/app/.env  \
-  -v ./settings:/app/internal/settings \
+  -v ./internal/db:/app/internal/db \
   -p 8050:80 \
   docker.io/lunanightbyte/gorecord:latest
 ```
 
-Optionally, use the docker compose file: 
+#### Ubuntu based image
+
+
+```bash
+user@hostname:~$ docker run \
+  -v ./:/app  \
+  -p 8050:80 \
+  docker.io/lunanightbyte/gorecord-base:latest
 ```
-docker compose up GoRecord
-```
+
 
 ### Source
 #### Build
