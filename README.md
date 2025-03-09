@@ -1,5 +1,7 @@
-# GoRecord WebUI
-![image](https://github.com/user-attachments/assets/02d8204e-2451-4664-82c9-7d63a85f781e)
+# GoStreamRecord
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/02d8204e-2451-4664-82c9-7d63a85f781e" alt="Login page"/>
+</p>
 
 __API NOTE__: The API is still in early development. I've added checks for login/API, but i would not recommend exposing the port for this app on your router as of now. 
 ## Core Features
@@ -94,7 +96,7 @@ make app # Only app
 
 ##### Usage
 
-```
+```bash
 docker compose up GoRecord -d
 
 # or
