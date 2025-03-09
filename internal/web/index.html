@@ -189,199 +189,221 @@
                     <div id="videoFilesContainer"></div>
                   </div>
                   <div class="tab-pane fade" id="activeRecordersSection" role="tabpanel">
+                    <div class="card mb-3">
+                      <div class="card-header">
+                        Add a New Streamer
+                      </div>
+                      <div class="card-body">
+                        <form id="streamerForm">
+                          <div class="row g-3 align-items-center">
+                            <div class="col-md-5">
+                              <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name" required />
+                            </div>
+                            <div class="col-md-5">
+                              <input type="text" id="providerInput" class="form-control" placeholder="Hosting site" required />
+                            </div>
+                            <div class="col-md-2">
+                              <button type="button" class="btn btn-primary w-100" id="addStreamerButton">Add</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
                     <div id="recorderProcessesContainer"></div>
                   </div>
                 </div>
+                
               </div>
             </div>
-          </section>
+        </div>
+        </section>
 
-          <!-- Settings Section -->
-          <section class="tab-pane fade" id="settingsSection" role="tabpanel" aria-labelledby="v-pills-settings-tab">
-            <div class="card">
+        <!-- Settings Section -->
+        <section class="tab-pane fade" id="settingsSection" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+          <div class="card">
 
-              <div class="card-header">Settings</div>
-              <div class="card-body">
-                <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="users-management-tab" data-bs-toggle="tab"
-                      data-bs-target="#usersSection" type="button" role="tab">Users</button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="recorder-management-tab" data-bs-toggle="tab"
-                      data-bs-target="#recorderManagementSection" type="button" role="tab">Recorder</button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="api-management-tab" data-bs-toggle="tab"
-                      data-bs-target="#apiManagementSection" type="button" role="tab">API</button>
-                  </li>
-                </ul>
-                <div class="tab-content mt-3">
-                  <div class="tab-pane fade show active" id="usersSection" role="tabpanel">
+            <div class="card-header">Settings</div>
+            <div class="card-body">
+              <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="users-management-tab" data-bs-toggle="tab"
+                    data-bs-target="#usersSection" type="button" role="tab">Users</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="recorder-management-tab" data-bs-toggle="tab"
+                    data-bs-target="#recorderManagementSection" type="button" role="tab">Recorder</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="api-management-tab" data-bs-toggle="tab"
+                    data-bs-target="#apiManagementSection" type="button" role="tab">API</button>
+                </li>
+              </ul>
+              <div class="tab-content mt-3">
+                <div class="tab-pane fade show active" id="usersSection" role="tabpanel">
 
-                    <div class="card-body">
-                      <div class="card-header">Add user</div>
-                      <!-- Add New User -->
-                      <article class="mb-4">
-                        <form id="addUserForm">
-                          <div class="mb-3">
-                            <input type="text" id="addUserName" class="form-control" placeholder="Username" required />
-                          </div>
-                          <div class="mb-3">
-                            <input type="password" id="addUserPassword" class="form-control" placeholder="Password"
-                              required />
-                          </div>
-                          <button type="button" class="btn btn-primary" id="addUserButton">Add User</button>
-                        </form>
-                      </article>
-                      <hr />
-                      <!-- Update Existing User -->
-                      <article class="mb-4">
-                        <div class="card-header">Update User</div>
-                        <form id="updateUserForm">
-                          <div class="mb-3">
-                            <input type="text" id="updateUserName" class="form-control"
-                              placeholder="Select a user from the list to modify." />
-                          </div>
-                          <div class="mb-3">
-                            <input type="password" id="updateUserPassword" class="form-control"
-                              placeholder="New Password" />
-                          </div>
-                          <button type="button" class="btn btn-primary" id="updateUserButton">Update User</button>
-                        </form>
-                      </article>
-                      <!-- Current Users List -->
-                      <article>
-                        <div class="card-header">Current users</div>
-                        <ul class="list-group" id="userList">
-                          <!-- Dynamically populated -->
-                        </ul>
-                      </article>
-                    </div>
+                  <div class="card-body">
+                    <div class="card-header">Add user</div>
+                    <!-- Add New User -->
+                    <article class="mb-4">
+                      <form id="addUserForm">
+                        <div class="mb-3">
+                          <input type="text" id="addUserName" class="form-control" placeholder="Username" required />
+                        </div>
+                        <div class="mb-3">
+                          <input type="password" id="addUserPassword" class="form-control" placeholder="Password"
+                            required />
+                        </div>
+                        <button type="button" class="btn btn-primary" id="addUserButton">Add User</button>
+                      </form>
+                    </article>
+                    <hr />
+                    <!-- Update Existing User -->
+                    <article class="mb-4">
+                      <div class="card-header">Update User</div>
+                      <form id="updateUserForm">
+                        <div class="mb-3">
+                          <input type="text" id="updateUserName" class="form-control"
+                            placeholder="Select a user from the list to modify." />
+                        </div>
+                        <div class="mb-3">
+                          <input type="password" id="updateUserPassword" class="form-control"
+                            placeholder="New Password" />
+                        </div>
+                        <button type="button" class="btn btn-primary" id="updateUserButton">Update User</button>
+                      </form>
+                    </article>
+                    <!-- Current Users List -->
+                    <article>
+                      <div class="card-header">Current users</div>
+                      <ul class="list-group" id="userList">
+                        <!-- Dynamically populated -->
+                      </ul>
+                    </article>
+                  </div>
+                </div>
+
+
+
+
+
+                <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
+
+                  <div class="card-header" id="apiHeader">API keys</div>
+                  <div class="card-body">
+                    <form id="apiForm" class="mb-3">
+                      <label for="generateNewAPI" class="form-label">Generate new API secret key</label>
+                      <div class="input-group">
+                        <button type="button" class="btn btn-primary" id="generateNewAPIButton">Add</button>
+                      </div>
+                    </form>
+                    <article class="mb-4">
+                      <div class="card-header">API Keys</div>
+                      <ul class="list-group" id="apiKeyList">
+                        <!-- Dynamically populated -->
+                      </ul>
+
+                    </article>
                   </div>
 
 
 
 
 
-                  <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
+                </div>
 
-                    <div class="card-header" id="apiHeader">API keys</div>
-                    <div class="card-body">
-                      <form id="apiForm" class="mb-3">
-                        <label for="generateNewAPI" class="form-label">Generate new API secret key</label>
-                        <div class="input-group">
-                          <button type="button" class="btn btn-primary" id="generateNewAPIButton">Add</button>
-                        </div>
-                      </form>
-                      <article class="mb-4">
-                        <div class="card-header">API Keys</div>
-                        <ul class="list-group" id="apiKeyList">
-                          <!-- Dynamically populated -->
-                        </ul>
+                <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
 
-                      </article>
-                    </div>
+                  <div class="card-header">Streamers</div>
+                  <div class="card-body">
+                    <form id="streamerForm" class="mb-3">
+                      <label for="streamerInput" class="form-label">Add a New Streamer:</label>
+                      <div class="input-group">
+                        <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name"
+                          required />
+                        <input type="text" id="providerInput" class="form-control" placeholder="Hosting site"
+                          required />
+                        <button type="button" class="btn btn-primary" id="addStreamerButton">Add</button>
+                      </div>
+                    </form>
+                    <article class="mb-4">
+                      <div class="card-header">Current Streamers</div>
+                      <ul class="list-group" id="streamersList">
+                        <!-- Dynamically populated -->
+                      </ul>
 
-
-
-
-
+                    </article>
                   </div>
 
-                  <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
-
-                    <div class="card-header">Streamers</div>
+                  <!-- Import/Export Card -->
+                  <div class="card">
+                    <div class="card-header">Import/Export</div>
                     <div class="card-body">
-                      <form id="streamerForm" class="mb-3">
-                        <label for="streamerInput" class="form-label">Add a New Streamer:</label>
-                        <div class="input-group">
-                          <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name"
-                            required />
-                          <input type="text" id="providerInput" class="form-control" placeholder="Hosting site"
-                            required />
-                          <button type="button" class="btn btn-primary" id="addStreamerButton">Add</button>
-                        </div>
-                      </form>
-                      <article class="mb-4">
-                        <div class="card-header">Current Streamers</div>
-                        <ul class="list-group" id="streamersList">
-                          <!-- Dynamically populated -->
-                        </ul>
-
-                      </article>
-                    </div>
-
-                    <!-- Import/Export Card -->
-                    <div class="card">
-                      <div class="card-header">Import/Export</div>
-                      <div class="card-body">
-                        <div class="mb-4">
-                          <label for="importFile" class="form-label">Import File:</label>
-                          <input type="file" id="importFile" class="form-control mb-2" />
-                          <button type="button" class="btn btn-secondary" id="uploadFileButton">Upload</button>
-                        </div>
-                        <div>
-                          <label class="form-label">Export File:</label><br />
-                          <button type="button" class="btn btn-secondary" id="downloadFileButton">Download</button>
-                        </div>
+                      <div class="mb-4">
+                        <label for="importFile" class="form-label">Import File:</label>
+                        <input type="file" id="importFile" class="form-control mb-2" />
+                        <button type="button" class="btn btn-secondary" id="uploadFileButton">Upload</button>
+                      </div>
+                      <div>
+                        <label class="form-label">Export File:</label><br />
+                        <button type="button" class="btn btn-secondary" id="downloadFileButton">Download</button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
 
-
-        </div>
-        </section>
-
-
-
-
-        <!-- LiveStream Section -->
-        <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel" aria-labelledby="v-pills-LiveStream-tab">
-          <div class="card">
-            <div class="card-header">Live Stream Settings</div>
-            <div class="card-body">
-              <form id="livestreamForm" class="mb-3">
-                <div class="mb-3">
-                  <label for="chatStreamer" class="form-label">Streamer Name:</label>
-                  <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
-                </div>
-                <div class="mb-3">
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionChat" value="chat">
-                    <label class="form-check-label" for="optionChat">Show chat</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
-                      checked>
-                    <label class="form-check-label" for="optionLive">Live only</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
-                      value="interactive">
-                    <label class="form-check-label" for="optionInteractive">Interactive</label>
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-primary">Apply</button>
-              </form>
-              <hr />
-
-              <article class="mb-4">
-                <div class="card-header">Live Stream</div>
-                <ul id="liveStreamCamera">
-                  <!-- Dynamically populated -->
-                </ul>
-
-              </article>
-            </div>
           </div>
-        </section>
+
+
     </div>
-    </main>
+    </section>
+
+
+
+
+    <!-- LiveStream Section -->
+    <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel" aria-labelledby="v-pills-LiveStream-tab">
+      <div class="card">
+        <div class="card-header">Live Stream Settings</div>
+        <div class="card-body">
+          <form id="livestreamForm" class="mb-3">
+            <div class="mb-3">
+              <label for="chatStreamer" class="form-label">Streamer Name:</label>
+              <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
+            </div>
+            <div class="mb-3">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="livestream-option" id="optionChat" value="chat">
+                <label class="form-check-label" for="optionChat">Show chat</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
+                  checked>
+                <label class="form-check-label" for="optionLive">Live only</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
+                  value="interactive">
+                <label class="form-check-label" for="optionInteractive">Interactive</label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Apply</button>
+          </form>
+          <hr />
+
+          <article class="mb-4">
+            <div class="card-header">Live Stream</div>
+            <ul id="liveStreamCamera">
+              <!-- Dynamically populated -->
+            </ul>
+
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+  </main>
   </div>
   </div>
 
@@ -575,7 +597,7 @@
           body: JSON.stringify({ data: name })
         });
         const data = await res.json();
-        showResponse("Added '"+name+"' to the list", false);
+        showResponse("Added '" + name + "' to the list", false);
         input.value = "";
         populateStreamers();
       } catch (err) {
@@ -614,7 +636,7 @@
           body: JSON.stringify({ selected: name })
         });
         const data = await res.json();
-        showResponse("Removed "+name+" from the list of streamers.", false);
+        showResponse("Removed " + name + " from the list of streamers.", false);
         populateStreamers();
       } catch (err) {
         console.error(err);
