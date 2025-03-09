@@ -9,7 +9,7 @@ base:
 	docker build \
 		--build-arg TAG=$(TAG) \
 		-t lunanightbyte/gorecord-base:$(TAG) .
-	docker push lunanightbyte/gorecord-base:$(TAG)
+	docker push lunanightbyte/gorecord-base:$(TAG) # Must be pushed t use in 'app' image
 
 .PHONY: app
 app:
