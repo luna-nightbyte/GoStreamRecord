@@ -165,25 +165,25 @@ go run main.go
 _Online status with a small bug at the time of uploading this.._
 ## Other
 
-### Todo / Ideas
-- Log online-time of streamers and save to csv for graph plotting. Can help understand the work-hours of different streamers.
+### Todo
+
 - ~~Select and delete videos~~
-- Option to login to the streaming site and use follower list instead of config? (Unsure)
 - Option for max video length (and size?)
 - ~~headless mode without webui~~ (Abandoned because i will not create all the logic for handling the various arguments myself. Others can create a PR if they want to.)
 - Move frontend to Vue
   - Btter for organizing components being re-used
-- Build a default docker image
+- ~~Build a default docker image~~
 - Individual recorders in UI
   - ~~Start/Restart individual recorders (in progress)~~
   - set max lenght/size (could be optional to use one of either)
   - view current recording length
-  - view current recording video
 - ~~Better video view~~
 - Add support for multiple websites
+### Ideas (not planned
+- Log online-time of streamers and save to csv for graph plotting. Can help understand the work-hours of different streamers.
+- Option to login to the streaming site and use follower list instead of config? (Unsure)
+- View current videos in progress.
 - Add option to try and use a custom url.
-
-
 ### Disclaimer 
 Unauthorized resale, redistribution, or sharing of recorded content that you do not own or have explicit permission to distribute is strictly prohibited. Users are solely responsible for ensuring compliance with all applicable copyright and privacy laws. The creator of this recorder assumes no liability for any misuse or legal consequences arising from user actions.
 
