@@ -18,7 +18,6 @@ type Chaturbate struct {
 
 var provider_url string = "https://chaturbate.com/"
 
-
 func (b *Chaturbate) Init(username string) any {
 	b.Url = provider_url
 	b.CorrectedName = username
@@ -37,7 +36,7 @@ func (c *Chaturbate) IsOnline(username string) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusOK { // Streamer is not online if response if not 200
+	if resp.StatusCode != http.StatusOK { // Streamer is not online if response if not 200
 		return false
 
 	}
