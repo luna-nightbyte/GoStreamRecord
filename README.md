@@ -35,15 +35,6 @@ __important__: You will still need to have the `internal/settings` folder and it
 
 - Download this repo and open a terminal in this folder. Ask ChatGPT how to find the folder path and how to move into it via cli if you dont know.
 
-- Copy [`.env.example`](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/tools/examples/.env.example) to `.env` and add your own session key. (se the one below as long as the app is not exposed outside your local network__IF__ you dont know how to create one. _hint: just ask chatGPT_). 
-    - Can be generated with this command on linux.: `head -c 32 /dev/urandom | base64`
-      I.e:
-      ```bash
-      user@user:~/Recordurbate$ head -c 32 /dev/urandom | base64
-      # Output
-      Fl60B6sTqAUARyDiC6GIor8AIu6QXLF2RMvWK1Wz3eE=
-      ```
-
 #### Optional config settings
 The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/Recordurbate-WebUI/blob/main/internal/app/db/settings/settings.json):
 ```json
@@ -111,14 +102,12 @@ Docker logs can be found using `docker logs --tail 200 -f CONTAINER_NAME`.
 
 #### APP (Minimalistic image)
 Files / folders needed to save app settings is (only need env file to just test the container):
-- [`.env`](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/tools/examples/.env.example) for password hashing.
 - [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/internal/app/settings) save login, api and streamer lists.
 - `output` folder for saving output videos.
 
 App uses port __80__ by default internally.
 ```bash
 user@hostname:~$ docker run \
-  -v ./.env:/app/.env  \
   -v ./internal/db:/app/internal/db \
   -p 8050:80 \
   docker.io/lunanightbyte/gorecord:latest
