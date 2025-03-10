@@ -165,6 +165,9 @@ go run main.go
 _Online status with a small bug at the time of uploading this.._
 
 ## Make command list
+
+__Note:__ This is intended to be used together with the source files.
+
 - `make reset-pwd USERNAME=admin PASSWORD=MySecretPassword` - Resets password for the __admin__ user.
 - `make app` - Builds and starts the app within the output folder
 - `make build-and-push` - Builds all docker images and pushes them
