@@ -1,5 +1,7 @@
-# GoRecord WebUI
-![image](https://github.com/user-attachments/assets/02d8204e-2451-4664-82c9-7d63a85f781e)
+# GoStreamRecord
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/02d8204e-2451-4664-82c9-7d63a85f781e" alt="Login page"/>
+</p>
 
 __API NOTE__: The API is still in early development. I've added checks for login/API, but i would not recommend exposing the port for this app on your router as of now. 
 ## Core Features
@@ -94,7 +96,7 @@ make app # Only app
 
 ##### Usage
 
-```
+```bash
 docker compose up GoRecord -d
 
 # or
@@ -149,7 +151,7 @@ go mod tidy
 go run main.go
 ```
 
-## WebUI (outdated)
+## WebUI (v0.1.x)
 
 
 <p align="center">
@@ -178,25 +180,25 @@ __Note:__ This is intended to be used together with the source files.
 
 ## Other
 
-### Todo / Ideas
-- Log online-time of streamers and save to csv for graph plotting. Can help understand the work-hours of different streamers.
+### Todo
+
 - ~~Select and delete videos~~
-- Option to login to the streaming site and use follower list instead of config? (Unsure)
 - Option for max video length (and size?)
 - ~~headless mode without webui~~ (Abandoned because i will not create all the logic for handling the various arguments myself. Others can create a PR if they want to.)
 - Move frontend to Vue
   - Btter for organizing components being re-used
-- Build a default docker image
+- ~~Build a default docker image~~
 - Individual recorders in UI
   - ~~Start/Restart individual recorders (in progress)~~
   - set max lenght/size (could be optional to use one of either)
   - view current recording length
-  - view current recording video
 - ~~Better video view~~
 - Add support for multiple websites
+### Ideas (not planned
+- Log online-time of streamers and save to csv for graph plotting. Can help understand the work-hours of different streamers.
+- Option to login to the streaming site and use follower list instead of config? (Unsure)
+- View current videos in progress.
 - Add option to try and use a custom url.
-
-
 ### Disclaimer 
 Unauthorized resale, redistribution, or sharing of recorded content that you do not own or have explicit permission to distribute is strictly prohibited. Users are solely responsible for ensuring compliance with all applicable copyright and privacy laws. The creator of this recorder assumes no liability for any misuse or legal consequences arising from user actions.
 
