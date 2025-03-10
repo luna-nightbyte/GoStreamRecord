@@ -82,7 +82,7 @@ func (c *Chaturbate) IsRoomPublic(username string) bool {
 
 // Not necessary for this as of now.
 func (b *Chaturbate) TrueName(name string) string {
-	return name
+	return strings.ToLower(name)
 }
 
 // Not necessary for this as of now.
