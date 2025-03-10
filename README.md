@@ -28,7 +28,7 @@ __API NOTE__: The API is still in early development. I've added checks for login
 ## Usage
 |Username|Password|
 |-|-|
-|`admin`|see [this](https://github.com/luna-nightbyte/Recordurbate-WebUI/tree/main?tab=readme-ov-file#reset-password)|
+|`admin`|`password`|
 
 ### Setup
 __important__: You will still need to have the `internal/settings` folder and it's content in the same folder structure when running this app. That means that you'll have to copy that along with any binary you build.
@@ -42,16 +42,11 @@ The main settings can be found in [`settings.json`](https://github.com/luna-nigh
   "app": {
     "port": 8055,
     "loop_interval_in_minutes": 2,
-    "video_output_folder": "output/videos",
+    "video_output_folder": "videos",
     "rate_limit": {
       "enable": true,
       "time": 5
     },
-    "default_export_location": "./output/list.txt"
-
-  },
-  "youtube-dl": {
-    "binary": "youtube-dl"
   },
   "auto_reload_config": true
 }
@@ -73,14 +68,10 @@ There is two docker images available:
 Use the Makefile to build images to ensure proper tagging.
 ```bash
 make build # Builds all
-
 # or 
-
-make base # Only base
-
+make build-base # Only base
 # or 
-
-make app # Only app
+make build-app # Only app
 ```
 
 #### docker-compose.yml
@@ -89,11 +80,8 @@ make app # Only app
 
 ```bash
 docker compose up GoRecord -d
-
 # or
-
 docker compose up dev -d
-
 ```
 
 ##### Logs
@@ -125,8 +113,15 @@ user@hostname:~$ docker run \
 
 
 ### Source
-#### Build
+#### Build and run
 Building the code wil create a binary for your os system. Golang is [cross-compatible](https://go.dev/wiki/GccgoCrossCompilation) for windows, linux and mac.
+
+##### Make: 
+```bash
+make app
+```
+
+##### Go:
 ```bash
 go mod init GoStreamRecord # Only run this line once
 go mod tidy
@@ -134,26 +129,14 @@ go build
 ./GoStreamRecord #windows will have 'GoStreamRecord.exe'
 ```
 #### Source
+##### Go:
 ```bash
 go mod init GoStreamRecord # Only run this line once
 go mod tidy
 go run main.go
 ```
 
-## WebUI (v0.1.x)
 
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/edf30517-de6a-4f91-9ab4-89f9c91d7779" alt="Login page"/>
-  <img src="https://github.com/user-attachments/assets/5d939bc0-778b-42c8-a453-eb30c13e95e2" alt="Video tab"/>
-  <img src="https://github.com/user-attachments/assets/0ce5b2c1-e7f3-47bb-96e9-1532915dd5e4" alt="individual tab"/>
-  <img src="https://github.com/user-attachments/assets/7736fac5-5ce8-4634-8179-6ea2cf03969b" alt="User settings tab"/>
-  
-  <img src="https://github.com/user-attachments/assets/ced11119-8e74-4c15-8aff-6c31242f8fe5" alt="Streamers tab"/>
-  <img src="https://github.com/user-attachments/assets/edc136e5-0238-463e-b8f3-d4b1b7e74687" alt="Livestream tab"/>
-</p>
-
-_Online status with a small bug at the time of uploading this.._
 
 ## Make command list
 
@@ -190,7 +173,20 @@ __Note:__ This is intended to be used together with the source files.
 - Add option to try and use a custom url.
 ### Disclaimer 
 Unauthorized resale, redistribution, or sharing of recorded content that you do not own or have explicit permission to distribute is strictly prohibited. Users are solely responsible for ensuring compliance with all applicable copyright and privacy laws. The creator of this recorder assumes no liability for any misuse or legal consequences arising from user actions.
+## WebUI (v0.1.x)
 
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/edf30517-de6a-4f91-9ab4-89f9c91d7779" alt="Login page"/>
+  <img src="https://github.com/user-attachments/assets/5d939bc0-778b-42c8-a453-eb30c13e95e2" alt="Video tab"/>
+  <img src="https://github.com/user-attachments/assets/0ce5b2c1-e7f3-47bb-96e9-1532915dd5e4" alt="individual tab"/>
+  <img src="https://github.com/user-attachments/assets/7736fac5-5ce8-4634-8179-6ea2cf03969b" alt="User settings tab"/>
+  
+  <img src="https://github.com/user-attachments/assets/ced11119-8e74-4c15-8aff-6c31242f8fe5" alt="Streamers tab"/>
+  <img src="https://github.com/user-attachments/assets/edc136e5-0238-463e-b8f3-d4b1b7e74687" alt="Livestream tab"/>
+</p>
+
+_Online status with a small bug at the time of uploading this.._
 ## Thanks
 
 Special thanks to [oliverjrose99](https://github.com/oliverjrose99) for the initial inspiration and their work on [Recordurbate](https://github.com/oliverjrose99/Recordurbate). Initial code of this project was directly inspired by their project.
