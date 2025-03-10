@@ -165,7 +165,7 @@ go run main.go
 _Online status with a small bug at the time of uploading this.._
 
 ## Make command list
-- `make reset-pwd USERNAME=admin PASSWORD=ySecretPassword` - Resets password for the __admin__ user.
+- `make reset-pwd USERNAME=admin PASSWORD=MySecretPassword` - Resets password for the __admin__ user.
 - `make app` - Builds and starts the app within the output folder
 - `make build-and-push` - Builds all docker images and pushes them
 - `make build-base` - Builds [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) image
