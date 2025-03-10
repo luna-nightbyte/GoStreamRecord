@@ -16,3 +16,6 @@ vue
 output
 
 **/youtube-dl.config
+
+
+.env
