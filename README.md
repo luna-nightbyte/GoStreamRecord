@@ -1,6 +1,6 @@
 # GoStreamRecord
 <p align="center">
- <img src="https://github.com/user-attachments/assets/02d8204e-2451-4664-82c9-7d63a85f781e" alt="Login page"/>
+ <img src="https://github.com/user-attachments/assets/1eb7fd04-e421-47f6-bff0-fc75fdfd6f21" alt="Login page"/>
 </p>
 
 __API NOTE__: The API is still in early development. I've added checks for login/API, but i would not recommend exposing the port for this app on your router as of now. 
