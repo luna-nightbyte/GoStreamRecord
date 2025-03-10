@@ -3,36 +3,45 @@
 # Get the latest Git tag for versioning
 GIT_TAG := $(shell git describe --tags --always --dirty)
 
+user := $1
+pass := $2
 
-# DEV
 
-.PHONY: build-go
-build-go:
+
+# GOLANG
+#-- app
+.PHONY: app
+app:
+	mkdir -p output/internal/app
+	cp -r internal/app/* output/internal/app
 	go build \
 		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" \
 		-o ./output/server main.go 
-
-.PHONY: run
-run:
-	mkdir -p output/internal/app
-	cp -r internal/app/* output/internal/app
-	make build-go
 	cd output && \
 	./server
-
+	
+#-- reset password
+.PHONY: reset-pwd
+reset-pwd:
+	go build \
+		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" \
+		-o ./server main.go 
+	./server reset-pwd $(user) $(pass) # Updating password in ./output
+	
+	
 # DOCKER
 .PHONY: build
-build: base app
+build: build-base build-app
 
 .PHONY: base
-base: push-base
+build-base: push-base
 	docker build \
 		--build-arg TAG=$(GIT_TAG) \
 		-t lunanightbyte/gorecord-base:$(GIT_TAG) . \
 		-f ./docker/Dockerfile.base \
 
-.PHONY: app
-app: push-app
+.PHONY: build-app
+build-app: push-app
 	docker build \
 		--build-arg TAG=$(GIT_TAG) \
 		-t lunanightbyte/gorecord:$(GIT_TAG) . \
@@ -46,9 +55,3 @@ push-app:
 .PHONY: push-app
 push-base:
 	docker push lunanightbyte/gorecord-base:$(GIT_TAG)
-
-# Clean up dangling images
-.PHONY: clean
-clean:
-	docker image prune -f
-
