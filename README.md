@@ -128,14 +128,14 @@ user@hostname:~$ docker run \
 #### Build
 Building the code wil create a binary for your os system. Golang is [cross-compatible](https://go.dev/wiki/GccgoCrossCompilation) for windows, linux and mac.
 ```bash
-go mod init GoRecordurbate # Only run this line once
+go mod init GoStreamRecord # Only run this line once
 go mod tidy
 go build
-./GoRecordurbate #windows will have 'GoRecordurbate.exe'
+./GoStreamRecord #windows will have 'GoStreamRecord.exe'
 ```
 #### Source
 ```bash
-go mod init GoRecordurbate # Only run this line once
+go mod init GoStreamRecord # Only run this line once
 go mod tidy
 go run main.go
 ```
