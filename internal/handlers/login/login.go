@@ -38,7 +38,8 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	session, err := cookies.Session.Store().Get(r, "session")
 	if err != nil {
-		resp.Message = "Session error"
+		resp.Message = "Session error. Try clearing your cookies."
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 		return

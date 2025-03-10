@@ -44,7 +44,8 @@ func (s *session) IsLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 	// Retrieve the session
 	session, err := s.cookies.Get(r, "session")
 	if err != nil {
-		http.Error(w, "Session error", http.StatusInternalServerError)
+		http.RedirectHandler("/login", http.StatusInternalServerError)
+		//http.Error(w, "Session error. Try clearing your cookies.", http.StatusInternalServerError)
 		return false
 	}
 
