@@ -28,13 +28,21 @@ var IndexHTML string
 //go:embed internal/app/web/login.html
 var LoginHTML string
 
+var (
+	password_was_reset bool
+	cyan               = color.New(color.FgCyan).SprintFunc()
+	green              = color.New(color.FgGreen).SprintFunc()
+	yellow             = color.New(color.FgYellow).SprintFunc()
+	boldRed            = color.New(color.FgRed, color.Bold).SprintFunc()
+	boldWhite          = color.New(color.FgWhite, color.Bold).SprintFunc()
+	boldBlue           = color.New(color.FgBlue, color.Bold).SprintFunc()
+)
+
 func init() {
-	
-	cyan := color.New(color.FgCyan).SprintFunc()
-	green := color.New(color.FgGreen).SprintFunc()
-	yellow := color.New(color.FgYellow).SprintFunc()
-	boldWhite := color.New(color.FgWhite, color.Bold).SprintFunc()
-	boldBlue := color.New(color.FgBlue, color.Bold).SprintFunc()
+	checkArgs()
+	if password_was_reset {
+		return
+	}
 
 	fmt.Print(boldBlue(`
   ____      ____  _                            ____                        _ 
@@ -63,49 +71,8 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) > 1 {
-		if os.Args[1] != "reset-pwd" {
-			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
-			fmt.Println("Otherwise run the server without any arguments.")
-			return
-		}
-
-		if len(os.Args) <= 2 {
-			fmt.Println("No username provided.")
-			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
-			fmt.Println("Otherwise run the server without any arguments.")
-			return
-		}
-
-		username := os.Args[2]
-		if len(os.Args) <= 3 {
-			fmt.Println("No new password provided.")
-			fmt.Println("Usage: ./GoStreamRecord reset-pwd <username> <new-password>")
-			fmt.Println("Otherwise run the server without any arguments.")
-			return
-		}
-
-		newPassword := os.Args[3]
-		userFound := false
-
-		for i, u := range db.Config.Users.Users {
-			if u.Name == username {
-				db.Config.Users.Users[i].Key = string(login.HashedPassword(newPassword))
-				userFound = true
-				break
-			}
-		}
-
-		if !userFound {
-			log.Println("No matching username found.")
-			fmt.Println("No matching username found.")
-			return
-		}
-		db.Config.Update("users", "users.json", &db.Config.Users)
-		log.Println("Password updated for", username)
-		fmt.Println("Password updated for", username)
-		return // Exit after resetting password
-
+	if password_was_reset {
+		return
 	}
 
 	//http.Handle("/", fs)
@@ -142,6 +109,50 @@ func main() {
 	log.Println("Server exited gracefully")
 }
 
-var startup_message string = `
+func checkArgs() {
+	if len(os.Args) > 1 {
+		if os.Args[1] != "reset-pwd" {
+			fmt.Println(cyan("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
+			fmt.Println(cyan("Otherwise run the server without any arguments."))
+			return
+		}
 
-`
+		password_was_reset = true
+		if len(os.Args) <= 2 {
+			fmt.Println(boldRed("No username provided."))
+			fmt.Println(boldRed("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
+			fmt.Println(boldRed("Otherwise run the server without any arguments."))
+			return
+		}
+
+		username := os.Args[2]
+		if len(os.Args) <= 3 {
+			fmt.Println(boldRed("No new password provided."))
+			fmt.Println(boldRed("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
+			fmt.Println(boldRed("Otherwise run the server without any arguments."))
+			return
+		}
+
+		newPassword := os.Args[3]
+		userFound := false
+
+		for i, u := range db.Config.Users.Users {
+			fmt.Println(username, u.Name)
+			if u.Name == username {
+				db.Config.Users.Users[i].Key = string(login.HashedPassword(newPassword))
+				userFound = true
+				break
+			}
+		}
+		if !userFound {
+			log.Println("No matching username found.")
+			fmt.Println(boldRed("No matching username found."))
+			return
+		}
+		db.Config.Update("users", "users.json", &db.Config.Users)
+		log.Println("Password updated for", username)
+		fmt.Println(green("Password updated for "), boldWhite(username))
+		return // Exit after resetting password
+
+	}
+}
