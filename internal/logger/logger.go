@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	logFile *os.File
+	logFile  *os.File
+	Log_path string = "./GoStreamRecord.log"
 )
 
 // logWriter implements io.Writer to format logs with timestamp & caller info
