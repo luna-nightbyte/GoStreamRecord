@@ -6,6 +6,14 @@ import (
 	"fmt"
 )
 
+func PrintUsage() {
+	fmt.Println(prettyprint.Cyan("Usage:"))
+	for _, cmd := range Commands {
+		fmt.Println(prettyprint.Cyan(" - " + cmd.Usage))
+	}
+	fmt.Println(prettyprint.Cyan("Otherwise run the server without any arguments."))
+}
+
 func PrintStartup() {
 
 	fmt.Print(prettyprint.BoldBlue(`
