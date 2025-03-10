@@ -1,7 +1,7 @@
 
 
 # Get the latest Git tag for versioning
-GIT_TAG := $(shell git describe --tags --always --dirty)
+GIT_TAG := $(shell git describe --tags --always --dirty)-$(shell git describe --all)
 
 user := $1
 pass := $2
@@ -26,7 +26,7 @@ reset-pwd:
 	go build \
 		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" \
 		-o ./server main.go 
-	./server reset-pwd $(user) $(pass) # Updating password in ./output
+	./server reset-pwd $(user) $(pass)
 	
 	
 # DOCKER
