@@ -5,8 +5,9 @@ import (
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers"
 	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/login"
 	"GoStreamRecord/internal/logger"
+	"GoStreamRecord/internal/prettyprint"
+	"GoStreamRecord/internal/startup"
 	"context"
 	_ "embed"
 	"fmt"
@@ -16,8 +17,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 // Embed static HTML files
@@ -30,51 +29,38 @@ var LoginHTML string
 
 var (
 	password_was_reset bool
-	cyan               = color.New(color.FgCyan).SprintFunc()
-	green              = color.New(color.FgGreen).SprintFunc()
-	yellow             = color.New(color.FgYellow).SprintFunc()
-	boldRed            = color.New(color.FgRed, color.Bold).SprintFunc()
-	boldWhite          = color.New(color.FgWhite, color.Bold).SprintFunc()
-	boldBlue           = color.New(color.FgBlue, color.Bold).SprintFunc()
 )
 
 func init() {
-	checkArgs()
-	if password_was_reset {
-		return
-	}
-
-	fmt.Print(boldBlue(`
-  ____      ____  _                            ____                        _ 
- / ___| ___/ ___|| |_ _ __ ___  __ _ _ __ ___ |  _ \ ___  ___ ___  _ __ __| |
-| |  _ / _ \___ \| __| '__/ _ \/ _' | '_ ' _ \| |_) / _ \/ __/ _ \| '__/ _' |
-| |_| | (_) |__) | |_| | |  __/ (_| | | | | | |  _ <  __/ (_| (_) | | | (_| |
- \____|\___/____/ \__|_|  \___|\__,_|_| |_| |_|_| \_\___|\___\___/|_|  \__,_|
-
-	 `))
-
-	fmt.Println(green("🚀 GoStreamRecorder - ") + boldWhite(db.Version+"\n"))
-	fmt.Println(yellow("🔹 Written in Go — Fast. Reliable. Efficient."))
-	fmt.Println(yellow("🔹 Manage streamers, users, and API keys."))
-	fmt.Println(yellow("🔹 Record what you want, when you want."))
-	fmt.Println(yellow("🔹 API Ready. Automation Friendly."))
-	fmt.Println()
-	fmt.Println(cyan("📂 Docs: https://github.com/luna-nightbyte/GoStreamRecord"))
 	handlers.IndexHTML = IndexHTML
 	handlers.LoginHTML = LoginHTML
-
-	os.Mkdir("./output", 0755)
-	cookies.Session = cookies.New()
-	logger.Init(logger.Log_path)
-	bot.Init()
 
 }
 
 func main() {
-	if password_was_reset {
+	if len(os.Args) < 2 {
+		startup.PrintStartup()
+		cookies.Session = cookies.New()
+		logger.Init(logger.Log_path)
+		bot.Init()
+		server() // No arguments: run the server.
 		return
 	}
 
+	cmdName := os.Args[1]
+	cmd, exists := startup.Commands[cmdName]
+	if !exists {
+		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
+		startup.PrintUsage()
+		return
+	}
+
+	// Execute the command with the remaining arguments.
+	cmd.Execute(os.Args[2:])
+
+}
+
+func server() {
 	//http.Handle("/", fs)
 	handlers.Handle()
 	server := &http.Server{
@@ -107,52 +93,4 @@ func main() {
 	}
 
 	log.Println("Server exited gracefully")
-}
-
-func checkArgs() {
-	if len(os.Args) > 1 {
-		if os.Args[1] != "reset-pwd" {
-			fmt.Println(cyan("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
-			fmt.Println(cyan("Otherwise run the server without any arguments."))
-			return
-		}
-
-		password_was_reset = true
-		if len(os.Args) <= 2 {
-			fmt.Println(boldRed("No username provided."))
-			fmt.Println(boldRed("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
-			fmt.Println(boldRed("Otherwise run the server without any arguments."))
-			return
-		}
-
-		username := os.Args[2]
-		if len(os.Args) <= 3 {
-			fmt.Println(boldRed("No new password provided."))
-			fmt.Println(boldRed("Usage: ./GoStreamRecord reset-pwd <username> <new-password>"))
-			fmt.Println(boldRed("Otherwise run the server without any arguments."))
-			return
-		}
-
-		newPassword := os.Args[3]
-		userFound := false
-
-		for i, u := range db.Config.Users.Users {
-			fmt.Println(username, u.Name)
-			if u.Name == username {
-				db.Config.Users.Users[i].Key = string(login.HashedPassword(newPassword))
-				userFound = true
-				break
-			}
-		}
-		if !userFound {
-			log.Println("No matching username found.")
-			fmt.Println(boldRed("No matching username found."))
-			return
-		}
-		db.Config.Update("users", "users.json", &db.Config.Users)
-		log.Println("Password updated for", username)
-		fmt.Println(green("Password updated for "), boldWhite(username))
-		return // Exit after resetting password
-
-	}
 }

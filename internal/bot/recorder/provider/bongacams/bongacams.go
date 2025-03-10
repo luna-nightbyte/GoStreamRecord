@@ -17,7 +17,7 @@ type BongaCams struct {
 
 var provider_url string = "https://bongacams.com/"
 
-func (b *BongaCams) Init( username string) any {
+func (b *BongaCams) Init(username string) any {
 	b.Url = provider_url
 	b.CorrectedName = b.TrueName(username)
 	return b
@@ -26,7 +26,10 @@ func (b *BongaCams) Init( username string) any {
 // IsOnline checks if the streamer is online by checking if a thumbnail is available from the stream.
 func (b *BongaCams) IsOnline(username string) bool {
 	state := b.getState(username)
-	fmt.Println(state)
+	if (state == InitialState{}) {
+		log.Println("Error recieving online state.")
+		return false
+	}
 	b.CorrectedName = state.ChatHost.Username
 	return state.ChatHost.Online && state.ChatHost.ShowType == "public"
 }
