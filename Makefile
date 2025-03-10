@@ -26,7 +26,7 @@ reset-pwd:
 	go build \
 		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(GIT_TAG)'" \
 		-o ./server main.go 
-	./server reset-pwd $(user) $(pass) # Updating password in ./output
+	./server reset-pwd $(user) $(pass) 
 	
 	
 # DOCKER
