@@ -31,7 +31,7 @@ __API NOTE__: The API is still in early development. I've added checks for login
 |`admin`|`password`|
 
 ### Setup
-__important__: You will still need to have the `internal/settings` folder and it's content in the same folder structure when running this app. That means that you'll have to copy that along with any binary you build.
+__important__: You will still need to have the `internal/app` folder and it's content in the same folder structure when running this app. That means that you'll have to copy that along with any binary you build.
 
 - Download this repo and open a terminal in this folder. Ask ChatGPT how to find the folder path and how to move into it via cli if you dont know.
 
