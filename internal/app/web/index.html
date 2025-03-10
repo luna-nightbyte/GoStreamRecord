@@ -118,15 +118,12 @@
 
 <body>
   <!-- Header with Title and Status -->
-
   <header>
     <h1>GoStreamRecord WebUI</h1>
   </header>
-
   <div id="statusIndicator">Status:</div>
   <div class="container-fluid">
     <div class="row">
-
       <!-- Sidebar Navigation -->
       <aside class="col-md-3">
         <nav class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -145,7 +142,6 @@
           </a>
         </nav>
       </aside>
-
       <!-- Main Content Area -->
       <main class="col-md-9">
 
@@ -197,10 +193,12 @@
                         <form id="streamerForm">
                           <div class="row g-3 align-items-center">
                             <div class="col-md-5">
-                              <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name" required />
+                              <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name"
+                                required />
                             </div>
                             <div class="col-md-5">
-                              <input type="text" id="providerInput" class="form-control" placeholder="Hosting site" required />
+                              <input type="text" id="providerInput" class="form-control" placeholder="Hosting site"
+                                required />
                             </div>
                             <div class="col-md-2">
                               <button type="button" class="btn btn-primary w-100" id="addStreamerButton">Add</button>
@@ -212,7 +210,7 @@
                     <div id="recorderProcessesContainer"></div>
                   </div>
                 </div>
-                
+
               </div>
             </div>
         </div>
@@ -281,11 +279,6 @@
                     </article>
                   </div>
                 </div>
-
-
-
-
-
                 <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
 
                   <div class="card-header" id="apiHeader">API keys</div>
@@ -304,11 +297,6 @@
 
                     </article>
                   </div>
-
-
-
-
-
                 </div>
 
                 <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
@@ -330,10 +318,8 @@
                       <ul class="list-group" id="streamersList">
                         <!-- Dynamically populated -->
                       </ul>
-
                     </article>
                   </div>
-
                   <!-- Import/Export Card -->
                   <div class="card">
                     <div class="card-header">Import/Export</div>
@@ -352,59 +338,53 @@
                 </div>
               </div>
             </div>
+        </section>
 
+
+
+
+        <!-- LiveStream Section -->
+        <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel" aria-labelledby="v-pills-LiveStream-tab">
+          <div class="card">
+            <div class="card-header">Live Stream Settings</div>
+            <div class="card-body">
+              <form id="livestreamForm" class="mb-3">
+                <div class="mb-3">
+                  <label for="chatStreamer" class="form-label">Streamer Name:</label>
+                  <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
+                </div>
+                <div class="mb-3">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="livestream-option" id="optionChat" value="chat">
+                    <label class="form-check-label" for="optionChat">Show chat</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
+                      checked>
+                    <label class="form-check-label" for="optionLive">Live only</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
+                      value="interactive">
+                    <label class="form-check-label" for="optionInteractive">Interactive</label>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Apply</button>
+              </form>
+              <hr />
+
+              <article class="mb-4">
+                <div class="card-header">Live Stream</div>
+                <ul id="liveStreamCamera">
+                  <!-- Dynamically populated -->
+                </ul>
+
+              </article>
+            </div>
           </div>
-
-
+        </section>
+      </main>
     </div>
-    </section>
-
-
-
-
-    <!-- LiveStream Section -->
-    <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel" aria-labelledby="v-pills-LiveStream-tab">
-      <div class="card">
-        <div class="card-header">Live Stream Settings</div>
-        <div class="card-body">
-          <form id="livestreamForm" class="mb-3">
-            <div class="mb-3">
-              <label for="chatStreamer" class="form-label">Streamer Name:</label>
-              <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
-            </div>
-            <div class="mb-3">
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="livestream-option" id="optionChat" value="chat">
-                <label class="form-check-label" for="optionChat">Show chat</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
-                  checked>
-                <label class="form-check-label" for="optionLive">Live only</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
-                  value="interactive">
-                <label class="form-check-label" for="optionInteractive">Interactive</label>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Apply</button>
-          </form>
-          <hr />
-
-          <article class="mb-4">
-            <div class="card-header">Live Stream</div>
-            <ul id="liveStreamCamera">
-              <!-- Dynamically populated -->
-            </ul>
-
-          </article>
-        </div>
-      </div>
-    </section>
-  </div>
-  </main>
-  </div>
   </div>
 
   <!-- Response area for transient messages -->
