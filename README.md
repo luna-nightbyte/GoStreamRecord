@@ -67,7 +67,7 @@ New login for the user `admin` would then be `newpassword`
 
 There is two docker images available:
 - [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size > 1.5GB )
-- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 300MB )
+- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 500MB )
 
 #### Building images
 Use the Makefile to build images to ensure proper tagging.
