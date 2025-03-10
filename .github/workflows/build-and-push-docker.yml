@@ -3,6 +3,10 @@ name: Go Record Webui
 on:
   release:
     types: [published]
+  # Uncomment the following if you also want the workflow to run on branch pushes.
+  # push:
+  #   branches:
+  #     - '**'
 
 jobs:
   build-and-push:
@@ -15,19 +19,33 @@ jobs:
         with:
           fetch-depth: 0 
           fetch-tags: true 
+
       - name: Log in to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Extract version from tag
         id: get_version
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Extract branch name
+        if: startsWith(github.ref, 'refs/heads/')
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
       - name: Build Base
         run: |
-          docker build -f docker/Dockerfile.base --build-arg VERSION=${{ env.VERSION }} -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
+          VERSION_TAG="${{ env.VERSION }}"
+          if [ -n "${{ env.BRANCH_NAME }}" ]; then
+            VERSION_TAG="${{ env.VERSION }}-${{ env.BRANCH_NAME }}"
+          fi
+          echo "Using VERSION_TAG: ${VERSION_TAG}"
+          docker build -f docker/Dockerfile.base --build-arg VERSION=${VERSION_TAG} -t lunanightbyte/gorecord-base:${{ env.VERSION }} .
           docker tag lunanightbyte/gorecord-base:${{ env.VERSION }} lunanightbyte/gorecord-base:latest
+
       - name: Push Base image
         run: |
           docker push lunanightbyte/gorecord-base:${{ env.VERSION }}
@@ -37,7 +55,7 @@ jobs:
         run: |
           docker build -f docker/Dockerfile.run -t lunanightbyte/gorecord:${{ env.VERSION }} .
           docker tag lunanightbyte/gorecord:${{ env.VERSION }} lunanightbyte/gorecord:latest
-          
+
       - name: Push Minimal image
         run: |
           docker push lunanightbyte/gorecord:${{ env.VERSION }}
