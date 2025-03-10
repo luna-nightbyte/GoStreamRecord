@@ -74,7 +74,7 @@ New login for the user `admin` would then be `newpassword`
 
 There is two docker images available:
 - [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size > 1.5GB )
-- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 30MB )
+- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 300MB )
 
 #### Building images
 Use the Makefile to build images to ensure proper tagging.
@@ -163,6 +163,17 @@ go run main.go
 </p>
 
 _Online status with a small bug at the time of uploading this.._
+
+## Make list
+- `make reset-pwd USERNAME=admin PASSWORD=mySecretPassword` - Resets password for the __admin__ user.
+- `make app` - Builds and starts the app within the output folder
+- `make build-and-push` - Builds all docker images and pushes them
+- `make build-base` - Builds [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) image
+- `make build-app` - Builds [app](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run)  image
+- `make push-base` - Pushes [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) image
+- `make push-app` - Pushes [app](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run)  image
+- `make reset-pwd user=USERNAME pass=NEW_PASSWORD`
+
 ## Other
 
 ### Todo / Ideas
