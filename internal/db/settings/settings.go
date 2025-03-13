@@ -9,6 +9,7 @@ type app struct {
 	Loop_interval int        `json:"loop_interval_in_minutes"`
 	Videos_folder string     `json:"video_output_folder"`
 	RateLimit     rate_limit `json:"rate_limit"`
+	UseEnvKey     bool       `json:"use_env_key"`
 }
 type rate_limit struct {
 	Enable bool `json:"enable"`
