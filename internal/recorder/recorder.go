@@ -1,6 +1,7 @@
 package recorder
 
 import (
+	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/web/provider"
 	"fmt"
 	"os"
@@ -86,4 +87,18 @@ func getFileSize(filePath string) int64 {
 		return 0
 	}
 	return info.Size()
+}
+
+// writeYoutubeDLdb writes the youtube-dl configuration file.
+func WriteYoutubeDLdb() error {
+	f, err := os.Create("youtube-dl.config")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	folder := db.Config.Settings.App.Videos_folder
+	dbLine := fmt.Sprintf("-o \"%s", folder) + "/%(id)s/%(title)s.%(ext)s\""
+	_, err = f.Write([]byte(dbLine))
+	return err
 }

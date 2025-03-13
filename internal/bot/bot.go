@@ -46,8 +46,8 @@ func NewBot(logger *log.Logger) *controller {
 // RecordLoop starts the main loop for a given streamer.
 // It checks for online status, starts recording if not already recording, and listens for a shutdown signal.
 func (b *controller) RecordLoop(streamerName string) {
-	// Write youtube-dl db.
-	if err := b.writeYoutubeDLdb(); err != nil {
+	// Always ensure config exists
+	if err := recorder.WriteYoutubeDLdb(); err != nil {
 		log.Println("Error writing youtube-dl db:", err)
 		return
 	}

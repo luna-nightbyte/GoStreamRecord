@@ -1,13 +1,10 @@
 package bot
 
 import (
-	"fmt"
 	"log"
-	"os"
 	"syscall"
-	
+
 	"GoStreamRecord/internal/recorder"
-	"GoStreamRecord/internal/db"
 )
 
 func (b *controller) AddProcess(provider_type, streamerName string) {
@@ -99,20 +96,6 @@ func getProcess(name string, b *controller) recorder.Recorder {
 		}
 	}
 	return recorder.Recorder{StopSignal: false, IsRecording: false, Cmd: nil}
-}
-
-// writeYoutubeDLdb writes the youtube-dl configuration file.
-func (b *controller) writeYoutubeDLdb() error {
-	f, err := os.Create("youtube-dl.config")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	folder := db.Config.Settings.App.Videos_folder
-	dbLine := fmt.Sprintf("-o \"%s", folder) + "/%(id)s/%(title)s.%(ext)s\""
-	_, err = f.Write([]byte(dbLine))
-	return err
 }
 
 // StopBot signals the bot to stop starting new recordings and then gracefully stops active processes.
