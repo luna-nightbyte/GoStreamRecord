@@ -4,8 +4,6 @@ import (
 	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers/login"
-	"fmt"
-	"log"
 )
 
 func resetPwdCommand(args []string) {
@@ -18,8 +16,7 @@ func resetPwdCommand(args []string) {
 		} else {
 			color.Println("Bred", "No new password provided.")
 		}
-		color.Print("Bred", "Usage:")
-		fmt.Println(Commands["reset-pwd"].Usage)
+		PrintUsage()
 		return
 	}
 
@@ -30,7 +27,6 @@ func resetPwdCommand(args []string) {
 
 	// Loop over the users in the database to find a matching username.
 	for i, u := range db.Config.Users.Users {
-		fmt.Println(username, u.Name)
 		if u.Name == username {
 			db.Config.Users.Users[i].Key = string(login.HashedPassword(newPassword))
 			userFound = true
@@ -40,16 +36,12 @@ func resetPwdCommand(args []string) {
 
 	if !userFound {
 		color.Println("Bred", "No matching username found.")
-		color.Logln("Bred", "No matching username found.")
 		return
 	}
 
 	// Save updated user configuration.
 	db.Config.Update("users", "users.json", &db.Config.Users)
-	log.Println("Password updated for", username)
 
 	color.Print("green", "Password updated for ")
 	color.Println("Bwhite", username)
-	color.Log("Bred", "No matching username found.")
-	color.Logln("Bred", "No matching username found.")
 }
