@@ -2,12 +2,12 @@ package main
 
 import (
 	"GoStreamRecord/internal/bot"
+	"GoStreamRecord/internal/cli"
+	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers"
 	"GoStreamRecord/internal/handlers/cookies"
 	"GoStreamRecord/internal/logger"
-	"GoStreamRecord/internal/prettyprint"
-	"GoStreamRecord/internal/startup"
 	"context"
 	_ "embed"
 	"fmt"
@@ -32,6 +32,7 @@ var (
 )
 
 func init() {
+	cli.PrintStartup()
 	handlers.IndexHTML = IndexHTML
 	handlers.LoginHTML = LoginHTML
 
@@ -39,7 +40,6 @@ func init() {
 
 func main() {
 	if len(os.Args) < 2 {
-		startup.PrintStartup()
 		cookies.Session = cookies.New()
 		logger.Init(logger.Log_path)
 		bot.Init()
@@ -48,10 +48,23 @@ func main() {
 	}
 
 	cmdName := os.Args[1]
-	cmd, exists := startup.Commands[cmdName]
+	cmd, exists := cli.Commands[cmdName]
 	if !exists {
-		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
-		startup.PrintUsage()
+		fmt.Println()
+		color.Print("red", "Unknown command: ")
+		color.Println("grey", cmdName)
+		// TODO: cli.PrintUsage()
+		fmt.Println()
+		color.Println("Bgrey", "Usage:")
+		for _, cmd := range cli.Commands {
+			color.Print("cyan", " -")
+			color.Print("grey", " "+cmd.Usage.Bin)
+			color.Print("white", " "+cmd.Usage.Command)
+			color.Println("Bwhite", " "+cmd.Usage.Args)
+		}
+
+		color.Println("Bgrey", "\nOtherwise run the server without any arguments.")
+
 		return
 	}
 
@@ -61,6 +74,7 @@ func main() {
 }
 
 func server() {
+	log.Println("Startup!")
 	//http.Handle("/", fs)
 	handlers.Handle()
 	server := &http.Server{
