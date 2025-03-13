@@ -2,7 +2,6 @@ package color
 
 import (
 	"fmt"
-	"log"
 
 	c "github.com/fatih/color"
 )
@@ -39,15 +38,4 @@ func Print(name, msg string) {
 // name = Bname (Bold letters)
 func Println(name, msg string) {
 	fmt.Println(Colors[name](msg))
-}
-
-// log.Println
-//
-// name = name (Normal letters)
-// name = Bname (Bold letters)
-func Log(name, msg string) {
-	log.Print(Colors[name](msg))
-}
-func Logln(name, msg string) {
-	log.Println(Colors[name](msg))
 }
