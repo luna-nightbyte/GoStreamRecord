@@ -40,6 +40,7 @@ func init() {
 
 func main() {
 	if len(os.Args) < 2 {
+		cli.PrintStartup()
 		cookies.Session = cookies.New()
 		logger.Init(logger.Log_path)
 		bot.Init()
@@ -54,17 +55,7 @@ func main() {
 		color.Print("red", "Unknown command: ")
 		color.Println("grey", cmdName)
 		// TODO: cli.PrintUsage()
-		fmt.Println()
-		color.Println("Bgrey", "Usage:")
-		for _, cmd := range cli.Commands {
-			color.Print("cyan", " -")
-			color.Print("grey", " "+cmd.Usage.Bin)
-			color.Print("white", " "+cmd.Usage.Command)
-			color.Println("Bwhite", " "+cmd.Usage.Args)
-		}
-
-		color.Println("Bgrey", "\nOtherwise run the server without any arguments.")
-
+		cli.PrintUsage()
 		return
 	}
 
