@@ -144,7 +144,6 @@
       </aside>
       <!-- Main Content Area -->
       <main class="col-md-9">
-
         <div class="tab-content" id="v-pills-tabContent">
           <!-- Recorder Section -->
           <section class="tab-pane fade show active" id="recorderSection" role="tabpanel"
@@ -190,18 +189,18 @@
                         Add a New Streamer
                       </div>
                       <div class="card-body">
-                        <form id="streamerForm">
+                        <form id="streamerFormActive">
                           <div class="row g-3 align-items-center">
                             <div class="col-md-5">
-                              <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name"
-                                required />
+                              <input type="text" id="streamerInputActive" class="form-control"
+                                placeholder="Streamer name" required />
                             </div>
                             <div class="col-md-5">
-                              <input type="text" id="providerInput" class="form-control" placeholder="Hosting site"
-                                required />
+                              <input type="text" id="providerInputActive" class="form-control"
+                                placeholder="Hosting site" required />
                             </div>
                             <div class="col-md-2">
-                              <button type="button" class="btn btn-primary w-100" id="addStreamerButton">Add</button>
+                              <button type="button" class="btn btn-primary w-100" id="addStreamerButton1">Add</button>
                             </div>
                           </div>
                         </form>
@@ -210,169 +209,177 @@
                     <div id="recorderProcessesContainer"></div>
                   </div>
                 </div>
-
               </div>
             </div>
-        </div>
-        </section>
+          </section>
 
-        <!-- Settings Section -->
-        <section class="tab-pane fade" id="settingsSection" role="tabpanel" aria-labelledby="v-pills-settings-tab">
-          <div class="card">
+          <!-- Settings Section -->
+          <section class="tab-pane fade" id="settingsSection" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+            <div class="card">
 
-            <div class="card-header">Settings</div>
-            <div class="card-body">
-              <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="users-management-tab" data-bs-toggle="tab"
-                    data-bs-target="#usersSection" type="button" role="tab">Users</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="recorder-management-tab" data-bs-toggle="tab"
-                    data-bs-target="#recorderManagementSection" type="button" role="tab">Recorder</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="api-management-tab" data-bs-toggle="tab"
-                    data-bs-target="#apiManagementSection" type="button" role="tab">API</button>
-                </li>
-              </ul>
-              <div class="tab-content mt-3">
-                <div class="tab-pane fade show active" id="usersSection" role="tabpanel">
+              <div class="card-header">Settings</div>
+              <div class="card-body">
+                <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#usersSection" type="button" role="tab">Users</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recorder-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#recorderManagementSection" type="button" role="tab">Recorder</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="api-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#apiManagementSection" type="button" role="tab">API</button>
+                  </li>
+                </ul>
+                <div class="tab-content mt-3">
+                  <div class="tab-pane fade show active" id="usersSection" role="tabpanel">
 
-                  <div class="card-body">
-                    <div class="card-header">Add user</div>
-                    <!-- Add New User -->
-                    <article class="mb-4">
-                      <form id="addUserForm">
-                        <div class="mb-3">
-                          <input type="text" id="addUserName" class="form-control" placeholder="Username" required />
-                        </div>
-                        <div class="mb-3">
-                          <input type="password" id="addUserPassword" class="form-control" placeholder="Password"
-                            required />
-                        </div>
-                        <button type="button" class="btn btn-primary" id="addUserButton">Add User</button>
-                      </form>
-                    </article>
-                    <hr />
-                    <!-- Update Existing User -->
-                    <article class="mb-4">
-                      <div class="card-header">Update User</div>
-                      <form id="updateUserForm">
-                        <div class="mb-3">
-                          <input type="text" id="updateUserName" class="form-control"
-                            placeholder="Select a user from the list to modify." />
-                        </div>
-                        <div class="mb-3">
-                          <input type="password" id="updateUserPassword" class="form-control"
-                            placeholder="New Password" />
-                        </div>
-                        <button type="button" class="btn btn-primary" id="updateUserButton">Update User</button>
-                      </form>
-                    </article>
-                    <!-- Current Users List -->
-                    <article>
-                      <div class="card-header">Current users</div>
-                      <ul class="list-group" id="userList">
-                        <!-- Dynamically populated -->
-                      </ul>
-                    </article>
-                  </div>
-                </div>
-                <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
-
-                  <div class="card-header" id="apiHeader">API keys</div>
-                  <div class="card-body">
-                    <form id="apiForm" class="mb-3">
-                      <label for="generateNewAPI" class="form-label">Generate new API secret key</label>
-                      <div class="input-group">
-                        <button type="button" class="btn btn-primary" id="generateNewAPIButton">Add</button>
-                      </div>
-                    </form>
-                    <article class="mb-4">
-                      <div class="card-header">API Keys</div>
-                      <ul class="list-group" id="apiKeyList">
-                        <!-- Dynamically populated -->
-                      </ul>
-
-                    </article>
-                  </div>
-                </div>
-
-                <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
-
-                  <div class="card-header">Streamers</div>
-                  <div class="card-body">
-                    <form id="streamerForm" class="mb-3">
-                      <label for="streamerInput" class="form-label">Add a New Streamer:</label>
-                      <div class="input-group">
-                        <input type="text" id="streamerInput" class="form-control" placeholder="Streamer name"
-                          required />
-                        <input type="text" id="providerInput" class="form-control" placeholder="Hosting site"
-                          required />
-                        <button type="button" class="btn btn-primary" id="addStreamerButton">Add</button>
-                      </div>
-                    </form>
-                    <article class="mb-4">
-                      <div class="card-header">Current Streamers</div>
-                      <ul class="list-group" id="streamersList">
-                        <!-- Dynamically populated -->
-                      </ul>
-                    </article>
-                  </div>
-                  <!-- Import/Export Card -->
-                  <div class="card">
-                    <div class="card-header">Import/Export</div>
                     <div class="card-body">
-                      <div class="mb-4">
-                        <label for="importFile" class="form-label">Import File:</label>
-                        <input type="file" id="importFile" class="form-control mb-2" />
-                        <button type="button" class="btn btn-secondary" id="uploadFileButton">Upload</button>
+                      <div class="card-header">Add user</div>
+                      <!-- Add New User -->
+
+                      <article class="mb-4">
+                        <form id="addUserForm">
+                          <div class="mb-3">
+                            <input type="text" id="addUserName" class="form-control" placeholder="Username" required />
+                          </div>
+                          <div class="mb-3">
+                            <input type="password" id="addUserPassword" class="form-control" placeholder="Password"
+                              required />
+                          </div>
+                          <button type="button" class="btn btn-primary" id="addUserButton">Add User</button>
+                        </form>
+                      </article>
+                      <hr />
+                      <!-- Update Existing User -->
+                      <article class="mb-4">
+                        <div class="card-header">Update User</div>
+                        <form id="updateUserForm">
+                          <div class="mb-3">
+                            <input type="text" id="updateUserName" class="form-control"
+                              placeholder="Select a user from the list to modify." />
+                          </div>
+                          <div class="mb-3">
+                            <input type="password" id="updateUserPassword" class="form-control"
+                              placeholder="New Password" />
+                          </div>
+                          <button type="button" class="btn btn-primary" id="updateUserButton">Update User</button>
+                        </form>
+                      </article>
+                      <!-- Current Users List -->
+                      <article>
+                        <div class="card-header">Current users</div>
+                        <ul class="list-group" id="userList">
+                          <!-- Dynamically populated -->
+                        </ul>
+                      </article>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
+
+                    <div class="card-header" id="apiHeader">API keys</div>
+                    <div class="card-body">
+                      <form id="apiForm" class="mb-3">
+                        <label for="generateNewAPI" class="form-label">Generate new API secret key</label>
+                        <div class="input-group">
+                          <button type="button" class="btn btn-primary" id="generateNewAPIButton">Add</button>
+                        </div>
+                      </form>
+                      <article class="mb-4">
+                        <div class="card-header">API Keys</div>
+                        <ul class="list-group" id="apiKeyList">
+                          <!-- Dynamically populated -->
+                        </ul>
+
+                      </article>
+                    </div>
+                  </div>
+
+                  <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
+
+                    <div class="card-header">Streamers</div>
+                    <div class="card-body">
+                      <form id="streamerFormSettings" class="mb-3">
+                        <label for="streamerInputSettings" class="form-label">Add a New Streamer:</label>
+                        <div class="input-group">
+                          <input type="text" id="streamerInputSettings" class="form-control" placeholder="Streamer name"
+                            required />
+                          <input type="text" id="providerInputSettings" class="form-control" placeholder="Hosting site"
+                            required />
+                          <button type="button" class="btn btn-primary" id="addStreamerButton2">Add</button>
+                        </div>
+                      </form>
+                      <article class="mb-4">
+                        <div class="card-header">Current Streamers
+
+                        </div>
+                        <ul class="list-group" id="streamersList">
+                          <!-- Dynamically populated -->
+                        </ul>
+                      </article>
+                    </div>
+                    <!-- Import/Export Card -->
+                    <div class="card">
+                      <div class="card-header">Import/Export
+
                       </div>
-                      <div>
-                        <label class="form-label">Export File:</label><br />
-                        <button type="button" class="btn btn-secondary" id="downloadFileButton">Download</button>
+                      <div class="card-body">
+                        <div class="mb-4">
+                          <label for="importFile" class="form-label">Import File:</label>
+                          <input type="file" id="importFile" class="form-control mb-2" />
+                          <button type="button" class="btn btn-secondary" id="uploadFileButton">Upload</button>
+                        </div>
+                        <div>
+                          <label class="form-label">Export File:</label><br />
+                          <button type="button" class="btn btn-secondary" id="downloadFileButton">Download</button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-        </section>
+          </section>
 
 
 
 
-        <!-- LiveStream Section -->
-        <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel" aria-labelledby="v-pills-LiveStream-tab">
-          <div class="card">
-            <div class="card-header">Live Stream Settings</div>
-            <div class="card-body">
-              <form id="livestreamForm" class="mb-3">
-                <div class="mb-3">
-                  <label for="chatStreamer" class="form-label">Streamer Name:</label>
-                  <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
-                </div>
-                <div class="mb-3">
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionChat" value="chat">
-                    <label class="form-check-label" for="optionChat">Show chat</label>
+          <!-- LiveStream Section -->
+          <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel"
+            aria-labelledby="v-pills-LiveStream-tab">
+            <div class="card">
+              <div class="card-header">Live Stream Settings</div>
+              <div class="card-body">
+
+                <form id="livestreamForm" class="mb-3">
+                  <div class="mb-3">
+                    <label for="chatStreamer" class="form-label">Streamer Name:</label>
+                    <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
                   </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
-                      checked>
-                    <label class="form-check-label" for="optionLive">Live only</label>
+                  <div class="mb-3">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionChat"
+                        value="chat">
+                      <label class="form-check-label" for="optionChat">Show chat</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
+                        checked>
+                      <label class="form-check-label" for="optionLive">Live only</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
+                        value="interactive">
+                      <label class="form-check-label" for="optionInteractive">Interactive</label>
+                    </div>
                   </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
-                      value="interactive">
-                    <label class="form-check-label" for="optionInteractive">Interactive</label>
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-primary">Apply</button>
-              </form>
-              <hr />
+                  <button type="submit" class="btn btn-primary">Apply</button>
+                </form>
+                <hr />
 
+              </div>
               <article class="mb-4">
                 <div class="card-header">Live Stream</div>
                 <ul id="liveStreamCamera">
@@ -381,8 +388,8 @@
 
               </article>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
     </div>
   </div>
@@ -479,22 +486,22 @@
       keyDiv.style.fontFamily = "monospace";
 
       keyDiv.innerHTML = `
-      <p><strong>Your API Key:</strong></p>
-<p><strong>This will only be shown once!</strong></p>
-<div style="display: flex; flex-direction: column; gap: 10px;">
-    <input type="text" value="${key}" id="api-key-input" readonly 
-        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background-color: #f9f9f9;">
-    <button id="copy-api-key" 
-        style="padding: 8px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
-        Copy
-    </button>
-    <button id="close-api-key" 
-        style="padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
-        Close
-    </button>
-</div>
+        <p><strong>Your API Key:</strong></p>
+  <p><strong>This will only be shown once!</strong></p>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" value="${key}" id="api-key-input" readonly 
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background-color: #f9f9f9;">
+      <button id="copy-api-key" 
+          style="padding: 8px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
+          Copy
+      </button>
+      <button id="close-api-key" 
+          style="padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
+          Close
+      </button>
+  </div>
 
-`;
+  `;
 
       document.body.appendChild(keyDiv);
 
@@ -535,9 +542,9 @@
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
       li.innerHTML = `
-            <span>${name}</span>
-            <button class="btn btn-danger btn-sm delete-key">Delete</button>
-        `;
+              <span>${name}</span>
+              <button class="btn btn-danger btn-sm delete-key">Delete</button>
+          `;
 
       li.querySelector(".delete-key").addEventListener("click", async function () {
         if (confirm(`Are you sure you want to delete '${name}'?`)) {
@@ -561,15 +568,18 @@
     }
 
     /* ------------------ STREAMERS SECTION ------------------ */
-    const addStreamer = async () => {
-      const input = document.getElementById("streamerInput");
-      const providerInput = document.getElementById("providerInput");
+    // Parameterized function that accepts the IDs for streamer name and provider
+    const addStreamer = async (streamerInputId, providerInputId) => {
+      const input = document.getElementById(streamerInputId);
+      const providerInput = document.getElementById(providerInputId);
       const provider = providerInput.value.trim();
       const name = input.value.trim();
+
       if (!name) {
         showResponse("Streamer name cannot be empty.", true);
         return;
       }
+
       try {
         const res = await fetch("/api/add-streamer?provider=" + provider, {
           method: "POST",
@@ -586,6 +596,9 @@
       }
     };
 
+
+
+
     const populateStreamers = async () => {
       try {
         const res = await fetch("/api/get-streamers");
@@ -596,7 +609,7 @@
           const li = document.createElement("li");
           li.className = "list-group-item";
           li.innerHTML = `<span>${streamer}</span>
-            <button class="btn btn-sm btn-danger remove-streamer" data-name="${streamer}">Remove</button>`;
+              <button class="btn btn-sm btn-danger remove-streamer" data-name="${streamer}">Remove</button>`;
           list.appendChild(li);
         });
         document.querySelectorAll(".remove-streamer").forEach((btn) => {
@@ -725,13 +738,13 @@
         folderElement.className = "card mb-3 shadow-sm";
 
         folderElement.innerHTML = `
-        <div class="card-header d-flex justify-content-between align-items-center" onclick="toggleFolder('${folder}')"
-          style="cursor: pointer; background: #f8f9fa; border-radius: 8px;">
-          <strong>${folder}</strong>
-          <span class="badge bg-primary">${videos.length} videos</span>
-        </div>
-        <div id="folder-${folder}" class="card-body folder-content" style="display: none; padding: 15px;"></div>
-      `;
+          <div class="card-header d-flex justify-content-between align-items-center" onclick="toggleFolder('${folder}')"
+            style="cursor: pointer; background: #f8f9fa; border-radius: 8px;">
+            <strong>${folder}</strong>
+            <span class="badge bg-primary">${videos.length} videos</span>
+          </div>
+          <div id="folder-${folder}" class="card-body folder-content" style="display: none; padding: 15px;"></div>
+        `;
 
         container.appendChild(folderElement);
 
@@ -745,18 +758,18 @@
           videoElement.className = "video-item card p-2 border";
           videoElement.style.position = "relative";
           videoElement.innerHTML = `
-          <!-- Checkbox for selecting video -->
-          <div class="form-check" style="position: absolute; top: 5px; right: 5px; z-index: 10;">
-            <input class="form-check-input video-checkbox" type="checkbox" value="${obj.url}" id="chk-${obj.url}">
-          </div>
-          <!-- Video title (truncated if too long) -->
-          <h6 class="mb-2 text-truncate" title="${obj.name}">${obj.name}</h6>
-          <!-- Smaller video preview -->
-          <video controls preload="metadata" width="100%" height="120" class="border rounded shadow-sm">
-            <source src="${obj.url}" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        `;
+            <!-- Checkbox for selecting video -->
+            <div class="form-check" style="position: absolute; top: 5px; right: 5px; z-index: 10;">
+              <input class="form-check-input video-checkbox" type="checkbox" value="${obj.url}" id="chk-${obj.url}">
+            </div>
+            <!-- Video title (truncated if too long) -->
+            <h6 class="mb-2 text-truncate" title="${obj.name}">${obj.name}</h6>
+            <!-- Smaller video preview -->
+            <video controls preload="metadata" width="100%" height="120" class="border rounded shadow-sm">
+              <source src="${obj.url}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          `;
           folderContent.appendChild(videoElement);
         });
       });
@@ -842,12 +855,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ streamer: streamer, provider: provider }),
       })
+
         .then((res) => res.json())
         .then((data) => {
           return data.message === "true"; // Ensures it returns a boolean
         })
         .catch((err) => {
-          showResponse("Error starting process: " + err, true);
+          console.log(streamer, provider)
+          showResponse("Error checking online status: " + err, true);
           return false; // Return false in case of an error
         });
     }
@@ -881,7 +896,6 @@
       const streamers = await res.json();
 
       // Create a map of active processes using botStatus data
-      // Create a map of active processes using botStatus data
       const activeMap = new Map(recorder_processes.map((p) => [p.website.username, p.is_recording]));
 
       // Get existing elements in DOM for tracking duplicates
@@ -891,27 +905,30 @@
         if (name) existingElements.set(name, el);
       });
 
-      for (const streamer of streamers) {
-        let isRecording = activeMap.get(streamer) || false;
-
+      for (const data of Object.values(streamers)) {
+        const name = data.name;
+        const provider = data.provider;
+        let isRecording = activeMap.get(name) || false;
+        let isRestarting = false;
 
         recorder_processes.forEach((process) => {
-          if (streamer === process.website.username) {
-            isRecording = process.is_recording
-            isRestarting = process.restarting
+          if (name === process.website.username) {
+            isRecording = process.is_recording;
+            isRestarting = process.restarting;
           }
         });
-        const isAvailable = await checkSourceAvailability(streamer, "chaturbate");
 
-        if (existingElements.has(streamer)) {
+        const isAvailable = await checkSourceAvailability(name, provider);
+
+        if (existingElements.has(name)) {
           // Update existing element
-          const processElement = existingElements.get(streamer);
+          const processElement = existingElements.get(name);
           processElement.querySelector(".status-text").innerHTML = isRecording
             ? "Recording"
             : "Not Recording";
 
           processElement.querySelector(".status-text:nth-child(2)").innerHTML = `
-        ${streamer} - ${isAvailable ? "Online" : "Not Online"}`;
+          ${name} - ${isAvailable ? "Online" : "Not Online"}`;
 
           // Enable/Disable buttons accordingly
           processElement.querySelector(".start-button").disabled = isRecording || !isAvailable;
@@ -921,29 +938,29 @@
           // Create new element if not in DOM
           const processElement = document.createElement("div");
           processElement.className = "recorder-process";
-          processElement.dataset.name = streamer;
+          processElement.dataset.name = name;
           processElement.innerHTML = `
-<div class="process-info" style="display: flex; align-items: center; justify-content: space-between; padding: 14px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; background-color: #fafafa;">
-  <div class="status-text" style="font-weight: bold; color: ${isRecording ? '#2ecc71' : '#e74c3c'};">
-   ${isRecording ? "Recording" : "Not Recording"}
-  </div>
-  <div class="status-text" style="font-weight: bold; color: ${isAvailable ? '#2ecc71' : '#e74c3c'};">
-     ${streamer} - ${isAvailable ? "Online" : "Not Online"}
-  </div>
-  <div>
-    <button class="start-button" style="padding: 8px 14px; background-color: #2ecc71; border: none; border-radius: 20px; color: #fff;" ${isRecording || !isAvailable ? "disabled" : ""}>Start</button>
-    <button class="stop-button" style="padding: 8px 14px; background-color: #e74c3c; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Stop</button>
-    <button class="restart-button" style="padding: 8px 14px; background-color: #f1c40f; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Restart</button>
-  </div>
-</div>`;
+  <div class="process-info" style="display: flex; align-items: center; justify-content: space-between; padding: 14px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; background-color: #fafafa;">
+    <div class="status-text" style="font-weight: bold; color: ${isRecording ? '#2ecc71' : '#e74c3c'};">
+    ${isRecording ? "Recording" : "Not Recording"}
+    </div>
+    <div class="status-text" style="font-weight: bold; color: ${isAvailable ? '#2ecc71' : '#e74c3c'};">
+      ${name} - ${isAvailable ? "Online" : "Not Online"}
+    </div>
+    <div>
+      <button class="start-button" style="padding: 8px 14px; background-color: #2ecc71; border: none; border-radius: 20px; color: #fff;" ${isRecording || !isAvailable ? "disabled" : ""}>Start</button>
+      <button class="stop-button" style="padding: 8px 14px; background-color: #e74c3c; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Stop</button>
+      <button class="restart-button" style="padding: 8px 14px; background-color: #f1c40f; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Restart</button>
+    </div>
+  </div>`;
 
           const startButton = processElement.querySelector(".start-button");
           const stopButton = processElement.querySelector(".stop-button");
           const restartButton = processElement.querySelector(".restart-button");
 
-          startButton.addEventListener("click", () => sendCommand("start", streamer));
-          stopButton.addEventListener("click", () => sendCommand("stop", streamer));
-          restartButton.addEventListener("click", () => sendCommand("restart", streamer));
+          startButton.addEventListener("click", () => sendCommand("start", name));
+          stopButton.addEventListener("click", () => sendCommand("stop", name));
+          restartButton.addEventListener("click", () => sendCommand("restart", name));
 
           container.appendChild(processElement);
         }
@@ -961,9 +978,9 @@
           const li = document.createElement("li");
           li.className = "list-group-item d-flex justify-content-between align-items-center";
           li.innerHTML = `<span>${user.name}</span>
-            <div>
-              <button class="btn btn-sm btn-info edit-user" data-username="${user.name}">Edit</button>
-            </div>`;
+              <div>
+                <button class="btn btn-sm btn-info edit-user" data-username="${user.name}">Edit</button>
+              </div>`;
           list.appendChild(li);
         });
         document.querySelectorAll(".edit-user").forEach((btn) => {
@@ -1062,8 +1079,14 @@
 
     /* ------------------ INITIALIZATION ------------------ */
     document.addEventListener("DOMContentLoaded", () => {
-      // Streamers events
-      document.getElementById("addStreamerButton").addEventListener("click", addStreamer);
+      // Streamers events  
+      document.getElementById("addStreamerButton1").addEventListener("click", () => {
+        addStreamer("streamerInputActive", "providerInputActive");
+      });
+
+      document.getElementById("addStreamerButton2").addEventListener("click", () => {
+        addStreamer("streamerInputSettings", "providerInputSettings");
+      });
       // Recorder events
       document.getElementById("startAllCommand").addEventListener("click", () => sendCommand("start", ""));
       document.getElementById("stopAllCommand").addEventListener("click", () => sendCommand("stop", ""));

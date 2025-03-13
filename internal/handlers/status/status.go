@@ -1,13 +1,13 @@
 package status
 
 import (
-	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/bot/recorder"
-	"GoStreamRecord/internal/db"
-	
-	"GoStreamRecord/internal/handlers/cookies"
 	"encoding/json"
 	"net/http"
+
+	"GoStreamRecord/internal/bot"
+	"GoStreamRecord/internal/db"
+	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/recorder"
 )
 
 // Response is a generic response structure for our API endpoints.
@@ -31,7 +31,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	// Reload streamer list from config file
 	db.Write("streamers", "streamers.json", &db.Config.Streamers)
 
-	bot.Bot.StopRunningEmpty()
 	// Fetch current recording status
 	recorderStatus := bot.Bot.ListRecorders()
 	isRecording := false

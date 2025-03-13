@@ -1,15 +1,15 @@
 package provider
 
 import (
-	"GoStreamRecord/internal/bot/recorder/provider/bongacams"
-	"GoStreamRecord/internal/bot/recorder/provider/chaturbate"
+	"GoStreamRecord/internal/web/provider/bongacams"
+	"GoStreamRecord/internal/web/provider/chaturbate"
+	"GoStreamRecord/internal/web/provider/dev"
 	"encoding/json"
-	"fmt"
 )
 
 // Functions needed to call out providers
 type iProvide interface {
-	// Code functions
+	// Code functionsvideo_feed
 	Init(username string) any
 	IsOnline(name string) bool
 	TrueName(name string) string
@@ -19,23 +19,25 @@ type iProvide interface {
 
 type Provider struct {
 	Url       string   `json:"url"`
+	StreamURL string   `json:"stream_url"`
 	Username  string   `json:"username"`
 	Interface iProvide `json:"-"`
 }
 
 // --------------- Must be updated to add support for new sites.
 var Known_Providers = map[string]iProvide{
-	"chaturbate": &chaturbate.Chaturbate{},
-	"bongacams":  &bongacams.BongaCams{},
+	"chaturbate":  &chaturbate.Chaturbate{},
+	"bongacams":   &bongacams.BongaCams{},
+	"development": &dev.Dev{},
 }
 
 func init_provider(name string) iProvide {
 	for k := range Known_Providers {
 		if k == name {
+
 			return Known_Providers[k]
 		}
 	}
-	fmt.Println("Default..")
 	return &chaturbate.Chaturbate{} // default option
 }
 

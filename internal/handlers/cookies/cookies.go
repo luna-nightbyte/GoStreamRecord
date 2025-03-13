@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 )
 
@@ -24,7 +23,7 @@ type session struct {
 func New() *session {
 	session := session{
 		subs_mutex: &sync.Mutex{},
-		cookies:    sessions.NewCookieStore(securecookie.GenerateRandomKey(32)),
+		cookies:    sessions.NewCookieStore([]byte("KKp5q43GBoaSgd6QmQyehpSqW/08KRhIJpO90URviFs=")), //securecookie.GenerateRandomKey(32)),
 	}
 	session.cookies.Options = &sessions.Options{
 		Path:     "/",

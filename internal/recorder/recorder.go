@@ -1,7 +1,7 @@
 package recorder
 
 import (
-	"GoStreamRecord/internal/bot/recorder/provider"
+	"GoStreamRecord/internal/web/provider"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,13 +11,13 @@ import (
 	// Assume mp4ff is imported and used for MP4 parsing
 )
 
-	type Recorder struct {
-		Website      provider.Provider `json:"website"`
-		StopSignal   bool      `json:"-"`
-		IsRestarting bool      `json:"restarting"`
-		Cmd          *exec.Cmd `json:"-"`
-		IsRecording  bool      `json:"is_recording"`
-	}
+type Recorder struct {
+	Website      provider.Provider `json:"website"`
+	StopSignal   bool              `json:"-"`
+	IsRestarting bool              `json:"restarting"`
+	Cmd          *exec.Cmd         `json:"-"`
+	IsRecording  bool              `json:"is_recording"`
+}
 
 // watchFile monitors the file and calls processFile when new data is appended.
 func watchFile(filePath string) {

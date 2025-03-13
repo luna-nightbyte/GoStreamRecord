@@ -12,6 +12,7 @@ import (
 
 type BongaCams struct {
 	Url           string `json:"url"`
+	StreamingUrl  string `json:"stream_url"`
 	CorrectedName string `json:"username"`
 }
 
@@ -53,7 +54,7 @@ type InitialState struct {
 }
 
 func (b *BongaCams) getState(username string) InitialState {
-	resp, err := http.Get(fmt.Sprintf("https://no.bongacams.com/%s", strings.ToLower(username)))
+	resp, err := http.Get(fmt.Sprintf("%s%s", provider_url, strings.ToLower(username)))
 	if err != nil {
 		log.Printf("HTTP request failed: %v\n", err)
 		return InitialState{}

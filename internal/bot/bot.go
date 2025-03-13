@@ -1,14 +1,15 @@
 package bot
 
 import (
-	"GoStreamRecord/internal/bot/recorder"
-	"GoStreamRecord/internal/db"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"sync"
 	"time"
+
+	"GoStreamRecord/internal/db"
+	"GoStreamRecord/internal/recorder"
 )
 
 // Bot encapsulates the recording bot’s state.
@@ -65,9 +66,8 @@ func (b *controller) RecordLoop(streamerName string) {
 				fmt.Println("Recorder was active")
 				continue
 			}
-			b.mux.Lock()
-			b.AddProcess(db.Config.Streamers.Streamers[i1].Name, streamer.Name)
-			b.mux.Unlock()
+			b.AddProcess(db.Config.Streamers.Streamers[i1].Provider, streamer.Name)
+
 			// Find the Recorder for the streamer.
 			for i2 := range b.status {
 				//b.status[i2].Web.Site = provider.Init() //b.status[i2].Web.Type
@@ -91,7 +91,7 @@ func (b *controller) RecordLoop(streamerName string) {
 
 						if stopStatus {
 
-							b.StopProcess(sName)
+							b.StopProcessIfRunning(status)
 							log.Println("Stopped!")
 							// If not a restart, exit.
 							b.mux.Lock()
@@ -113,6 +113,7 @@ func (b *controller) RecordLoop(streamerName string) {
 							db.Read("settings", "settings.json", &db.Config.Settings)
 
 							log.Printf("Checking %s online status...", sName)
+							fmt.Println(status.Website.Interface)
 							if !status.Website.Interface.IsOnline(sName) {
 								log.Printf("Streamer %s is not online.", sName)
 								return

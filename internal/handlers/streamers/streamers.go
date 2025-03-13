@@ -2,10 +2,10 @@ package streamers
 
 import (
 	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/bot/recorder"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers/cookies"
 	"GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/recorder"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -85,11 +85,7 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	list := []string{}
-	for _, s := range db.Config.Streamers.Streamers {
-		list = append(list, s.Name)
-	}
-	json.NewEncoder(w).Encode(list)
+	json.NewEncoder(w).Encode(db.Config.Streamers.Streamers)
 }
 
 func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +158,8 @@ func StopProcess(w http.ResponseWriter, r *http.Request) {
 		s := rd.Streamer
 		rd.mu.Unlock()
 		status.ResponseHandler(w, r, "Stopping process for "+s, nil)
-		bot.Bot.StopProcess(rd.Streamer)
+		rec := bot.Bot.Status(s)
+		bot.Bot.StopProcessIfRunning(&rec)
 		status.ResponseHandler(w, r, "Stopped process for"+s, nil)
 		rd.wg.Done()
 

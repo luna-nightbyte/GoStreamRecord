@@ -1,11 +1,12 @@
 package bot
 
 import (
-	"GoStreamRecord/internal/bot/recorder"
 	"context"
 	"log"
 	"strings"
 	"sync"
+
+	"GoStreamRecord/internal/recorder"
 )
 
 func (b *controller) Command(command string, name string) {
@@ -22,7 +23,7 @@ func (b *controller) Command(command string, name string) {
 		}
 
 		for _, s := range b.status {
-			if name == s.Website.Username  && s.Cmd != nil {
+			if name == s.Website.Username && s.Cmd != nil {
 				log.Println("Bot already running..")
 				return
 			}
@@ -37,28 +38,17 @@ func (b *controller) Command(command string, name string) {
 			break
 		}
 
-		log.Println("Stopping bot")
-		var wg sync.WaitGroup
 		b.mux.Lock()
 		// Iterate over a copy of the status slice to avoid closure capture issues.
 		for _, s := range b.status {
 			// Stop only the specified process (or all if name is empty).
-			if name == "" || s.Website.Username  == name {
-
-				b.stopProcessIfRunning(s)
-				sName := s.Website.Username 
-				wg.Add(1)
-				go func(n string) {
-					defer wg.Done()
-					b.StopProcess(n)
-				}(sName)
-			} else {
-				log.Println("Not stopping..")
+			if name == "" || s.Website.Username == name {
+				log.Println("Stopping process for", s.Website.Username)
+				b.StopProcessIfRunning(&s)
 			}
 		}
 
 		b.mux.Unlock()
-		wg.Wait()
 
 		b.checkProcesses()
 	case "restart":
@@ -71,7 +61,7 @@ func (b *controller) Command(command string, name string) {
 			// Stop a single process.
 			process := getProcess(name, b)
 
-			b.Command("stop", process.Website.Username )
+			b.Command("stop", process.Website.Username)
 			recorders = append(recorders, name)
 
 		} else {
@@ -88,20 +78,20 @@ func (b *controller) Command(command string, name string) {
 				// Mark that the process is being restarted.
 				// (Assuming b.status is the source of truth; you might also update the copy)
 				for i, rec := range b.status {
-					if rec.Website.Username  == s.Website.Username  {
+					if rec.Website.Username == s.Website.Username {
 						b.status[i].IsRestarting = true
-						b.stopProcessIfRunning(b.status[i])
+						b.StopProcessIfRunning(&b.status[i])
 						break
 					}
 				}
 				b.mux.Unlock()
 				wg.Add(1)
-				recorders = append(recorders, s.Website.Username )
+				recorders = append(recorders, s.Website.Username)
 				go func(n string) {
 					b.Command("stop", n)
 					log.Println("Stopped", n)
 					wg.Done()
-				}(s.Website.Username )
+				}(s.Website.Username)
 			}
 			wg.Wait()
 		}

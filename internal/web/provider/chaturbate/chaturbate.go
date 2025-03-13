@@ -3,7 +3,6 @@ package chaturbate
 import (
 	"GoStreamRecord/internal/db"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,9 +29,11 @@ func (c *Chaturbate) IsOnline(username string) bool {
 
 	//Check once if a thumbnail is available
 	urlStr := "https://jpeg.live.mmcdn.com/stream?room=" + c.TrueName(username)
-	resp, err := http.Get(urlStr)
+	http.DefaultClient.Timeout = time.Duration(1 * time.Second)
+	resp, err := http.DefaultClient.Get(urlStr)
+	//resp, err := http.Get(urlStr)
 	if err != nil {
-		log.Printf("Error in making request: %v", err)
+		//log.Printf("Error in making request: %v", err)
 		return false
 	}
 	defer resp.Body.Close()
@@ -48,7 +49,6 @@ func (c *Chaturbate) IsOnline(username string) bool {
 func (c *Chaturbate) IsRoomPublic(username string) bool {
 	// Wait for the dbured rate limit.
 	time.Sleep(time.Duration(db.Config.Settings.App.RateLimit.Time) * time.Second)
-	fmt.Println("Checking ", username)
 	urlStr := "https://chaturbate.com/get_edge_hls_url_ajax/"
 	data := url.Values{}
 	data.Set("room_slug", username)
