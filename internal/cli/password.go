@@ -1,9 +1,9 @@
-package startup
+package cli
 
 import (
+	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers/login"
-	"GoStreamRecord/internal/prettyprint"
 	"fmt"
 	"log"
 )
@@ -14,11 +14,12 @@ func resetPwdCommand(args []string) {
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 1 {
-			fmt.Println(prettyprint.BoldRed("No username provided."))
+			color.Println("Bred", "No username provided.")
 		} else {
-			fmt.Println(prettyprint.BoldRed("No new password provided."))
+			color.Println("Bred", "No new password provided.")
 		}
-		fmt.Println(prettyprint.BoldRed("Usage:"), Commands["reset-pwd"].Usage)
+		color.Print("Bred", "Usage:")
+		fmt.Println(Commands["reset-pwd"].Usage)
 		return
 	}
 
@@ -38,13 +39,17 @@ func resetPwdCommand(args []string) {
 	}
 
 	if !userFound {
-		log.Println("No matching username found.")
-		fmt.Println(prettyprint.BoldRed("No matching username found."))
+		color.Println("Bred", "No matching username found.")
+		color.Logln("Bred", "No matching username found.")
 		return
 	}
 
 	// Save updated user configuration.
 	db.Config.Update("users", "users.json", &db.Config.Users)
 	log.Println("Password updated for", username)
-	fmt.Println(prettyprint.Green("Password updated for "), prettyprint.BoldWhite(username))
+
+	color.Print("green", "Password updated for ")
+	color.Println("Bwhite", username)
+	color.Log("Bred", "No matching username found.")
+	color.Logln("Bred", "No matching username found.")
 }

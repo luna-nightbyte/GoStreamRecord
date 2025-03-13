@@ -1,10 +1,10 @@
-package startup
+package cli
 
 import (
+	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	dbuser "GoStreamRecord/internal/db/users"
 	"GoStreamRecord/internal/handlers/login"
-	"GoStreamRecord/internal/prettyprint"
 	"fmt"
 	"log"
 )
@@ -15,11 +15,11 @@ func addNewUser(args []string) {
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 1 {
-			fmt.Println(prettyprint.BoldRed("No username provided."))
+			color.Println("Bred", "No username provided.")
 		} else {
-			fmt.Println(prettyprint.BoldRed("No new password provided."))
+			color.Println("Bred", "No new password provided.")
 		}
-		fmt.Println(prettyprint.BoldRed("Usage:"), Commands["add-user"].Usage)
+		color.Print("Bred", "Usage:")
 		return
 	}
 
@@ -32,7 +32,7 @@ func addNewUser(args []string) {
 		fmt.Println(username, u.Name)
 		if u.Name == username {
 			log.Println("User already exists!")
-			fmt.Println(prettyprint.BoldRed("User already exists!"))
+			color.Println("Bred", "User already exists!")
 			return
 		}
 	}
@@ -41,5 +41,6 @@ func addNewUser(args []string) {
 	// Save updated user configuration.
 	db.Config.Update("users", "users.json", &db.Config.Users)
 	log.Println("Added new user", username)
-	fmt.Println(prettyprint.Green("Added new user "), prettyprint.BoldWhite(username))
+	color.Print("green", "Added new user ")
+	color.Println("Bwhite", username)
 }
