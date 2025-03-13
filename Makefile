@@ -1,7 +1,7 @@
 
 
 # Get the latest Git tag for versioning
-GIT_TAG := $(shell git describe --tags --always --dirty)
+GIT_TAG := $(shell git describe --tags)
 FULL_TAG := $(GIT_TAG)-$(shell git describe --all)
 
 user := $1
@@ -35,7 +35,7 @@ reset-pwd:
 build: build-base push-base build-app push-app
 
 .PHONY: base
-build-base: 
+base: 
 	docker build \
 		--build-arg TAG=$(GIT_TAG) \
 		-t lunanightbyte/gorecord-base:$(GIT_TAG) . \
@@ -43,7 +43,7 @@ build-base:
 	
 
 .PHONY: build-app
-build-app: push-app
+build-app: 
 	docker build \
 		--build-arg TAG=$(GIT_TAG) \
 		-t lunanightbyte/gorecord:$(GIT_TAG) . \
@@ -53,6 +53,6 @@ build-app: push-app
 push-app:
 	docker push lunanightbyte/gorecord:$(GIT_TAG)
 
-.PHONY: push-app
+.PHONY: push-base
 push-base:
 	docker push lunanightbyte/gorecord-base:$(GIT_TAG)
