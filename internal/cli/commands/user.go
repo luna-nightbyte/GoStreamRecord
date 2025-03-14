@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"GoStreamRecord/internal/cli/color"

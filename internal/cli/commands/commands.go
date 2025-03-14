@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"GoStreamRecord/internal/cli/color"
@@ -6,7 +6,17 @@ import (
 )
 
 var passwordWasReset bool
+
 var BinaryName = "GoStreamRecord"
+
+const (
+	STARTUP_RESET_PWD       = "reset-pwd"
+	STARTUP_ADD_USER        = "add-user"
+	STARTUP_GEN_COOKIE_KEY  = "gen-cookie-token"
+	STARTUP_GEN_SESSION_KEY = "gen-session-token"
+	STARTUP_HELP            = "help"
+)
+
 // Command represents a CLI command with its name, arguments, and execution function.
 type Command struct {
 	Name    string
@@ -19,28 +29,28 @@ var Commands = map[string]Command{}
 
 func init() {
 	// Register available commands.
-	Commands["reset-pwd"] = Command{
-		Name:    "reset-pwd",
+	Commands[STARTUP_RESET_PWD] = Command{
+		Name:    STARTUP_RESET_PWD,
 		Args:    "<username> <new-password>",
-		Execute: resetPwdCommand,
+		Execute: ResetPwd,
 	}
-	Commands["add-user"] = Command{
-		Name:    "add-user",
+	Commands[STARTUP_ADD_USER] = Command{
+		Name:    STARTUP_ADD_USER,
 		Args:    "<username> <new-password>",
 		Execute: addNewUser,
 	}
-	Commands["gen-cookie-token"] = Command{
-		Name:    "gen-cookie-token",
+	Commands[STARTUP_GEN_COOKIE_KEY] = Command{
+		Name:    STARTUP_GEN_COOKIE_KEY,
 		Args:    "<lenght(int)>",
 		Execute: generateCookieToken,
 	}
-	Commands["gen-session-token"] = Command{
-		Name:    "gen-session-token",
+	Commands[STARTUP_GEN_SESSION_KEY] = Command{
+		Name:    STARTUP_GEN_SESSION_KEY,
 		Args:    "<lenght(int)>",
 		Execute: generateSessionKey,
 	}
-	Commands["help"] = Command{
-		Name:    "help",
+	Commands[STARTUP_HELP] = Command{
+		Name:    STARTUP_HELP,
 		Args:    "Shows this menu",
 		Execute: PrintUsage,
 	}
@@ -48,7 +58,6 @@ func init() {
 
 // args are not used here. input "nil"
 func PrintUsage(args []string) (string, error) {
-
 	// TODO: cli.PrintUsage()
 	fmt.Println()
 	color.Println("Bgrey", "Usage:")

@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"GoStreamRecord/internal/cli/color"
@@ -7,8 +7,8 @@ import (
 	"fmt"
 )
 
-func resetPwdCommand(args []string) (string, error) {
-	passwordWasReset = true
+func ResetPwd(args []string) (string, error) {
+	//passwordWasReset = true
 
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
@@ -20,7 +20,6 @@ func resetPwdCommand(args []string) (string, error) {
 			err = "No new password provided."
 			color.Println("Bred", err)
 		}
-		PrintUsage(nil)
 		return "", fmt.Errorf("%s", err)
 	}
 
