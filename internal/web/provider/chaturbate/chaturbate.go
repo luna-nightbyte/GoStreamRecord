@@ -12,6 +12,7 @@ import (
 
 type Chaturbate struct {
 	Url           string `json:"url"`
+	StreamURL     string `json:"stream_url"`
 	CorrectedName string `json:"username"`
 }
 
@@ -19,6 +20,7 @@ var provider_url string = "https://chaturbate.com/"
 
 func (b *Chaturbate) Init(username string) any {
 	b.Url = provider_url
+	b.StreamURL = provider_url + username
 	b.CorrectedName = username
 	return b
 }
