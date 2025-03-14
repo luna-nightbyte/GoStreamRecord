@@ -2,8 +2,9 @@ package main
 
 import (
 	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/cli"
 	"GoStreamRecord/internal/cli/color"
+	"GoStreamRecord/internal/cli/commands"
+	cli_print "GoStreamRecord/internal/cli/print"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers"
 	"GoStreamRecord/internal/handlers/cookies"
@@ -31,15 +32,12 @@ var (
 	password_was_reset bool
 )
 
-func init() {
+func main() {
 	handlers.IndexHTML = IndexHTML
 	handlers.LoginHTML = LoginHTML
 
-}
-
-func main() {
 	if len(os.Args) < 2 {
-		cli.PrintStartup()
+		cli_print.PrintStartup()
 		cookies.Session = cookies.New()
 		logger.Init(logger.Log_path)
 		bot.Init()
@@ -48,13 +46,13 @@ func main() {
 	}
 
 	cmdName := os.Args[1]
-	cmd, exists := cli.Commands[cmdName]
+	cmd, exists := commands.Commands[cmdName]
 	if !exists {
 		fmt.Println()
 		color.Print("red", "Unknown command: ")
 		color.Println("grey", cmdName)
 		// TODO: cli.PrintUsage()
-		cli.PrintUsage(nil)
+		commands.PrintUsage(nil)
 		return
 	}
 
