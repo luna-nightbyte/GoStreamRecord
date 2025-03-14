@@ -5,20 +5,24 @@ import (
 	"GoStreamRecord/internal/db"
 	dbuser "GoStreamRecord/internal/db/users"
 	"GoStreamRecord/internal/handlers/login"
+	"fmt"
 )
 
-func addNewUser(args []string) {
+func addNewUser(args []string) (string, error) {
 	passwordWasReset = true
 
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
+		err := ""
 		if len(args) < 1 {
-			color.Println("Bred", "No username provided.")
+			err = "No username provided."
+			color.Println("Bred", err)
 		} else {
+			err = "No new password provided."
 			color.Println("Bred", "No new password provided.")
 		}
-		PrintUsage()
-		return
+		PrintUsage(nil)
+		return "", fmt.Errorf("%s", err)
 	}
 
 	username := args[0]
@@ -30,7 +34,7 @@ func addNewUser(args []string) {
 		if u.Name == username {
 
 			color.Println("Bred", "User already exists!")
-			return
+			return "", fmt.Errorf("%s", "User already exists!")
 		}
 	}
 
@@ -40,4 +44,5 @@ func addNewUser(args []string) {
 
 	color.Print("green", "Added new user ")
 	color.Println("Bwhite", username)
+	return "Added new user " + username, nil
 }

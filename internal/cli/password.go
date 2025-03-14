@@ -4,20 +4,24 @@ import (
 	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/handlers/login"
+	"fmt"
 )
 
-func resetPwdCommand(args []string) {
+func resetPwdCommand(args []string) (string, error) {
 	passwordWasReset = true
 
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
+		err := ""
 		if len(args) < 1 {
-			color.Println("Bred", "No username provided.")
+			err = "No username provided."
+			color.Println("Bred", err)
 		} else {
-			color.Println("Bred", "No new password provided.")
+			err = "No new password provided."
+			color.Println("Bred", err)
 		}
-		PrintUsage()
-		return
+		PrintUsage(nil)
+		return "", fmt.Errorf("%s", err)
 	}
 
 	username := args[0]
@@ -36,7 +40,7 @@ func resetPwdCommand(args []string) {
 
 	if !userFound {
 		color.Println("Bred", "No matching username found.")
-		return
+		return "", fmt.Errorf("%s", "No matching username found.")
 	}
 
 	// Save updated user configuration.
@@ -44,4 +48,5 @@ func resetPwdCommand(args []string) {
 
 	color.Print("green", "Password updated for ")
 	color.Println("Bwhite", username)
+	return "Password updated for " + username, nil
 }

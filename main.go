@@ -32,7 +32,6 @@ var (
 )
 
 func init() {
-	cli.PrintStartup()
 	handlers.IndexHTML = IndexHTML
 	handlers.LoginHTML = LoginHTML
 
@@ -55,12 +54,16 @@ func main() {
 		color.Print("red", "Unknown command: ")
 		color.Println("grey", cmdName)
 		// TODO: cli.PrintUsage()
-		cli.PrintUsage()
+		cli.PrintUsage(nil)
 		return
 	}
 
 	// Execute the command with the remaining arguments.
-	cmd.Execute(os.Args[2:])
+	msg, err := cmd.Execute(os.Args[2:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(msg)
 
 }
 

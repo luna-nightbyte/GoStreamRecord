@@ -6,12 +6,12 @@ import (
 )
 
 var passwordWasReset bool
-
+var BinaryName = "GoStreamRecord"
 // Command represents a CLI command with its name, arguments, and execution function.
 type Command struct {
 	Name    string
 	Args    string
-	Execute func(args []string)
+	Execute func(args []string) (string, error)
 }
 
 // Global command registry.
@@ -25,23 +25,40 @@ func init() {
 		Execute: resetPwdCommand,
 	}
 	Commands["add-user"] = Command{
-		Name:    "reset-pwd",
+		Name:    "add-user",
 		Args:    "<username> <new-password>",
 		Execute: addNewUser,
 	}
+	Commands["gen-cookie-token"] = Command{
+		Name:    "gen-cookie-token",
+		Args:    "<lenght(int)>",
+		Execute: generateCookieToken,
+	}
+	Commands["gen-session-token"] = Command{
+		Name:    "gen-session-token",
+		Args:    "<lenght(int)>",
+		Execute: generateSessionKey,
+	}
+	Commands["help"] = Command{
+		Name:    "help",
+		Args:    "Shows this menu",
+		Execute: PrintUsage,
+	}
 }
 
-func PrintUsage() {
+// args are not used here. input "nil"
+func PrintUsage(args []string) (string, error) {
 
 	// TODO: cli.PrintUsage()
 	fmt.Println()
 	color.Println("Bgrey", "Usage:")
 	for _, cmd := range Commands {
-		color.Print("cyan", " - ./GoStreamRecord")
+		color.Print("cyan", " - ./"+BinaryName)
 		color.Print("white", " "+cmd.Name)
 		color.Println("Bwhite", " "+cmd.Args)
 	}
 
 	color.Println("Bgrey", "\nOtherwise run the server without any arguments.")
 
+	return "", nil
 }
