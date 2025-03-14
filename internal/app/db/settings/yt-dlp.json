@@ -1,0 +1,86 @@
+{
+  "audio-multistreams": {
+    "arg": "--audio-multistreams",
+    "usage": "",
+    "description": "Allow multiple audio streams to be merged into a single file",
+    "enabled": false
+  },
+  "cookies": {
+    "arg": "--cookies",
+    "usage": "",
+    "description": "Netscape formatted file to read cookies from and dump cookie jar in",
+    "enabled": false
+  },
+  "embed-thumbnail": {
+    "arg": "--embed-thumbnail",
+    "usage": "",
+    "description": "Embed thumbnail in the video as cover art",
+    "enabled": false
+  },
+  "max-filesize": {
+    "arg": "--max-filesize",
+    "usage": "",
+    "description": "Abort download if filesize is larger than SIZE, e.g. 50k or 44.6M",
+    "enabled": false
+  },
+  "min-filesize": {
+    "arg": "--min-filesize",
+    "usage": "",
+    "description": "Abort download if filesize is smaller than SIZE, e.g. 50k or 44.6M",
+    "enabled": false
+  },
+  "no-audio-multistreams": {
+    "arg": "--no-audio-multistreams",
+    "usage": "",
+    "description": "Only one audio stream is downloaded for each output file ",
+    "enabled": false
+  },
+  "no-cookies": {
+    "arg": "--no-cookies",
+    "usage": "",
+    "description": "Do not read/dump cookies from/to file ",
+    "enabled": false
+  },
+  "no-embed-thumbnail": {
+    "arg": "--no-embed-thumbnail",
+    "usage": "",
+    "description": "Do not embed thumbnail ",
+    "enabled": false
+  },
+  "no-part": {
+    "arg": "--no-part",
+    "usage": "",
+    "description": "Do not use .part files - write directly into output file",
+    "enabled": false
+  },
+  "no-video-multistreams": {
+    "arg": "--no-video-multistreams",
+    "usage": "",
+    "description": "Only one video stream is downloaded for each output file ",
+    "enabled": false
+  },
+  "no-write-thumbnail": {
+    "arg": "--no-write-thumbnail",
+    "usage": "",
+    "description": "Do not write thumbnail image to disk ",
+    "enabled": false
+  },
+  "video-multistreams": {
+    "arg": "--video-multistreams",
+    "usage": "",
+    "description": "Allow multiple video streams to be merged into a single file",
+    "enabled": false
+  },
+  "write-all-thumbnails": {
+    "arg": "--write-all-thumbnails",
+    "usage": "",
+    "description": "Write all thumbnail image formats to dis",
+    "enabled": false
+  },
+  "write-thumbnail": {
+    "arg": "--write-thumbnail",
+    "usage": "",
+    "description": "Write thumbnail image to disk ",
+    "enabled": false
+  }
+}
