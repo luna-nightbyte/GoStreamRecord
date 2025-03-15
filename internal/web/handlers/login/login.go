@@ -50,11 +50,9 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	session.Values["authenticated"] = true
 	session.Values["user"] = username
 	if err := session.Save(r, w); err != nil {
-		resp.Message = "Could not save session"
+		resp.Message = "Could not save session. \nError: " + fmt.Sprintf("%v", err)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
-		fmt.Println(err)
-		//http.Error(w, "Could not save session", http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)

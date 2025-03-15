@@ -1,5 +1,7 @@
 package recorder_settings
 
+// argument list for YT-dlp. 
+// To add a new argument, update condig and add the argument (case sensitive) to this list. 
 const (
 	YTDLP_NO_PART               = "--no-part"
 	YTDLP_MIN_FILESIZE          = "--min-filesize"

@@ -13,7 +13,6 @@ import (
 var ControllerNotifier = connection.NewNotifier()
 
 // dcodes a JSON payload with a "command" field (start, stop, or restart)
-// and returns a dummy response.
 func ControlHandler(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)

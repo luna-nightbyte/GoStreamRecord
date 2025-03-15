@@ -6,7 +6,6 @@ import (
 	c "github.com/fatih/color"
 )
 
-// --------------- Must be updated to add support for new sites.
 var Colors = map[string]func(a ...interface{}) string{
 	"cyan":    c.New(c.FgCyan).SprintFunc(),
 	"green":   c.New(c.FgGreen).SprintFunc(),

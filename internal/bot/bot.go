@@ -13,6 +13,7 @@ import (
 )
 
 // Bot encapsulates the recording bot’s state.
+// TODO: finish bot structure
 type controller struct {
 	mux        sync.Mutex
 	status     []recorder.Recorder
@@ -70,7 +71,6 @@ func (b *controller) RecordLoop(streamerName string) {
 
 			// Find the Recorder for the streamer.
 			for i2 := range b.status {
-				//b.status[i2].Web.Site = provider.Init() //b.status[i2].Web.Type
 				// Ensure correct name is being used.
 				streamer.Name = b.status[i2].Website.Interface.TrueName(streamer.Name)
 				if b.status[i2].Website.Username != streamer.Name {

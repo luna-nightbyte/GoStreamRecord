@@ -24,6 +24,7 @@ type session struct {
 func New() *session {
 	var key *sessions.CookieStore
 	if db.Config.Settings.App.UseEnvKey {
+		// TODO: Implement check if .env is available. fallback to random key if not.
 		key = sessions.NewCookieStore([]byte("KKp5q43GBoaSgd6QmQyehpSqW/08KRhIJpO90URviFs="))
 	} else {
 		key = sessions.NewCookieStore(securecookie.GenerateRandomKey(32))
@@ -31,7 +32,7 @@ func New() *session {
 	}
 	session := session{
 		subs_mutex: &sync.Mutex{},
-		cookies:    key, //securecookie.GenerateRandomKey(32)),
+		cookies:    key,
 	}
 	session.cookies.Options = &sessions.Options{
 		Path:     "/",
@@ -52,7 +53,6 @@ func (s *session) IsLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 	session, err := s.cookies.Get(r, "session")
 	if err != nil {
 		http.RedirectHandler("/login", http.StatusInternalServerError)
-		//http.Error(w, "Session error. Try clearing your cookies.", http.StatusInternalServerError)
 		return false
 	}
 

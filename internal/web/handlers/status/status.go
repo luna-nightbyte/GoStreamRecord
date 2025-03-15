@@ -6,9 +6,9 @@ import (
 
 	"GoStreamRecord/internal/bot"
 	"GoStreamRecord/internal/db"
+	"GoStreamRecord/internal/recorder"
 	"GoStreamRecord/internal/web/handlers/connection"
 	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/recorder"
 )
 
 var StreamersNotifier = connection.NewNotifier()
@@ -31,7 +31,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reload streamer list from config file
+	// Reload streamer list from config file to dynamically update for any newly added in the web-ui.
 	db.Write("streamers", "streamers.json", &db.Config.Streamers)
 
 	// Fetch current recording status

@@ -8,7 +8,7 @@ import (
 )
 
 func (rec *Recorder) StartRecording(streamerName string) {
-	
+
 	log.Printf("Starting recording for %s", streamerName)
 
 	args := strings.Fields("yt-dlp --no-part")
@@ -29,9 +29,7 @@ func (rec *Recorder) StartRecording(streamerName string) {
 	if err != nil {
 		log.Printf("Recording process for %s exited with error: %v", streamerName, err)
 		log.Printf("yt-dlp stderr: %s", stderr.String()) // Print stderr output
-		//fmt.Printf("yt-dlp stderr: %s", stderr.String()) // Print stderr output
 	} else {
-		log.Printf("yt-dlp stderr: %s", stdout.String()) // Print stderr output
 		log.Printf("Recording process for %s finished successfully", streamerName)
 	}
 }

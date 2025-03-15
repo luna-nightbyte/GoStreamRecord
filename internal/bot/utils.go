@@ -40,17 +40,14 @@ func (b *controller) checkProcesses() int {
 	b.mux.Lock()
 	defer b.mux.Unlock()
 	for i := 0; i < len(b.status); i++ {
-		// Use signal 0 to check if process is still running.
-		log.Println("index1: ", i)
-		log.Println("Checking process:", b.status[i].IsRecording, b.status[i].StopSignal, b.status[i].IsRecording, b.status[i].Cmd)
+
 		if !b.status[i].StopSignal {
 			continue
 		}
 		b.StopProcessIfRunning(&b.status[i])
-		log.Printf("Process for %s has stopped", b.status[i].Website.Username)
+		log.Printf("Recorder for %s has stopped", b.status[i].Website.Username)
 		b.status = append(b.status[:i], b.status[i+1:]...)
 		i--
-		log.Println("index2:", i)
 
 	}
 	return len(b.status)
@@ -58,7 +55,7 @@ func (b *controller) checkProcesses() int {
 
 func (b *controller) StopProcessIfRunning(rec *recorder.Recorder) {
 	for i, s := range b.status {
-		log.Println("Checking process:", s.IsRecording, s.StopSignal, s.Cmd)
+		log.Println("Checking recorder:", s.IsRecording, s.StopSignal, s.Cmd)
 		if rec.Cmd != nil && s.Website.Username == rec.Website.Username {
 			b.status[i].StopSignal = true
 			if err := s.Cmd.Process.Signal(syscall.SIGINT); err != nil {
@@ -69,7 +66,7 @@ func (b *controller) StopProcessIfRunning(rec *recorder.Recorder) {
 		}
 		if s.Cmd == nil {
 			b.status[i].StopSignal = true
-			log.Printf("Process for %s was already stopped", rec.Website.Username)
+			log.Printf("Recorder for %s was already stopped", rec.Website.Username)
 			b.status = append(b.status[:i], b.status[i+1:]...)
 			break
 		}
@@ -98,15 +95,14 @@ func getProcess(name string, b *controller) recorder.Recorder {
 	return recorder.Recorder{StopSignal: false, IsRecording: false, Cmd: nil}
 }
 
-// StopBot signals the bot to stop starting new recordings and then gracefully stops active processes.
+// StopRecorder signals the recorder to stop
 func (b *controller) StopRecorder(streamerName string) {
-	// Signal cancellation.
-	//b.cancel()
 	log.Println("Stopping recorder..")
 	// Give current recorders time to finish (or exit gracefully).
 	for i := range b.status {
 		if b.status[i].Website.Username == streamerName {
 			b.status[i].StopSignal = true
+			return
 		}
 	}
 }

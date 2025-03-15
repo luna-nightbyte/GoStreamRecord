@@ -107,7 +107,6 @@ func Read(folder, filename string, v interface{}) error {
 	return nil
 }
 
-// WriteJSON marshals the given object and writes it to a
 func Write(folder, filename string, v interface{}) error {
 	f, err := os.Create(filepath.Join(DbDir, folder, filename))
 	if err != nil {

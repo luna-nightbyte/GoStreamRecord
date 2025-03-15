@@ -76,7 +76,6 @@ func (b *controller) Command(command string, name string) {
 				b.mux.Lock()
 
 				// Mark that the process is being restarted.
-				// (Assuming b.status is the source of truth; you might also update the copy)
 				for i, rec := range b.status {
 					if rec.Website.Username == s.Website.Username {
 						b.status[i].IsRestarting = true

@@ -16,7 +16,6 @@ import (
 var StreamersNotifier = connection.NewNotifier()
 
 // Handles POST /api/add-streamer.
-// It decodes a JSON payload with a "data" field and returns a dummy response.
 func AddStreamer(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
@@ -46,7 +45,6 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handles POST /api/remove-streamer.
-// It decodes a JSON payload with the selected option and returns a dummy response.
 func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)

@@ -5,7 +5,10 @@ import (
 	"sync"
 )
 
+// TODO: Implement as client connections for frontend updates
+
 // Use make new-notify-token
+// TODO: Update to use random generated key, or .env file (if provided)
 var authToken = "21b3fc1def893f4dc1d619acbe6635b12c8605b1b93f81b165a4bfa745bebc73"
 
 // Notifier manages listeners and message dispatch.
@@ -31,7 +34,7 @@ func NewNotifier() *Notifier {
 	}
 }
 
-// Subscribe adds a new listener if the provided token is valid.
+// Connect adds a new listener if the provided token is valid.
 // It returns an unsubscribe function that removes the listener.
 func (n *Notifier) Connect(listener chan<- []byte) (UnsubscribeFunc, error) {
 	if n.token != authToken {

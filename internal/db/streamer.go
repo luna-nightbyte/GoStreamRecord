@@ -6,7 +6,6 @@ import (
 )
 
 // ----------------- Streamers -----------------
-
 func (c *configs) AddStreamer(streamerName, provider string) string {
 	c.Streamers.Add(streamerName, provider)
 	err := Write("streamers", "streamers.json", &c.Streamers)

@@ -29,7 +29,7 @@ func Init(logPath string) {
 }
 
 func (w logWriter) Write(p []byte) (n int, err error) {
-	_, file, line, ok := runtime.Caller(3) // Adjust stack depth to get the actual caller
+	_, file, line, ok := runtime.Caller(3) 
 	if !ok {
 		file = "???"
 		line = 0

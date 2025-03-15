@@ -13,7 +13,6 @@ import (
 )
 
 // Handles POST /api/upload.
-// It reads an uploaded file and returns a dummy success response.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
@@ -24,6 +23,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Update to modify changes as admin in the web-ui
 	// Limit the size of the incoming request to 10MB
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		fmt.Println(err)
@@ -45,7 +45,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For demonstration, we'll read the file's contents (but not store it)
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println(err)

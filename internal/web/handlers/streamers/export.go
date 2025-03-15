@@ -8,7 +8,6 @@ import (
 )
 
 // Handles GET /api/download.
-// It sends a dummy file for download.
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)

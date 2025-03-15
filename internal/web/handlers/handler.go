@@ -45,7 +45,7 @@ func Handle() {
 	for _, u := range db.Config.Users.Users {
 		cookies.UserStore[u.Name] = u.Key
 	}
-	//	fs := http.FileServer(http.Dir(filepath.Dir(file.Index_path)))
+	
 
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 

@@ -10,7 +10,6 @@ import (
 
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/web/provider"
-	// Assume mp4ff is imported and used for MP4 parsing
 )
 
 type Recorder struct {
@@ -21,8 +20,10 @@ type Recorder struct {
 	Cmd          *exec.Cmd         `json:"-"`
 }
 
-// watchFile monitors the file and calls processFile when new data is appended.
-func watchFile(filePath string) {
+// Todo: Implement with frontend and update input dir.
+//
+// WatchFile monitors the file and calls processFile when new data is appended.
+func WatchFile(filePath string) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(err)
@@ -73,11 +74,10 @@ func processFile(filePath string) {
 	parsedFile, err := mp4.DecodeFile(file)
 	if err != nil {
 		fmt.Println("Error parsing MP4 file:", err)
-		// Optionally, handle partial parsing or wait for more data.
 	} else {
-		// Extract info such as duration, video dimensions, etc.
+		// TODO: impolement to broadcast updates to clients.
 		fmt.Printf("Parsed MP4 file: Duration = %v, Size = %d bytes\n", parsedFile.Moov.Mvhd.Duration, getFileSize(filePath))
-		// You can then extract frames if you have the proper decoder.
+
 	}
 }
 
