@@ -3,7 +3,7 @@
 # Get the latest Git tag for versioning
 GIT_TAG := $(shell git describe --tags)
 FULL_TAG := $(GIT_TAG)-$(shell git describe --all)
-BINARY_NAME=$(GIT_TAG)
+BINARY_NAME="server"
 
 user := $1
 pass := $2
@@ -16,10 +16,10 @@ LENGHT=32
 app:
 	go build \
 		-ldflags="-X 'GoStreamRecord/internal/db.Version=$(FULL_TAG)'" \
-		-ldflags="-X 'GoStreamRecord/internal/cli.BinaryName=$(BINARY_NAME)'" \
-		-o ./output/server main.go 
+		-ldflags="-X 'GoStreamRecord/internal/cli/commands.BinaryName=$(BINARY_NAME)'" \
+		-o ./output/$(BINARY_NAME) main.go 
 	cd output && \
-	$(BINARY_NAME)
+	./$(BINARY_NAME)
 	
 #-- reset password
 .PHONY: reset-pwd
