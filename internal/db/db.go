@@ -15,26 +15,27 @@ import (
 
 type configs struct {
 	APIKeys   dbapi.API_secrets
-	Settings  settings.Settings
 	Streamers streamers.List
 	Users     dbuser.Logins
+
+	Settings settings.Settings // more or less old and deprecated settings. most should be removed
+	Recorder settings.YP_DLP
 }
 
 var (
 	Config = configs{
 		APIKeys:   dbapi.API_secrets{Keys: []dbapi.ApiKeys{}},
-		Settings:  settings.Settings{},
 		Streamers: streamers.List{Streamers: []streamers.Streamer{}},
 		Users:     dbuser.Logins{Users: []dbuser.Login{}},
+
+		Settings: settings.Settings{},
+		Recorder: settings.YP_DLP{},
 	}
-	dbDir   string = "./internal/app/db"
+	DbDir   string = "./db"
 	Version string = "dev"
 )
 
 func init() {
-	loadConfigurations()
-}
-func loadConfigurations() {
 
 	err := loadConfig("settings", "settings.json", &Config.Settings)
 	if err != nil {
@@ -42,6 +43,12 @@ func loadConfigurations() {
 	}
 
 	err = loadConfig("users", "users.json", &Config.Users)
+	if err != nil {
+		log.Fatal(err)
+	}
+	Config.Recorder.Read(filepath.Join(DbDir, "settings", "yt-dlp.json"), &Config.Recorder.YT_DLP)
+	// Veriify the commands
+	err = loadConfig("settings", "yt-dlp.json", &Config.Recorder.YT_DLP)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,7 +93,7 @@ func (c *configs) GenerateDefault(path string, jsonFile any) {
 
 // ReadJSON reads and unmarshals JSON data from a file into the provided object.
 func Read(folder, filename string, v interface{}) error {
-	f, err := os.Open(filepath.Join(dbDir, folder, filename))
+	f, err := os.Open(filepath.Join(DbDir, folder, filename))
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
@@ -102,7 +109,7 @@ func Read(folder, filename string, v interface{}) error {
 
 // WriteJSON marshals the given object and writes it to a
 func Write(folder, filename string, v interface{}) error {
-	f, err := os.Create(filepath.Join(dbDir, folder, filename))
+	f, err := os.Create(filepath.Join(DbDir, folder, filename))
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
