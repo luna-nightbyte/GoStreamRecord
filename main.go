@@ -22,10 +22,10 @@ import (
 
 // Embed static HTML files
 //
-//go:embed internal/app/web/index.html
+//go:embed src/index.html
 var IndexHTML string
 
-//go:embed internal/app/web/login.html
+//go:embed src/login.html
 var LoginHTML string
 
 var (
