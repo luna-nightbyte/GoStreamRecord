@@ -2,12 +2,15 @@ package controller
 
 import (
 	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/handlers/cookies"
-	web_status "GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/connection"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
+
+var ControllerNotifier = connection.NewNotifier()
 
 // dcodes a JSON payload with a "command" field (start, stop, or restart)
 // and returns a dummy response.
@@ -30,7 +33,7 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	
+
 	go bot.Bot.Command(reqData.Command, reqData.Name)
 	resp := web_status.Response{
 		Message: fmt.Sprintf("Exected command '%s'", reqData.Command),

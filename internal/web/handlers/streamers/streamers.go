@@ -3,14 +3,17 @@ package streamers
 import (
 	"GoStreamRecord/internal/bot"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/connection"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/status"
 	"GoStreamRecord/internal/recorder"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
 )
+
+var StreamersNotifier = connection.NewNotifier()
 
 // Handles POST /api/add-streamer.
 // It decodes a JSON payload with a "data" field and returns a dummy response.

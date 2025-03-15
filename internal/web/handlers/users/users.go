@@ -3,12 +3,15 @@ package users
 import (
 	"GoStreamRecord/internal/db"
 
-	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/login"
-	"GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/connection"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/login"
+	"GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"net/http"
 )
+
+var UsersSession = connection.NewNotifier()
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	if !cookies.Session.IsLoggedIn(w, r) {

@@ -3,8 +3,8 @@ package streamers
 import (
 	"GoStreamRecord/internal/db"
 	"GoStreamRecord/internal/db/streamers"
-	"GoStreamRecord/internal/handlers/cookies"
-	web_status "GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"io"

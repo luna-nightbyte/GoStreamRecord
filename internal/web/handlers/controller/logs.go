@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/cookies"
 	"GoStreamRecord/internal/logger"
 	"encoding/json"
 	"io/ioutil"

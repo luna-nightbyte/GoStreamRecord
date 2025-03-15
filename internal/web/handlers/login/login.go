@@ -1,15 +1,18 @@
 package login
 
 import (
-	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/status"
-	web_status "GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/connection"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/status"
+	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+var LoginsNotifier = connection.NewNotifier()
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(1024); err != nil {

@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/controller"
-	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/login"
-	web_status "GoStreamRecord/internal/handlers/status"
-	"GoStreamRecord/internal/handlers/streamers"
-	"GoStreamRecord/internal/handlers/users"
+	"GoStreamRecord/internal/web/handlers/controller"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/login"
+	web_status "GoStreamRecord/internal/web/handlers/status"
+	"GoStreamRecord/internal/web/handlers/streamers"
+	"GoStreamRecord/internal/web/handlers/users"
 	"encoding/json"
 	"net/http"
 	"text/template"

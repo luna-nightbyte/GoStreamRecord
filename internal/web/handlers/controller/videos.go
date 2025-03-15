@@ -2,8 +2,8 @@ package controller
 
 import (
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/cookies"
-	"GoStreamRecord/internal/handlers/status"
+	"GoStreamRecord/internal/web/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"log"

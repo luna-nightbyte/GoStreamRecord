@@ -2,7 +2,7 @@ package streamers
 
 import (
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/cookies"
 	"encoding/json"
 	"net/http"
 )

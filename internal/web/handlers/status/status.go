@@ -6,9 +6,12 @@ import (
 
 	"GoStreamRecord/internal/bot"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/cookies"
+	"GoStreamRecord/internal/web/handlers/connection"
+	"GoStreamRecord/internal/web/handlers/cookies"
 	"GoStreamRecord/internal/recorder"
 )
+
+var StreamersNotifier = connection.NewNotifier()
 
 // Response is a generic response structure for our API endpoints.
 type Response struct {
