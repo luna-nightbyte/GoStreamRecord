@@ -3,8 +3,6 @@
  <img src="https://github.com/user-attachments/assets/1eb7fd04-e421-47f6-bff0-fc75fdfd6f21" alt="Login page"/>
 </p>
 
-__BROKEN URLS__: Chaturbate updated their API endpoints very recently which has made the recorder no longer function. A fix is currently in development at [yt-dlp](https://github.com/yt-dlp/yt-dlp/issues/12580).
-
 __API NOTE__: The API is still in early development. I've added checks for login/API, but i would not recommend exposing the port for this app on your router as of now. 
 ## Core Features
 - Pre-built docker images. Base and minimal image. See the [docker section](https://github.com/luna-nightbyte/GoStreamRecord?tab=readme-ov-file#docker) for example startup command.
