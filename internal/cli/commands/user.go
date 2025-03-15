@@ -4,7 +4,7 @@ import (
 	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
 	dbuser "GoStreamRecord/internal/db/users"
-	"GoStreamRecord/internal/handlers/login"
+	"GoStreamRecord/internal/web/handlers/login"
 	"fmt"
 )
 

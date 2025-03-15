@@ -3,7 +3,7 @@ package commands
 import (
 	"GoStreamRecord/internal/cli/color"
 	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/handlers/login"
+	"GoStreamRecord/internal/web/handlers/login"
 	"fmt"
 )
 
