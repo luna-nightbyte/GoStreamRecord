@@ -9,15 +9,18 @@ import (
 
 	"github.com/Eyevinn/mp4ff/mp4"
 	"github.com/fsnotify/fsnotify"
+
+	"GoStreamRecord/internal/db"
+	"GoStreamRecord/internal/web/provider"
 	// Assume mp4ff is imported and used for MP4 parsing
 )
 
 type Recorder struct {
 	Website      provider.Provider `json:"website"`
-	StopSignal   bool              `json:"-"`
 	IsRestarting bool              `json:"restarting"`
-	Cmd          *exec.Cmd         `json:"-"`
 	IsRecording  bool              `json:"is_recording"`
+	StopSignal   bool              `json:"-"`
+	Cmd          *exec.Cmd         `json:"-"`
 }
 
 // watchFile monitors the file and calls processFile when new data is appended.
