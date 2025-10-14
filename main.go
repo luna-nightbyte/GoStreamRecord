@@ -13,6 +13,7 @@ import (
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/version"
+	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers"
 	webController "remoteCtrl/internal/web/handlers/controller"
 	"remoteCtrl/internal/web/handlers/login"
@@ -27,6 +28,21 @@ import (
 	"github.com/rs/cors"
 )
 
+func ini() {
+
+	ytDLP_path := utils.CheckPath("yt-dlp")
+
+	ffmpeg_path := utils.CheckPath("ffmpeg")
+	if ytDLP_path == "" {
+		fmt.Println("missing yt-dlp. Please install before running this program.")
+	}
+	if ffmpeg_path == "" {
+		fmt.Println("missing yt-dlp. Please install before running this program.")
+	}
+	if ytDLP_path == "" || ffmpeg_path == "" {
+		log.Fatal("missing dependencies")
+	}
+}
 func main() {
 	system.System.WaitForNetwork = false
 	err := internal.Init()
@@ -34,6 +50,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// hls.GetToken("https://chaturbate.com/", "cutebrutalitys")
+	// hlsS := hls.New("https://chaturbate.com/", "test.mp4")
+	// fmt.Println("hls url", hlsS.URL)
+	// return
 	go serveHTTP(system.System.Context)
 
 	<-system.System.Context.Done()

@@ -101,7 +101,11 @@ func (b *Controller) stopProcessIfRunning(bs recorder.Recorder) {
 			}
 
 			b.StopBot(bs.Website.Username)
-			log.Printf("Command for %s has stopped", bs.Website.Username)
+			log.Printf("Command for %s has stopped\n", bs.Website.Username)
+			fmt.Printf("Command for %s has stopped\n", bs.Website.Username)
+			if len(b.status) == 0 {
+				break
+			}
 			b.status = append(b.status[:i], b.status[i+1:]...)
 			break
 		}

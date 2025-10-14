@@ -84,9 +84,6 @@ func (b *Controller) RecordLoop(streamerName string) {
 							}
 							log.Printf("Streamer %s is online!", sName)
 							// Mark as recording.
-							b.mux.Lock()
-							status.IsRecording = true
-							b.mux.Unlock()
 
 							status.StartRecording(sName)
 

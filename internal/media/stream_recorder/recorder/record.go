@@ -4,22 +4,27 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"remoteCtrl/internal/utils"
 	"strings"
 )
 
 // startRecording starts a recording for the given streamer.
 func (rec *Recorder) StartRecording(streamerName string) {
-	log.Printf("Starting recording for %s", streamerName)
+	if rec.IsRecording {
+		return
+	}
+	rec.IsRecording = true
+	log.Printf("Starting recording for %s\n", streamerName)
+	fmt.Printf("Starting recording for %s\n", streamerName)
 
-	// YT-dl
+	ytDlpPath := utils.CheckPath("yt-dlp")
 
-	args := strings.Fields("/home/thomas/.local/bin/yt-dlp --no-part")
+	args := strings.Fields(fmt.Sprint(ytDlpPath) + " --no-part")
 
 	args = append(args, fmt.Sprintf("%s%s/", rec.Website.Url, streamerName), "--config-location", "youtube-dl.config")
-
+	fmt.Println(args)
 	rec.Cmd = exec.Command(args[0], args[1:]...)
 
-	// Start the recording process.
 	if err := rec.Cmd.Start(); err != nil {
 		log.Printf("Error starting recording for %s: %v\n", streamerName, err)
 	}
