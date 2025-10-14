@@ -12,8 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"remoteCtrl/internal/data" 
-
 	"github.com/grafov/m3u8"
 )
 
@@ -65,16 +63,16 @@ func getHighestResolutionVariant(masterPlaylist *m3u8.MasterPlaylist) (string, e
 	}
 	return highestResolutionURL, nil
 }
-func Connect(m3u8Url, segmentFilePath string) data.File {
+func Connect(m3u8Url, segmentFilePath string) File {
 
-	data.TMP.Tmp.CreateTempDirs()
+	TMP.Tmp.CreateTempDirs()
 
 	resp, err := http.Get(m3u8Url)
 	if err != nil {
 		PrintError(err)
 		log.Println("Error fetching master playlist:", err, m3u8Url)
 
-		return data.TMP
+		return TMP
 	}
 	defer resp.Body.Close()
 	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, fmt.Sprint("Getting playlist.."))
@@ -84,24 +82,24 @@ func Connect(m3u8Url, segmentFilePath string) data.File {
 		PrintError(err)
 		log.Println("Error decoding master playlist:", err, m3u8Url)
 		if fmt.Sprint(err) == "#EXTM3U absent" {
-			data.TMP.NoStream = true
+			TMP.NoStream = true
 			log.Println("Trying backup method..")
 		}
-		return data.TMP
+		return TMP
 	}
 
 	variantURL, err := getHighestResolutionVariant(masterPlaylist)
 	if err != nil {
 		log.Println("Error getting highest resolution variant:", err)
 
-		return data.TMP
+		return TMP
 	}
 	baseURL, err := url.Parse(m3u8Url)
 	if err != nil {
 		PrintError(err)
 		log.Println("Error parsing base URL:", err)
 
-		return data.TMP
+		return TMP
 	}
 	variantURL = resolveURL(baseURL, variantURL)
 
@@ -110,7 +108,7 @@ func Connect(m3u8Url, segmentFilePath string) data.File {
 		PrintError(err)
 		log.Println("Error fetching variant playlist:", err)
 
-		return data.TMP
+		return TMP
 	}
 	defer resp.Body.Close()
 
@@ -119,7 +117,7 @@ func Connect(m3u8Url, segmentFilePath string) data.File {
 		PrintError(err)
 		log.Println("Error creating media playlist:", err)
 
-		return data.TMP
+		return TMP
 	}
 
 	if err = mediaPlaylist.DecodeFrom(resp.Body, true); err != nil {
@@ -127,7 +125,7 @@ func Connect(m3u8Url, segmentFilePath string) data.File {
 		PrintError(err)
 		log.Println("Error decoding media playlist:", err)
 
-		return data.TMP
+		return TMP
 	}
 
 	max := 0
@@ -160,15 +158,15 @@ func Connect(m3u8Url, segmentFilePath string) data.File {
 		segmentErrors = 0
 		retries++
 		if retries > 5 {
-			return data.TMP
+			return TMP
 		}
 		Connect(m3u8Url, segmentFilePath)
-		return data.TMP
+		return TMP
 	}
 
 	// INPUT
 
-	return data.TMP
+	return TMP
 }
 
 func estimateCompletion(totalFiles int, durations chan time.Duration) {

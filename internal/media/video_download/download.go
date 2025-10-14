@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"remoteCtrl/internal/data"
 	"remoteCtrl/internal/gdrive"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/utils"
@@ -49,7 +48,7 @@ func Download(F DownloadForm) (string, string) {
 		Queue++
 		for {
 			for i, s := range s1 {
-				_, err := os.ReadDir(filepath.Join(data.TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
+				_, err := os.ReadDir(filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
 				if !s.Ongoing && err != nil {
 					currentRunner = i
 					s.Ongoing = true
@@ -76,7 +75,7 @@ func Download(F DownloadForm) (string, string) {
 
 		}
 		Saver[currentRunner].Ongoing = true
-		runnerPath := filepath.Join(data.TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
+		runnerPath := filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
 		os.MkdirAll(runnerPath, 0755)
 
 		Data.Text = Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
@@ -139,7 +138,7 @@ func Download(F DownloadForm) (string, string) {
 			Data.Text = Data.ApendText(fmt.Sprintf("Saving as %s file..\n", pwd)).Text
 			Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, Data.Text)
 			fmt.Printf("\nSaving as %s file..\n", pwd)
-			err = mp4.TSToMP4_n(runnerPath, pwd, data.TMP.Tmp.TSSegmentsTXT)
+			err = mp4.TSToMP4_n(runnerPath, pwd, TMP.Tmp.TSSegmentsTXT)
 			if err != nil {
 
 				Saver[0].Ongoing = false
@@ -164,16 +163,16 @@ func Download(F DownloadForm) (string, string) {
 
 			telegram.Bot.SendMsg(fmt.Sprintf("\nNew video downloaded: %s\n", filepath.Base(pwd)))
 		}
-		outFile := data.OutputFile{Name: videoName, Type: "mp4", Path: pwd}
+		outFile := OutputFile{Name: videoName, Type: "mp4", Path: pwd}
 		outputReplaced := false
-		for i, _ := range data.OutputFiles {
-			if data.OutputFiles[i].Path == "" {
-				data.OutputFiles[i] = outFile
+		for i, _ := range OutputFiles {
+			if OutputFiles[i].Path == "" {
+				OutputFiles[i] = outFile
 				outputReplaced = true
 			}
 		}
 		if !outputReplaced {
-			data.OutputFiles = append(data.OutputFiles, outFile)
+			OutputFiles = append(OutputFiles, outFile)
 		}
 
 		//os.Remove(pwd)
@@ -278,7 +277,7 @@ func Download(F DownloadForm) (string, string) {
 			Queue++
 			for {
 				for i, s := range s1 {
-					_, err := os.ReadDir(filepath.Join(data.TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
+					_, err := os.ReadDir(filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
 					if !s.Ongoing && err != nil {
 						currentRunner = i
 						s.Ongoing = true
@@ -305,7 +304,7 @@ func Download(F DownloadForm) (string, string) {
 
 			}
 			Saver[currentRunner].Ongoing = true
-			runnerPath := filepath.Join(data.TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
+			runnerPath := filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
 			os.MkdirAll(runnerPath, 0755)
 			if videoNames[i] != "" {
 				s := strings.Replace(videoNames[i], "/", "-", 99)
@@ -357,16 +356,16 @@ func Download(F DownloadForm) (string, string) {
 			}
 
 			fmt.Println("Done! Video saved as", pwd)
-			outFile := data.OutputFile{Name: videoName, Type: "mp4", Path: pwd}
+			outFile := OutputFile{Name: videoName, Type: "mp4", Path: pwd}
 			outputReplaced := false
-			for i, _ := range data.OutputFiles {
-				if data.OutputFiles[i].Path == "" {
-					data.OutputFiles[i] = outFile
+			for i, _ := range OutputFiles {
+				if OutputFiles[i].Path == "" {
+					OutputFiles[i] = outFile
 					outputReplaced = true
 				}
 			}
 			if !outputReplaced {
-				data.OutputFiles = append(data.OutputFiles, outFile)
+				OutputFiles = append(OutputFiles, outFile)
 			}
 			utils.RemoveAll(runnerPath)
 
@@ -383,7 +382,7 @@ func Download(F DownloadForm) (string, string) {
 
 func save(pwd, currentRunner string) string {
 	Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("\nSaving as %s file..\n", pwd))
-	err := mp4.TSToMP4_n(currentRunner, pwd, data.TMP.Tmp.TSSegmentsTXT)
+	err := mp4.TSToMP4_n(currentRunner, pwd, TMP.Tmp.TSSegmentsTXT)
 	if err != nil {
 		log.Println("Error saving output file:", err)
 		return ""
