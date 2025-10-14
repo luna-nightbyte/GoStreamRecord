@@ -50,10 +50,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// hls.GetToken("https://chaturbate.com/", "cutebrutalitys")
-	// hlsS := hls.New("https://chaturbate.com/", "test.mp4")
-	// fmt.Println("hls url", hlsS.URL)
-	// return
 	go serveHTTP(system.System.Context)
 
 	<-system.System.Context.Done()
@@ -111,14 +107,15 @@ func serveHTTP(ctx context.Context) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	baseDir := system.System.DB.Settings.App.Files_folder
+	app.Router.PathPrefix("/videos/").
+		Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(baseDir))))
 
-	app.Router.PathPrefix("/videos/").Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(system.System.DB.Settings.App.Files_folder))))
-	handlers.VideoMux("/api/videos", app.Router)
+	handlers.VideoMux("/api/videos", app.Router, baseDir)
 
 	// VUE
 	frontendFS, _ := fs.Sub(embedded.VueDistFiles, "app/dist")
 	app.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
