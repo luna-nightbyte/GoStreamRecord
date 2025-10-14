@@ -1,0 +1,88 @@
+.PHONY: all re clean build copy_frontend re sync full_build_go_pi pi
+
+# Check if programs are installed and if not set it as a dependency. 
+ifneq ($(shell command -v node npm 1>/dev/null 2>&1; echo $$?), 0)
+	NODE := node
+endif
+ifneq ($(shell command -v go 1>/dev/null 2>&1; echo $$?), 0)
+	GOLANG := golang
+endif
+ifneq ($(shell command -v git 1>/dev/null 2>&1; echo $$?), 0)
+	GIT := git
+endif
+ifneq ($(shell command -v curl 1>/dev/null 2>&1; echo $$?), 0)
+	CURL := curl
+endif
+ifneq ($(shell command -v wget 1>/dev/null 2>&1; echo $$?), 0)
+	WGET := wget
+endif
+
+ 
+VERSION=0.3.0
+COMMIT_HASH=$(shell git rev-parse HEAD)
+
+all: clean build_go version
+pi:
+	GOOS=linux GOARCH=arm64 go build \
+	-ldflags="-X 'remoteCtrl/system/version.Version=$(VERSION)' \
+	-X 'remoteCtrl/system/version.Shasum=$(COMMIT_HASH)'" \
+	-o PiStream
+		
+full_build_go_pi: copy_frontend pi
+
+copy_frontend:
+	rm -rf internal/embedded/app/dist
+	rm -rf internal/embedded/login/dist
+	mkdir -p internal/embedded/app
+	mkdir -p internal/embedded/login/dist
+	cp -r vue/app/dist internal/embedded/app/dist
+	cp -r web/login.html internal/embedded/login/dist/index.html
+
+build_go: copy_frontend 
+	go build \
+	-buildvcs=false \
+	-ldflags=" \
+		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
+		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
+	-o PcStream
+ 
+clean:
+	rm -f ./PcStream 
+	rm -f ./PcStream 
+	rm -f output/PcStream 
+	rm -f output/PcStream 
+	 
+	
+run: build_go
+	mkdir -p output/settings
+	mkdir -p output/videos
+	cp -r --update settings/* output/settings
+	cp ./PcStream output/PcStream
+	cd output && \
+	sudo ./PcStream
+ 
+ 
+
+version:
+	rm -rf /tmp/workspace 
+	mkdir -p /tmp/workspace
+	rsync -av --exclude 'rcam' --exclude 'output' --exclude 'versions' --exclude '*.log' . /tmp/workspace
+	rm -rf /tmp/workspace/versions 
+	rm -rf /tmp/workspace/*.log 
+	bash bkp.sh /tmp/workspace ./versions
+	rm -rf /tmp/workspace
+
+# Install go
+.PHONY: golang
+golang:
+	curl -Lo /tmp/go1.21.3.linux-amd64.tar.gz \
+		https://golang.org/dl/go1.21.3.linux-amd64.tar.gz
+	echo "1241381b2843fae5a9707eec1f8fb2ef94d827990582c7c7c32f5bdfbfd420c8 /tmp/go1.21.3.linux-amd64.tar.gz" \
+		| sha256sum --check
+	sudo rm -rf /usr/local/go
+	sudo tar -C /usr/local -xvzf /tmp/go1.21.3.linux-amd64.tar.gz
+	sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
+	sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+	sudo rm -f /tmp/go1.21.3.linux-amd64.tar.gz
+	GOPATH=$(shell go env GOPATH)
+ 
