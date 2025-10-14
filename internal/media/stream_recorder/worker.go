@@ -12,7 +12,8 @@ import (
 // Bot encapsulates the recording bot’s state.
 type Controller struct {
 	mux        sync.Mutex
-	status     []recorder.Recorder
+	bots       map[string]*recorder.Recorder
+	_status    []recorder.Recorder
 	isFirstRun bool
 	logger     *log.Logger
 	// ctx is used to signal shutdown.
@@ -26,16 +27,22 @@ var Streamer Controller = NewBot()
 func NewBot() Controller {
 	ctx, cancel := context.WithCancel(context.Background())
 	b := Controller{
-		ctx:        ctx,
-		cancel:     cancel,
-		status:     []recorder.Recorder{},
+		ctx:    ctx,
+		cancel: cancel,
+		//status:     []recorder.Recorder{},
 		isFirstRun: true,
+		bots:       make(map[string]*recorder.Recorder),
 	}
+
 	return b
 }
 
 func (b *Controller) Execute(command string, name string) {
 
+	if b.bots[name] == nil {
+		log.Println("Bot was not started.")
+		return
+	}
 	if len(command) == 0 {
 		log.Println("No command provided..")
 		return
@@ -48,98 +55,53 @@ func (b *Controller) Execute(command string, name string) {
 			b.ctx, b.cancel = context.WithCancel(context.Background())
 		}
 
-		for _, s := range b.status {
-			if name == s.Website.Username && s.Cmd != nil {
-				fmt.Println("Bot already running for", name)
-				log.Println("Bot already running..")
-				return
+		if b.bots[name] != nil {
+			if b.bots[name].Cmd != nil {
+				log.Println("Alredy recording video from '%s'", name)
 			}
 		}
+		// for _, s := range b.status {
+		// 	if name == s.Website.Username && s.Cmd != nil {
+		// 		fmt.Println("Bot already running for", name)
+		// 		log.Println("Bot already running..")
+		// 		return
+		// 	}
+		// }
 		fmt.Println("Starting bot")
 		log.Println("Starting bot")
 		go b.RecordLoop(name)
+		b.bots[name].IsRestarting = false
 	case "stop":
-		is_running := len(b.status) != 0
-
-		if !is_running && len(b.status) == 0 {
-			log.Println("[bot] Stopped recording for")
+		botsAvailable := len(b.bots) != 0
+		if !botsAvailable {
+			log.Println("No more bots recording")
 			break
 		}
-
-		log.Println("Stopping bot")
-		var wg sync.WaitGroup
+		log.Println("Stopping recording for", name)
 		b.mux.Lock()
-		// Iterate over a copy of the status slice to avoid closure capture issues.
-		for _, s := range b.status {
+		b.stopProcessIfRunning(b.bots[name])
+		for _, s := range b.bots {
 			// Stop only the specified process (or all if name is empty).
 			if name == "" || s.Website.Username == name {
-
 				b.stopProcessIfRunning(s)
-				sName := s.Website.Username
-				wg.Add(1)
-				go func(n string) {
-					defer wg.Done()
-					b.StopProcess(n)
-				}(sName)
 			} else {
 				log.Println("Not stopping..")
 			}
 		}
 
 		b.mux.Unlock()
-		wg.Wait()
-
 		b.checkProcesses()
+		if b.bots[name].IsRestarting {
+			b.Execute("start", name)
+		}
 	case "restart":
 		log.Println("Restarting bot")
-		recorders := []string{}
-		// Before restarting, reinitialize the context so RecordLoop doesn't exit immediately.
-		b.ctx, b.cancel = context.WithCancel(context.Background())
-
-		if name != "" {
-			// Stop a single process.
-			process := getProcess(name, b)
-
-			b.Execute("stop", process.Website.Username)
-			recorders = append(recorders, name)
-
-		} else {
-			var wg sync.WaitGroup
-			// Stop all running recorders.
-			// Create a copy of b.status to avoid data races when stopping processes.
-			b.mux.Lock()
-			statusCopy := make([]recorder.Recorder, len(b.status))
-			copy(statusCopy, b.status)
-			b.mux.Unlock()
-			for _, s := range statusCopy {
-				b.mux.Lock()
-
-				// Mark that the process is being restarted.
-				// (Assuming b.status is the source of truth; you might also update the copy)
-				for i, rec := range b.status {
-					if rec.Website.Username == s.Website.Username {
-						b.status[i].IsRestarting = true
-						b.stopProcessIfRunning(b.status[i])
-						break
-					}
-				}
-				b.mux.Unlock()
-				wg.Add(1)
-				recorders = append(recorders, s.Website.Username)
-				go func(n string) {
-					b.Execute("stop", n)
-					log.Println("Stopped", n)
-					wg.Done()
-				}(s.Website.Username)
-			}
-			wg.Wait()
-		}
-
-		// Start all recorders that were stopped.
-		for _, recName := range recorders {
-			go b.RecordLoop(recName)
-		}
-	default:
-		log.Println("Nothing to do..")
+		// b.ctx, b.cancel = context.WithCancel(context.Background())
+		b.mux.Lock()
+		b.bots[name].IsRestarting = true
+		b.mux.Unlock()
+		b.Execute("stop", name)
+		break
 	}
+
 }

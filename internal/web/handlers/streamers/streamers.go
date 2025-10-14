@@ -159,7 +159,7 @@ func StopProcess(w http.ResponseWriter, r *http.Request) {
 		s := rd.Streamer
 		rd.mu.Unlock()
 		status.ResponseHandler(w, r, "Stopping process for "+s, nil)
-		stream_recorder.Streamer.StopProcess(rd.Streamer)
+		stream_recorder.Streamer.StopProcessByName(rd.Streamer)
 		status.ResponseHandler(w, r, "Stopped process for"+s, nil)
 		rd.wg.Done()
 

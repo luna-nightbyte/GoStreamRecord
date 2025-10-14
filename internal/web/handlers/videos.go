@@ -1,69 +1,73 @@
+// internal/web/handlers/video.go
 package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
 
 type Video struct {
-	URL      string `json:"url"`
-	Name     string `json:"name"`
+	URL      string `json:"url"`  // URL-encoded, ready to use in <video src>
+	Name     string `json:"name"` // display name (relative path with slashes)
 	NoVideos string `json:"error"`
 }
 
-func getVideos(w http.ResponseWriter, r *http.Request) {
-	videos := []Video{}
-	videoFolder := "./videos"
+func getVideos(baseDir string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var videos []Video
 
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
-	if err != nil || page < 1 {
-		page = 1
-	}
+		// Walk the SAME directory that FileServer serves:
+		err := filepath.WalkDir(baseDir, func(fp string, d os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
+				return nil
+			}
 
-	err = filepath.Walk(videoFolder, func(path string, info os.FileInfo, err error) error {
+			// relative path (OS-agnostic → forward slashes for URLs)
+			rel, err := filepath.Rel(baseDir, fp)
+			if err != nil {
+				return nil
+			}
+			rel = filepath.ToSlash(rel) // e.g. "sub/My File.mp4"
+
+			// Build a URL-encoded path segment-by-segment
+			segs := strings.Split(rel, "/")
+			for i, s := range segs {
+				segs[i] = url.PathEscape(s) // encodes spaces, #, +, etc.
+			}
+			encoded := strings.Join(segs, "/")
+
+			videos = append(videos, Video{
+				URL:  "/videos/" + encoded, // maps 1:1 to FileServer
+				Name: rel,                  // nice for display
+			})
+			return nil
+		})
 		if err != nil {
-			return err
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		if !info.IsDir() {
-			videos = append(videos, Video{URL: "/videos/" + info.Name(), Name: info.Name()})
+
+		if len(videos) == 0 {
+			// Show the absolute dir to help debugging
+			abs, _ := filepath.Abs(baseDir)
+			videos = append(videos, Video{NoVideos: "No videos available. Add files to: " + abs})
 		}
-		return nil
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	exePath, _ := os.Executable()
 
-	exeDir := filepath.Dir(exePath)
-	videosDir := filepath.Join(exeDir, videoFolder)
-	if len(videos) == 0 {
-		videos = append(videos, Video{URL: "", Name: "", NoVideos: fmt.Sprintf("No videos available. Try adding some to '%s'", videosDir)})
-
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(videos)
 	}
-	pageSize := 10
-	start := (page - 1) * pageSize
-	end := start + pageSize
-	if start >= len(videos) {
-		start = len(videos)
-	}
-	if end > len(videos) {
-		end = len(videos)
-	}
-
-	paginatedVideos := videos[start:end]
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(paginatedVideos)
 }
 
-// Define a method on the new type
-func VideoMux(api string, r *mux.Router) {
-	r.HandleFunc(api, getVideos)
+// Wire it up with the same baseDir as FileServer:
+func VideoMux(api string, r *mux.Router, baseDir string) {
+	r.HandleFunc(api, getVideos(baseDir))
 }

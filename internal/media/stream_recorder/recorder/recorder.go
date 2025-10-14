@@ -13,7 +13,7 @@ import (
 
 type Recorder struct {
 	Website      provider.Provider `json:"website"`
-	StopSignal   bool              `json:"-"`
+	stopSignal   bool              `json:"-"`
 	IsRestarting bool              `json:"restarting"`
 	Cmd          *exec.Cmd         `json:"-"`
 	IsRecording  bool              `json:"is_recording"`

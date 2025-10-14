@@ -20,7 +20,7 @@ type Response struct {
 }
 
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys,w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -42,10 +42,13 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-
+	var recorders []recorder.Recorder
+	for _, recorder := range recorderStatus {
+		recorders = append(recorders, *recorder)
+	}
 	// Prepare response
 	recorder := Response{
-		BotStatus: recorderStatus,
+		BotStatus: recorders,
 		Status:    "Stopped",
 	}
 
