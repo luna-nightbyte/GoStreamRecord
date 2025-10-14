@@ -28,7 +28,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func ini() {
+func init() {
 
 	ytDLP_path := utils.CheckPath("yt-dlp")
 
