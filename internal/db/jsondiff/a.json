@@ -1,0 +1,11 @@
+{
+    "allLights": false,
+    "lights": null,
+    "onLights": [],
+    "auto": false,
+    "daylight": false,
+    "time": [
+        0,
+        24
+    ]
+}

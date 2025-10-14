@@ -1,20 +1,21 @@
 package streamers
 
 import (
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/db/streamers"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/system/settings"
+	"remoteCtrl/internal/web/handlers/status"
 )
 
 // Handles POST /api/upload.
+// It reads an uploaded file and returns a dummy success response.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -23,10 +24,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Update to modify changes as admin in the web-ui
 	// Limit the size of the incoming request to 10MB
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		fmt.Println(err)
+	if err := r.ParseMultipartForm(10 << 20); err != nil { 
 		http.Error(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
@@ -34,8 +33,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve file from posted form-data
 	file, handler, err := r.FormFile("file")
 
-	if err != nil {
-		fmt.Println(err)
+	if err != nil { 
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
 		return
 	}
@@ -45,37 +43,36 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// For demonstration, we'll read the file's contents (but not store it)
 	fileContent, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Println(err)
+	if err != nil { 
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
 		return
 	}
 	counter := 0
 
-	resp := web_status.Response{}
+	resp := status.Response{}
 
-	var import_list []streamers.Streamer
+	var import_list []settings.Streamer
 	err = json.Unmarshal(fileContent, &import_list)
 	if err != nil {
 
-		resp = web_status.Response{
+		resp = status.Response{
 			Status:  "failed",
 			Message: fmt.Sprintf("Failed to import new streamers!"),
-		}
-		fmt.Println(err)
+		} 
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
 		return
 	}
 	for _, streamer := range import_list {
-		if db.Config.Streamers.Exist(streamer.Name) {
+		if system.System.DB.Streamers.Exist(streamer.Name) {
 			continue
 		}
 		counter++
-		db.Config.AddStreamer(streamer.Name, streamer.Provider)
+		system.System.DB.AddStreamer(streamer.Name, streamer.Provider)
 	}
 
-	resp = web_status.Response{
+	resp = status.Response{
 		Status:  "success",
 		Message: fmt.Sprintf("Imported %d new streamers!", counter),
 	}

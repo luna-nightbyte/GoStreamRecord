@@ -1,23 +1,22 @@
 package streamers
 
 import (
-	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/web/handlers/connection"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/web/handlers/status"
-	"GoStreamRecord/internal/recorder"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"remoteCtrl/internal/media/stream_recorder"
+	"remoteCtrl/internal/media/stream_recorder/recorder"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/web/handlers/status"
 	"sync"
 )
 
-var StreamersNotifier = connection.NewNotifier()
-
 // Handles POST /api/add-streamer.
+// It decodes a JSON payload with a "data" field and returns a dummy response.
 func AddStreamer(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -36,7 +35,7 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := status.Response{
-		Message: db.Config.AddStreamer(reqData.Data, r.URL.Query().Get("provider")),
+		Message: system.System.DB.AddStreamer(reqData.Data, r.URL.Query().Get("provider")),
 		Data:    reqData.Data,
 	}
 
@@ -45,8 +44,9 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handles POST /api/remove-streamer.
+// It decodes a JSON payload with the selected option and returns a dummy response.
 func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -65,7 +65,7 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := status.Response{
-		Message: db.Config.RemoveStreamer(reqData.Selected),
+		Message: system.System.DB.RemoveStreamer(reqData.Selected),
 		Data:    reqData.Selected,
 	}
 
@@ -75,7 +75,7 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 
 // Handles GET /api/get-streamers.
 func GetStreamers(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -86,18 +86,20 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	json.NewEncoder(w).Encode(db.Config.Streamers.Streamers)
+	list := []string{}
+	for _, s := range system.System.DB.Streamers.List {
+		list = append(list, s.Name)
+	}
+	json.NewEncoder(w).Encode(list)
 }
 
 func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 
-	if !cookies.Session.IsLoggedIn(w, r) {
-		fmt.Println(http.StatusFound)
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	if r.Method != http.MethodPost {
-		fmt.Println("Only POST allowed")
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -108,18 +110,17 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	var reqData RequestData
 	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
-		fmt.Println(err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 	if reqData.Streamer == "" {
-		fmt.Println("Streamer name is required")
+		log.Println("Streamer name is required")
 		status.ResponseHandler(w, r, "Streamer name is required", nil)
 		return
 	}
 
 	if reqData.Provider == "" {
-		fmt.Println("Provider name is required")
+		log.Println("Provider name is required")
 		status.ResponseHandler(w, r, "Streamer name is required", nil)
 		return
 	}
@@ -127,7 +128,6 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	var re recorder.Recorder
 	err := re.Website.New(reqData.Provider, reqData.Streamer)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Internal recorder error!", http.StatusInternalServerError)
 		return
 	}
@@ -159,8 +159,7 @@ func StopProcess(w http.ResponseWriter, r *http.Request) {
 		s := rd.Streamer
 		rd.mu.Unlock()
 		status.ResponseHandler(w, r, "Stopping process for "+s, nil)
-		rec := bot.Bot.Status(s)
-		bot.Bot.StopProcessIfRunning(&rec)
+		stream_recorder.Streamer.StopProcess(rd.Streamer)
 		status.ResponseHandler(w, r, "Stopped process for"+s, nil)
 		rd.wg.Done()
 

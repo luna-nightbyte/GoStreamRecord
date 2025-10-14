@@ -1,8 +1,0 @@
-{
-  "streamers": [
-    {
-      "name": "dev",
-      "provider": "development"
-    }
-  ]
-}

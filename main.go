@@ -1,102 +1,142 @@
 package main
 
 import (
-	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/cli/color"
-	"GoStreamRecord/internal/cli/commands"
-	cli_print "GoStreamRecord/internal/cli/print"
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/logger"
-	"GoStreamRecord/internal/web/handlers"
-	"GoStreamRecord/internal/web/handlers/cookies"
 	"context"
-	_ "embed"
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"remoteCtrl/internal"
+	"remoteCtrl/internal/embedded"
+	"remoteCtrl/internal/media/video_download"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/system/version"
+	"remoteCtrl/internal/web/handlers"
+	webController "remoteCtrl/internal/web/handlers/controller"
+	"remoteCtrl/internal/web/handlers/login"
+	"remoteCtrl/internal/web/handlers/status"
+	"remoteCtrl/internal/web/handlers/streamers"
+	"remoteCtrl/internal/web/handlers/users"
+	"remoteCtrl/internal/web/telegram"
+	"strings"
 	"time"
-)
 
-// Embed static HTML files
-//
-//go:embed src/index.html
-var IndexHTML string
-
-//go:embed src/login.html
-var LoginHTML string
-
-var (
-	password_was_reset bool
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
-	handlers.IndexHTML = IndexHTML
-	handlers.LoginHTML = LoginHTML
-
-	if len(os.Args) < 2 {
-		cli_print.PrintStartup()
-		cookies.Session = cookies.New()
-		logger.Init(logger.Log_path)
-		bot.Init()
-		server() // No arguments: run the server.
-		return
-	}
-
-	cmdName := os.Args[1]
-	cmd, exists := commands.Commands[cmdName]
-	if !exists {
-		fmt.Println()
-		color.Print("red", "Unknown command: ")
-		color.Println("grey", cmdName)
-		// TODO: cli.PrintUsage()
-		commands.PrintUsage(nil)
-		return
-	}
-
-	// Execute the command with the remaining arguments.
-	msg, err := cmd.Execute(os.Args[2:])
+	system.System.WaitForNetwork = false
+	err := internal.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(msg)
 
+	go serveHTTP(system.System.Context)
+
+	<-system.System.Context.Done()
+
+	telegram.Bot.SendMsg("Server shutdown")
 }
 
-func server() {
-	log.Println("Startup!")
-	//http.Handle("/", fs)
-	handlers.Handle()
-	server := &http.Server{
-		Addr: fmt.Sprintf(":%d", db.Config.Settings.App.Port),
-	}
+func serveHTTP(ctx context.Context) {
 
-	// Channel to listen for termination signals
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	var app handlers.API
+	app.Router = mux.NewRouter()
+	app.Router.HandleFunc("/api/download", handlers.DownloadHandler)
+	app.Router.HandleFunc("/api/progress", video_download.Handler)
+	app.Router.HandleFunc("/api/add-streamer", streamers.AddStreamer)
+	app.Router.HandleFunc("/api/get-streamers", streamers.GetStreamers)
+	app.Router.HandleFunc("/api/remove-streamer", streamers.RemoveStreamer)
+	app.Router.HandleFunc("/api/control", webController.ControlHandler)
+	app.Router.HandleFunc("/api/get-online-status", streamers.CheckOnlineStatus)
+	app.Router.HandleFunc("/api/import", streamers.UploadHandler)
+	app.Router.HandleFunc("/api/export", streamers.DownloadHandler)
+	app.Router.HandleFunc("/api/status", status.StatusHandler)
+	app.Router.HandleFunc("/api/get-videos", webController.GetFiles)
+	app.Router.HandleFunc("/api/logs", webController.HandleLogs)
+	app.Router.HandleFunc("/api/delete-videos", webController.DeleteFiles)
 
-	// Run the server in a separate goroutine
-	go func() {
-		log.Printf("Server starting on http://127.0.0.1:%d", db.Config.Settings.App.Port)
-		fmt.Printf("Server starting on http://127.0.0.1:%d\n", db.Config.Settings.App.Port)
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("Server failed: %v", err)
+	app.Router.PathPrefix("/api/generate-api-key").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookies.GenAPIKeyHandler(system.System.DB.APIKeys, w, r)
+	}))
+	app.Router.PathPrefix("/api/delete-api-key").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookies.DeleteAPIKeyHandler(system.System.DB.APIKeys, w, r)
+	}))
+	app.Router.PathPrefix("/api/keys").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookies.GetAPIkeys(system.System.DB.APIKeys, w, r)
+	}))
+	app.Router.HandleFunc("/api/get-users", users.GetUsers)
+	app.Router.HandleFunc("/api/add-user", users.AddUser)
+	app.Router.HandleFunc("/api/update-user", users.UpdateUsers)
+	app.Router.HandleFunc("/api/health", handlers.HealthCheckHandler)
+
+	// Auth logic
+	if cookies.UserStore == nil {
+		cookies.UserStore = make(map[string]string)
+		for _, u := range system.System.DB.Users.Users {
+			cookies.UserStore[u.Name] = u.Key
 		}
-	}()
-
-	// Wait for a termination signal
-	<-stop
-	log.Println("Shutting down server...")
-	bot.Bot.StopBot("")
-	// Create a context with a timeout for graceful shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Server shutdown failed: %v", err)
 	}
 
+	app.Router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == http.MethodGet {
+			handlers.GetLogin(w, r)
+		} else if r.Method == http.MethodPost {
+			login.PostLogin(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	app.Router.PathPrefix("/videos/").Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(system.System.DB.Settings.App.Files_folder))))
+	handlers.VideoMux("/api/videos", app.Router)
+
+	// VUE
+	frontendFS, _ := fs.Sub(embedded.VueDistFiles, "app/dist")
+	app.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		filePath := strings.TrimPrefix(r.URL.Path, "/")
+		if file, err := frontendFS.Open(filePath); err == nil {
+			file.Close()
+			http.StripPrefix("/", http.FileServer(http.FS(frontendFS))).ServeHTTP(w, r)
+		} else {
+			indexFile, _ := frontendFS.Open("index.html")
+			indexContent, _ := io.ReadAll(indexFile)
+			w.Header().Set("Content-Type", "text/html")
+			w.Write(indexContent)
+		}
+	}))
+
+	// CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:" + fmt.Sprint(system.System.DB.Settings.App.Port), fmt.Sprintf("http://%s:%d", "localhost", system.System.DB.Settings.App.Port), "http://localhost:*"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		AllowCredentials: true,
+		Debug:            false,
+	})
+
+	srv := &http.Server{
+		Handler:      c.Handler(app.Router),
+		Addr:         ":" + fmt.Sprint(system.System.DB.Settings.App.Port),
+		WriteTimeout: 1 * time.Hour,
+		ReadTimeout:  60 * time.Second,
+	}
+
+	fmt.Println("Starting at", "http://localhost:"+fmt.Sprint(system.System.DB.Settings.App.Port))
+	fmt.Println("Verison:", version.Version)
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %s\n", err)
+	}
+	<-ctx.Done()
+	log.Println("Shutting down server...")
 	log.Println("Server exited gracefully")
 }

@@ -3,15 +3,13 @@ package status
 import (
 	"encoding/json"
 	"net/http"
-
-	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/recorder"
-	"GoStreamRecord/internal/web/handlers/connection"
-	"GoStreamRecord/internal/web/handlers/cookies"
+	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/media/stream_recorder"
+	"remoteCtrl/internal/media/stream_recorder/recorder"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/system/settings"
 )
-
-var StreamersNotifier = connection.NewNotifier()
 
 // Response is a generic response structure for our API endpoints.
 type Response struct {
@@ -22,7 +20,7 @@ type Response struct {
 }
 
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys,w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -31,11 +29,12 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reload streamer list from config file to dynamically update for any newly added in the web-ui.
-	db.Write("streamers", "streamers.json", &db.Config.Streamers)
+	// Reload streamer list from config file
+	db.Write(settings.CONFIG_STREAMERS_PATH, &system.System.DB.Streamers)
 
+	stream_recorder.Streamer.StopRunningEmpty()
 	// Fetch current recording status
-	recorderStatus := bot.Bot.ListRecorders()
+	recorderStatus := stream_recorder.Streamer.ListRecorders()
 	isRecording := false
 	for _, s := range recorderStatus {
 		if s.IsRecording {

@@ -1,20 +1,18 @@
 package users
 
 import (
-	"GoStreamRecord/internal/db"
-
-	"GoStreamRecord/internal/web/handlers/connection"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/web/handlers/login"
-	"GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"net/http"
+	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/system/settings"
+	"remoteCtrl/internal/web/handlers/login"
+	"remoteCtrl/internal/web/handlers/status"
 )
 
-var UsersSession = connection.NewNotifier()
-
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -25,11 +23,11 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	json.NewEncoder(w).Encode(db.Config.Users.Users)
+	json.NewEncoder(w).Encode(system.System.DB.Users.Users)
 }
 
 func UpdateUsers(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -48,16 +46,15 @@ func UpdateUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
-	modified := db.Config.Users.Modify(reqData.OldUsername, reqData.NewUsername, string(login.HashedPassword(reqData.NewPassword)))
+	modified := system.System.DB.Users.Modify(reqData.OldUsername, reqData.NewUsername, string(cookies.HashedPassword(reqData.NewPassword)))
 	if modified {
-		db.Config.Update("users", "users.json", db.Config.Users)
+		db.Update(settings.CONFIG_USERS_PATH, system.System.DB.Users)
 	}
 
 	resp := status.Response{
 		Message: "User modified!",
 	}
-	for _, u := range db.Config.Users.Users {
+	for _, u := range system.System.DB.Users.Users {
 		cookies.UserStore[u.Name] = u.Key
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -66,7 +63,7 @@ func UpdateUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -80,10 +77,10 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	if login.IsNotValid(reqData, w) {
+	if login.IsNotValid(reqData, w) != nil {
 		return
 	}
-	if db.Config.Users.Exists(reqData.Username) {
+	if system.System.DB.Users.Exists(reqData.Username) {
 		resp := status.Response{
 			Message: "User already exists!",
 		}
@@ -92,13 +89,13 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Config.Users.Add(reqData.Username, string(login.HashedPassword(reqData.Password)))
-	db.Config.Update("users", "users.json", &db.Config.Users)
+	system.System.DB.Users.Add(reqData.Username, string(cookies.HashedPassword(reqData.Password)))
+	db.Update(settings.CONFIG_USERS_PATH, &system.System.DB.Users)
 
 	resp := status.Response{
 		Message: reqData.Username + " added!",
 	}
-	for _, u := range db.Config.Users.Users {
+	for _, u := range system.System.DB.Users.Users {
 		cookies.UserStore[u.Name] = u.Key
 	}
 	w.Header().Set("Content-Type", "application/json")

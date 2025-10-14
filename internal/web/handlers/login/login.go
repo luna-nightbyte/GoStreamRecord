@@ -1,18 +1,13 @@
 package login
 
 import (
-	"GoStreamRecord/internal/web/handlers/connection"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/web/handlers/status"
-	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"remoteCtrl/internal/system/cookies"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-var LoginsNotifier = connection.NewNotifier()
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(1024); err != nil {
@@ -21,40 +16,34 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	resp := web_status.Response{}
-
 	storedHash, ok := cookies.UserStore[username]
 	if !ok {
 
-		resp.Message = "Invalid credentials"
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode("Invalid credentials")
 		return
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password)); err != nil {
-		fmt.Println(err)
-		resp.Message = "Invalid credentials"
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode("Invalid credentials")
 		return
 	}
 
 	session, err := cookies.Session.Store().Get(r, "session")
 	if err != nil {
-		resp.Message = "Session error. Try clearing your cookies."
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode("Session error. Try clearing your cookies.")
 		return
 	}
 	session.Values["authenticated"] = true
 	session.Values["user"] = username
 	if err := session.Save(r, w); err != nil {
-		resp.Message = "Could not save session. \nError: " + fmt.Sprintf("%v", err)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode("Could not save session") 
+		//http.Error(w, "Could not save session", http.StatusInternalServerError)
 		return
-	}
+	} 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -73,42 +62,16 @@ type RequestData struct {
 	Password string `json:"password"`
 }
 
-func IsNotValid(reqData RequestData, w http.ResponseWriter) bool {
-	if len(reqData.Username) == 0 || len(reqData.Password) == 0 {
-		resp := status.Response{
-			Message: "Username and password cannot be empty!",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-		return true
+func IsNotValid(reqData RequestData, w http.ResponseWriter) (outErr error) {
+	switch true {
+	case len(reqData.Username) == 0 || len(reqData.Password) == 0:
+		outErr = fmt.Errorf("username and password cannot be empty")
+	case len(reqData.Username) < 3 || len(reqData.Password) < 3:
+		outErr = fmt.Errorf("Username and password must be at least 3 characters long!")
+	case len(reqData.Username) > 20 || len(reqData.Password) > 20:
+		outErr = fmt.Errorf("Username and password must be at most 20 characters long!")
+	case !ValidUsername(reqData.Username):
+		outErr = fmt.Errorf("Username can only contain letters, numbers, and underscores!")
 	}
-
-	if len(reqData.Username) < 3 || len(reqData.Password) < 3 {
-		resp := status.Response{
-			Message: "Username and password must be at least 3 characters long!",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-		return true
-	}
-
-	if len(reqData.Username) > 20 || len(reqData.Password) > 20 {
-		resp := status.Response{
-			Message: "Username and password must be at most 20 characters long!",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-		return true
-	}
-
-	if !ValidUsername(reqData.Username) {
-		resp := status.Response{
-			Message: "Username can only contain letters, numbers, and underscores!",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-		return true
-	}
-
-	return false
+	return outErr
 }

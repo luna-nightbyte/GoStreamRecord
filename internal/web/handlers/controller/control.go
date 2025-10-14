@@ -1,20 +1,19 @@
 package controller
 
 import (
-	"GoStreamRecord/internal/bot"
-	"GoStreamRecord/internal/web/handlers/connection"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	web_status "GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"remoteCtrl/internal/media/stream_recorder"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/web/handlers/status"
 )
 
-var ControllerNotifier = connection.NewNotifier()
-
 // dcodes a JSON payload with a "command" field (start, stop, or restart)
+// and returns a dummy response.
 func ControlHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -32,9 +31,8 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
-	go bot.Bot.Command(reqData.Command, reqData.Name)
-	resp := web_status.Response{
+	go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
+	resp := status.Response{
 		Message: fmt.Sprintf("Exected command '%s'", reqData.Command),
 		Status:  "success",
 	}

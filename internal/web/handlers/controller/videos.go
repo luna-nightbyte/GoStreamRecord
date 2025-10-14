@@ -1,44 +1,49 @@
 package controller
 
 import (
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/web/handlers/status"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
 	"strconv"
 	"strings"
 )
 
 type Video struct {
-	URL      string `json:"url"`
-	Name     string `json:"name"`
-	NoVideos string `json:"error"`
+	URL     string `json:"url"`
+	Name    string `json:"name"`
+	NoFiles string `json:"error"`
 }
 
-func GetVideos(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+func GetFiles(w http.ResponseWriter, r *http.Request) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	videos := []Video{}
+	files := []Video{}
 
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	err = filepath.Walk(db.Config.Settings.App.Videos_folder, func(path string, info os.FileInfo, err error) error {
+	if system.System.DB.Settings.App.Files_folder == "" {
+		system.System.DB.Settings.App.Files_folder = "videos"
+	}
+	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
+		os.MkdirAll(system.System.DB.Settings.App.Files_folder, 0755)
+	}
+	err = filepath.Walk(system.System.DB.Settings.App.Files_folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && isVideoFile(info.Name()) {
 
-			videos = append(videos, Video{URL: "/videos/" + filepath.Join(filepath.Base(filepath.Dir(path)), info.Name()), Name: info.Name()})
+			files = append(files, Video{URL: "/files/" + filepath.Join(filepath.Base(filepath.Dir(path)), info.Name()), Name: info.Name()})
 		}
 		return nil
 	})
@@ -46,24 +51,24 @@ func GetVideos(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if len(videos) == 0 {
-		videos = append(videos, Video{URL: "", Name: "", NoVideos: fmt.Sprintf("No videos available. Try adding some to '%s'", db.Config.Settings.App.Videos_folder)})
+	if len(files) == 0 {
+		files = append(files, Video{URL: "", Name: "", NoFiles: fmt.Sprintf("No files available. Try adding some to '%s'", system.System.DB.Settings.App.Files_folder)})
 
 	}
 
 	start := (page - 1) * 999
 	end := start + 999
-	if start >= len(videos) {
-		start = len(videos)
+	if start >= len(files) {
+		start = len(files)
 	}
-	if end > len(videos) {
-		end = len(videos)
+	if end > len(files) {
+		end = len(files)
 	}
 
-	paginatedVideos := videos[start:end]
+	paginatedFiles := files[start:end]
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(paginatedVideos)
+	json.NewEncoder(w).Encode(paginatedFiles)
 }
 
 // isVideoFile returns true if the file extension indicates a video file.
@@ -78,20 +83,20 @@ func isVideoFile(filename string) bool {
 	return false
 }
 
-// DeleteVideosRequest represents the expected JSON payload.
-type DeleteVideosRequest struct {
-	Videos []string `json:"videos"`
+// DeleteFilesRequest represents the expected JSON payload.
+type DeleteFilesRequest struct {
+	Files []string `json:"files"`
 }
 
-// DeleteVideosResponse is the structure of our JSON response.
-type DeleteVideosResponse struct {
+// DeleteFilesResponse is the structure of our JSON response.
+type DeleteFilesResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message,omitempty"`
 }
 
-// DeleteVideosHandler handles requests to delete videos.
-func DeleteVideos(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+// DeleteFilesHandler handles requests to delete files.
+func DeleteFiles(w http.ResponseWriter, r *http.Request) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -102,15 +107,15 @@ func DeleteVideos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the JSON body.
-	var req DeleteVideosRequest
+	var req DeleteFilesRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Bad Request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Validate that videos were provided.
-	if len(req.Videos) == 0 {
-		resp := DeleteVideosResponse{
+	// Validate that files were provided.
+	if len(req.Files) == 0 {
+		resp := DeleteFilesResponse{
 			Success: false,
 			Message: "No videos provided",
 		}
@@ -122,22 +127,23 @@ func DeleteVideos(w http.ResponseWriter, r *http.Request) {
 
 	// Process deletion of each video.
 	video_erros := 0
-	for _, video := range req.Videos {
-		video_path := filepath.Join(db.Config.Settings.App.Videos_folder, strings.Replace(video, "/videos/", "", 1))
-		fmt.Println("Deleting video:", video_path)
+	for _, video := range req.Files {
+		video_path := filepath.Join(system.System.DB.Settings.App.Files_folder, strings.Replace(video, "/videos/", "", 1))
+		log.Println("Deleting video:", video_path)
 		err := os.Remove(video_path)
 		if err != nil {
 			video_erros++
 			log.Println("error deleting video: ", err)
-			status.ResponseHandler(w, r, "Error deleting video"+video, nil)
 			continue
 		}
 	}
 
-	resp := DeleteVideosResponse{
+	resp := DeleteFilesResponse{
 		Success: video_erros == 0,
-		Message: fmt.Sprintf("Deleted %d videos", len(req.Videos)-video_erros),
+		Message: fmt.Sprintf("Deleted %d videos", len(req.Files)-video_erros),
 	}
-	status.ResponseHandler(w, r, "Videos deleted", resp)
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(resp)
 
 }

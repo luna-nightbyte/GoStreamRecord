@@ -1,100 +1,28 @@
 package handlers
 
 import (
-	"GoStreamRecord/internal/db"
-	"GoStreamRecord/internal/web/handlers/controller"
-	"GoStreamRecord/internal/web/handlers/cookies"
-	"GoStreamRecord/internal/web/handlers/login"
-	web_status "GoStreamRecord/internal/web/handlers/status"
-	"GoStreamRecord/internal/web/handlers/streamers"
-	"GoStreamRecord/internal/web/handlers/users"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"remoteCtrl/internal/embedded"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/cookies"
 	"text/template"
+	"time"
+
+	"github.com/gorilla/mux"
 )
 
-func Handle() {
-	// API endpoints
-
-	http.Handle("/videos/", http.StripPrefix("/videos/", http.FileServer(http.Dir(db.Config.Settings.App.Videos_folder))))
-
-	http.HandleFunc("/api/add-streamer", streamers.AddStreamer)
-	http.HandleFunc("/api/get-streamers", streamers.GetStreamers)
-	http.HandleFunc("/api/remove-streamer", streamers.RemoveStreamer)
-	http.HandleFunc("/api/control", controller.ControlHandler)
-	http.HandleFunc("/api/get-online-status", streamers.CheckOnlineStatus)
-	http.HandleFunc("/api/import", streamers.UploadHandler)
-	http.HandleFunc("/api/export", streamers.DownloadHandler)
-	http.HandleFunc("/api/status", web_status.StatusHandler)
-	http.HandleFunc("/api/get-videos", controller.GetVideos)
-	http.HandleFunc("/api/logs", controller.HandleLogs)
-	http.HandleFunc("/api/delete-videos", controller.DeleteVideos)
-	http.HandleFunc("/api/generate-api-key", cookies.GenAPIKeyHandler)
-	http.HandleFunc("/api/delete-api-key", cookies.DeleteAPIKeyHandler)
-	http.HandleFunc("/api/keys", cookies.GetAPIkeys)
-
-	http.HandleFunc("/api/get-users", users.GetUsers)
-	http.HandleFunc("/api/add-user", users.AddUser)
-	http.HandleFunc("/api/update-user", users.UpdateUsers)
-	http.HandleFunc("/api/health", HealthCheckHandler)
-
-	if cookies.UserStore == nil {
-		cookies.UserStore = make(map[string]string)
-	}
-
-	for _, u := range db.Config.Users.Users {
-		cookies.UserStore[u.Name] = u.Key
-	}
-	
-
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Method == http.MethodGet {
-			GetLogin(w, r)
-		} else if r.Method == http.MethodPost {
-			login.PostLogin(w, r)
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if cookies.Session.IsLoggedIn(w, r) {
-			GetIndex(w, r)
-			return
-		} else {
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
-		}
-	})
+type FormData struct {
+	Data map[string]any `json:"formData"`
 }
 
-var IndexHTML, LoginHTML string
-
-type Template struct {
-	W    http.ResponseWriter
-	Tmpl *template.Template
+type API struct {
+	Router *mux.Router
 }
 
-func (t *Template) Execute(data any) error {
-	return t.Tmpl.Execute(t.W, data)
-}
-
-func GetIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.New("index").Parse(IndexHTML))
-	indexTemplate := Template{W: w, Tmpl: tmpl}
-	if err := indexTemplate.Execute(nil); err != nil {
-		http.Error(w, "Server error", http.StatusInternalServerError)
-	}
-}
-
-func GetLogin(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.New("login").Parse(LoginHTML))
-	loginTemplate := Template{W: w, Tmpl: tmpl}
-	if err := loginTemplate.Execute(nil); err != nil {
-		http.Error(w, "Server error", http.StatusInternalServerError)
-	}
-}
+var Api API
 
 // HealthResponse represents the JSON structure for health responses.
 type HealthResponse struct {
@@ -102,9 +30,35 @@ type HealthResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
+func GoStreamRecordUI(w http.ResponseWriter, r *http.Request) { 
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) { 
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	var data, err = embedded.VueDistFiles.ReadFile("app/dist/index.html")
+	if err != nil {
+		log.Println(err.Error())
+	}
+	fmt.Fprint(w, string(data))
+
+}
+
+// HasTimePassed checks if a certain duration has passed since the given timestamp.
+func HasTimePassed(startTime time.Time, duration time.Duration) bool {
+	return time.Since(startTime) >= duration
+}
+
+func GetLogin(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.New("login").Parse(embedded.LoginHTML))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Server error", http.StatusInternalServerError)
+	}
+}
+
 // HealthCheckHandler is the HTTP handler for the health check endpoint.
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -119,4 +73,12 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 	}
 
+}
+
+func RedirectHome(w http.ResponseWriter, r *http.Request) {
+	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound) // 302 Found
 }
