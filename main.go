@@ -12,6 +12,7 @@ import (
 	"remoteCtrl/internal/media/video_download"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/system/version"
 	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers"
@@ -30,6 +31,9 @@ import (
 
 func init() {
 
+	fmt.Println(prettyprint.Green("Startup"))
+	fmt.Println(prettyprint.BoldGrey("Software version",version.Version))
+	fmt.Println(prettyprint.BoldGrey("Software sha256:",version.Shasum), "\n")
 	ytDLP_path := utils.CheckPath("yt-dlp")
 
 	ffmpeg_path := utils.CheckPath("ffmpeg")
@@ -147,8 +151,7 @@ func serveHTTP(ctx context.Context) {
 		ReadTimeout:  60 * time.Second,
 	}
 
-	fmt.Println("Starting at", "http://localhost:"+fmt.Sprint(system.System.DB.Settings.App.Port))
-	fmt.Println("Verison:", version.Version)
+	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.DB.Settings.App.Port)))
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)
