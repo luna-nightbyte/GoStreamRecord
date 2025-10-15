@@ -1,4 +1,4 @@
-package embedded
+package main
 
 import "embed"
 
@@ -8,10 +8,13 @@ import "embed"
 // )
 
 // //go:embed login/dist/index.html
-var LoginHTML string
+// var LoginHTML string
+
+//go:embed vue/login/dist/*
+var VueLoginFiles embed.FS
 
 // //go:embed app/dist/index.html
 // var VueFrontend string
 
-//go:embed app/dist/*
+//go:embed vue/app/dist/*
 var VueDistFiles embed.FS

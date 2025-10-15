@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes" // Added: Required for bytes.NewReader (implements io.ReadSeeker)
 	"context"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"remoteCtrl/internal"
-	"remoteCtrl/internal/embedded"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/prettyprint"
@@ -100,24 +100,74 @@ func serveHTTP(ctx context.Context) {
 		}
 	}
 
-	app.Router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	//  SPA Setup
 
-		if r.Method == http.MethodGet {
-			handlers.GetLogin(w, r)
-		} else if r.Method == http.MethodPost {
-			login.PostLogin(w, r)
+	loginFS, err := fs.Sub(VueLoginFiles, "vue/login/dist")
+	if err != nil {
+		log.Println("Error creating login sub-filesystem:", err)
+	}
+
+	frontendFS, err := fs.Sub(VueDistFiles, "vue/app/dist")
+	if err != nil {
+		log.Println("Error creating main frontend sub-filesystem:", err)
+	}
+
+	rootAssetHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var fsToUse fs.FS
+		isLoggedIn := cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r)
+
+		if isLoggedIn {
+			fsToUse = frontendFS
 		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			fsToUse = loginFS
+		}
+		filePath := strings.TrimPrefix(r.URL.Path, "/")
+
+		file, err := fsToUse.Open(filePath)
+		if err == nil {
+			defer file.Close()
+
+			content, readErr := io.ReadAll(file)
+			if readErr != nil {
+				http.Error(w, "Error reading embedded file content", http.StatusInternalServerError)
+				return
+			}
+			contentReader := bytes.NewReader(content)
+
+			http.ServeContent(w, r, filePath, time.Time{}, contentReader)
+			return
 		}
 	})
+
+	app.Router.PathPrefix("/js/").Handler(rootAssetHandler).Methods("GET")
+	app.Router.PathPrefix("/css/").Handler(rootAssetHandler).Methods("GET")
+	app.Router.HandleFunc("/favicon.ico", rootAssetHandler).Methods("GET")
+
+	app.Router.HandleFunc("/login", login.PostLogin).Methods("POST")
+	app.Router.HandleFunc("/login/", login.PostLogin).Methods("POST")
+
+	app.Router.HandleFunc("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			return
+		}
+
+		indexFile, err := loginFS.Open("index.html")
+		if err != nil {
+			http.Error(w, "Login index file not found", http.StatusInternalServerError)
+			return
+		}
+		defer indexFile.Close()
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.Copy(w, indexFile)
+	})).Methods("GET")
+	// End SPA Setup
+
 	baseDir := system.System.DB.Settings.App.Files_folder
 	app.Router.PathPrefix("/videos/").
 		Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(baseDir))))
 
 	handlers.VideoMux("/api/videos", app.Router, baseDir)
 
-	// VUE
-	frontendFS, _ := fs.Sub(embedded.VueDistFiles, "app/dist")
 	app.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 			http.Redirect(w, r, "/login", http.StatusFound)
