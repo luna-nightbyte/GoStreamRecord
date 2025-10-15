@@ -25,8 +25,9 @@ COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff -
 all: clean build_go version
 pi:
 	GOOS=linux GOARCH=arm64 go build \
-	-ldflags="-X 'remoteCtrl/system/version.Version=$(VERSION)' \
-	-X 'remoteCtrl/system/version.Shasum=$(COMMIT_HASH)'" \
+	-ldflags=" \
+		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
+		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
 	-o PiStream
 		
 full_build_go_pi: copy_frontend pi
@@ -44,7 +45,8 @@ build_go: copy_frontend
 	-buildvcs=false \
 	-ldflags=" \
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
-		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
+		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)' \
+		-X 'remoteCtrl/internal/system.enableDebug=true'" \
 	-o PcStream
  
 clean:
