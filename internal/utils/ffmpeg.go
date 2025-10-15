@@ -26,7 +26,7 @@ func GetVideoDuration(videoPath string) (float64, error) {
 	durationStr := strings.TrimSpace(out.String())
 	return strconv.ParseFloat(durationStr, 64)
 }
-func ExtractFrame(videoPath string) (string, error) {
+func ExtractFrame(tmpDir, videoPath string) (string, error) {
 	// Create a temporary file with .jpg extension
 	tempFile, err := os.CreateTemp("", "frame-*.jpg")
 	if err != nil {
@@ -43,10 +43,6 @@ func ExtractFrame(videoPath string) (string, error) {
 
 	cmd := exec.Command("ffmpeg", "-y", "-ss", middle, "-i", videoPath, "-frames:v", "1", outputPath)
 
-	//cmd := exec.Command("ffmpeg", "-y", "-ss", "00:00:01", "-i", videoPath, "-frames:v", "1", outputPath)
-
-	// cmd.Stderr = os.Stderr
-	// cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("ffmpeg command failed: %w", err)
 	}

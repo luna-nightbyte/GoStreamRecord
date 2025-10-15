@@ -1,7 +1,6 @@
 package video_download
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +9,7 @@ import (
 	"remoteCtrl/internal/system/cookies"
 )
 
-type Runner struct {
+type Progress struct {
 	Running   bool   `json:"running"`
 	Total     int    `json:"total"`
 	Current   int    `json:"current"`
@@ -19,9 +18,7 @@ type Runner struct {
 	QueueText string `json:"queueText"`
 }
 
-var Data Runner
-
-func (r Runner) Init(running bool, total, progress, current int, queue, text string) {
+func (r Progress) Init(running bool, total, progress, current int, queue, text string) {
 	if total == 0 {
 		total = 100
 		current = 1
@@ -38,13 +35,13 @@ func (r Runner) Init(running bool, total, progress, current int, queue, text str
 	}
 	t := fmt.Sprintf(`Local files: %d`, len(f))
 	r.QueueText = t
-	Data = r
+	// Data = r
 }
-func (r Runner) SetText(s string) Runner {
+func (r Progress) SetText(s string) Progress {
 	r.Text = s
 	return r
 }
-func (r Runner) ApendText(s string) Runner {
+func (r Progress) ApendText(s string) Progress {
 	r.Text = "\n" + s
 	return r
 }
@@ -54,11 +51,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	ru := Runner{Total: Data.Total, Progress: Data.Progress, Current: Data.Current, Running: Data.Running, QueueText: Data.QueueText, Text: Data.Text}
+	//ru := Progress{Total: Data.Total, Progress: Data.Progress, Current: Data.Current, Running: Data.Running, QueueText: Data.QueueText, Text: Data.Text}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ru)
+	//json.NewEncoder(w).Encode(ru)
 }
 
 func PrintError(s any) {
-	Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprint(s))
+	//Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprint(s))
 }

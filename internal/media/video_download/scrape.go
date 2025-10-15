@@ -74,7 +74,7 @@ var Web WEB
 
 func GetMasterPlaylistURL(url, site string) (WEB, error) {
 	runner := Web
-	Data.Total = len(runner.Docines)
+	//Data.Total = len(runner.Docines)
 	var err error
 
 	url = strings.ReplaceAll(url, " ", "")
@@ -114,8 +114,8 @@ func (s *WEB) GetPorhubMasterPlaylistURL(url string) (WEB, error) {
 	s.Doc = doc
 
 	s.Docines = strings.Split(s.Doc, "\n")
-	for i, line := range s.Docines {
-		Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
+	for _, line := range s.Docines {
+		//Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
 
 		if strings.Contains(line, s.Pornhub.Split.videoClassString1) {
 			initSplit := strings.Split(line, s.Pornhub.Split.videoClassString1)[1]
@@ -124,7 +124,7 @@ func (s *WEB) GetPorhubMasterPlaylistURL(url string) (WEB, error) {
 			s.MasterPlaylistURL = "https:" + url
 		}
 	}
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 	return *s, nil
 }
 
@@ -139,9 +139,9 @@ func (s *WEB) GetXnxxMasterPlaylistURL(url string) (WEB, error) {
 	s.Docines = strings.Split(s.Doc, "\n")
 
 	for {
-		for i, line := range s.Docines {
+		for _, line := range s.Docines {
 
-			Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
+			//Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
 
 			if strings.Contains(line, s.Xnxx.Split.videoClassString1) {
 				s.MasterPlaylistURL = strings.Split(line, s.Xnxx.Split.videoClassString1)[1][1:]
@@ -187,7 +187,7 @@ func (s *WEB) GetXnxxMasterPlaylistURL(url string) (WEB, error) {
 
 	}
 
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 	if s.MasterPlaylistURL == "" {
 		log.Println("Found no stream..")
 		return *s, fmt.Errorf("Found no stream..")
@@ -205,20 +205,20 @@ func (s *WEB) GetXvideosMasterPlaylistURL(url string) (WEB, error) {
 
 	s.Docines = strings.Split(s.Doc, "\n")
 
-	for i, line := range s.Docines {
+	for _, line := range s.Docines {
 
-		Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
+		//Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
 
 		if strings.Contains(line, s.Xnxx.Split.videoClassString1) {
 			s.MasterPlaylistURL = strings.Split(line, s.Xnxx.Split.videoClassString1)[1][1:]
 			s.MasterPlaylistURL = s.MasterPlaylistURL[:len(s.MasterPlaylistURL)-3]
-			Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
+		//	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
 
 			return *s, nil
 		}
 		if strings.Contains(line, s.Xnxx.Split.videoClassString1_SecondAttemt) {
 			s.MasterPlaylistURL = strings.Split(line, s.Xnxx.Split.videoClassString1_SecondAttemt)[1][1:]
-			Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
+		//	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
 
 			return *s, nil
 		}
@@ -227,11 +227,11 @@ func (s *WEB) GetXvideosMasterPlaylistURL(url string) (WEB, error) {
 			s.MasterPlaylistURL = s.MasterPlaylistURL[:len(s.MasterPlaylistURL)-2]
 			s.MasterPlaylistURL = strings.Replace(s.MasterPlaylistURL, "\",", "", 1)
 			s.IsDirectDownload = true
-			Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
+			//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "Found video!")
 			return *s, nil
 		}
 	}
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 
 	if s.MasterPlaylistURL == "" {
 		log.Println("Found no stream..")
@@ -245,7 +245,7 @@ func (s WEB) GetBulkPornhub(url string) WEB {
 	DocLines := strings.Split(s.Doc, "\n")
 
 	for i, line := range DocLines {
-		Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
+	//	Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, Data.ApendText("Searching..").Text)
 
 		if strings.Contains(line, s.Pornhub.Split.galleryClassString1) {
 
@@ -276,7 +276,7 @@ func (s WEB) GetBulkPornhub(url string) WEB {
 
 		}
 	}
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 	return s
 }
 
@@ -415,8 +415,8 @@ func (s WEB) GetBulkHeavyR(inputUrl string) WEB {
 	name := strings.Replace(inputUrl, url, "", 1)
 	DocLines := strings.Split(s.Doc, "\n")
 	log.Println(s.Doc)
-	for i, line := range DocLines {
-		Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, "Looking for videos..")
+	for _, line := range DocLines {
+		//Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, "Looking for videos..")
 
 		if strings.Contains(line, s.HeavyR.Split.galleryClassString1) {
 			initSplit := strings.Split(line, s.HeavyR.Split.galleryClassString1)[1]
@@ -426,16 +426,16 @@ func (s WEB) GetBulkHeavyR(inputUrl string) WEB {
 			s.VideoNames = append(s.VideoNames, name)
 		}
 	}
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 	return s
 }
 
 func (s WEB) GetBulkXnxx(url string) WEB {
 	url = strings.Split(url, ".com")[0] + ".com"
 	DocLines := strings.Split(s.Doc, "\n")
-	for i, line := range DocLines {
+	for _, line := range DocLines {
 		if strings.Contains(line, s.Xnxx.Split.galleryClassString1) {
-			Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, "Looking for videos..")
+			//Data.Init(true, Data.Total, Data.Progress, i, Data.QueueText, "Looking for videos..")
 			initSplit := strings.Split(line, s.Xnxx.Split.galleryClassString1)[1]
 			str := strings.Replace(strings.Split(initSplit, s.Xnxx.Split.galleryClassString2)[0], "\"", "", 1)
 			urlString := s.Xnxx.Add.String1 + str
@@ -445,6 +445,6 @@ func (s WEB) GetBulkXnxx(url string) WEB {
 			s.VideoNames = append(s.VideoNames, nameS[len(nameS)-1])
 		}
 	}
-	Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
+	//Data.Init(false, Data.Total, Data.Progress, 0, Data.QueueText, "...")
 	return s
 }

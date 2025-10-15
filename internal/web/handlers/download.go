@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"remoteCtrl/internal/media/video_download"
-	"remoteCtrl/internal/system"
 	"strings"
 	"time"
 )
@@ -33,7 +31,6 @@ func init() {
 }
 
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
-
 	if !HasTimePassed(request.Timestamp, 1*time.Second) {
 		return
 	}
@@ -67,29 +64,25 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	if VideoFormData.Save == "" {
-		VideoFormData.Save = "default"
-
+		VideoFormData.Save = getNextDefaultFileName("default.mp4")
 		// Dont overwrite existing defaults.
-		_, err = os.ReadFile(system.System.DB.Settings.App.Files_folder + "/default.mp4")
-		if !os.IsNotExist(err) {
-			i := 0
-			for {
-				_, err := os.ReadFile(fmt.Sprintf(system.System.DB.Settings.App.Files_folder+"/default_%d.mp4", i))
-				if os.IsNotExist(err) {
-					VideoFormData.Save = fmt.Sprintf("default_%d", i)
-					break
-				}
-				i++
-			}
-		}
+
 	}
-	video_download.DownloadIsRunning = true
+	var dw video_download.VideoDownloader
+	dw.IsDownloading = true
 
 	w.Header().Set("Content-Type", "text/plain")
 	if VideoFormData.Option == "onlyfans" {
 		// go onlyfans.Download(FormData.Search, "img")
 	} else {
-		go video_download.Download(VideoFormData)
+		go dw.Download(VideoFormData)
 	}
 
+}
+func getNextDefaultFileName(filename string) string {
+	_, err := os.ReadFile(filename)
+	if !os.IsNotExist(err) {
+		getNextDefaultFileName(filename)
+	}
+	return filename
 }

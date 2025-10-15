@@ -18,8 +18,13 @@ import (
 	"remoteCtrl/internal/web/telegram"
 )
 
-var DownloadIsRunning bool
+type VideoDownloader struct {
+	IsDownloading bool 
+	Output        []OutputFile
 
+	segmentErrors, retries int 
+	Tmp tmpFile
+}
 type DownloadForm struct {
 	Option string
 	Bulk   bool
@@ -27,66 +32,43 @@ type DownloadForm struct {
 	Save   string
 	Search string
 }
+ 
+func (vd *VideoDownloader) InitTemp(uid string) {
 
-type Saving struct {
-	Ongoing bool
-	Num     int
+	vd.Tmp.Dir = fmt.Sprintf("tmp_%s")
+	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp__ts_%s.txt")
+	vd.Tmp.TSContentfile = filepath.Join(vd.Tmp.Dir, "output.ts")
+
+	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
+		err := os.Mkdir(system.System.DB.Settings.App.Files_folder, 0755)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	vd.Tmp.CreateTempDirs()
+
 }
-
-var Saver []Saving
-var Queue int
-
-func Download(F DownloadForm) (string, string) {
+func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 	site := F.Option
 	pwd := ""
 	videoName := ""
+	vd.InitTemp(F.Save)
 	targetFolder := filepath.Join("videos", site)
 	os.MkdirAll(targetFolder, 0755)
-	Data.Init(false, 100, 0, 0, Data.QueueText, "Starting download..")
+	//vd.Data.Init(false, 100, 0, 0, vd.Data.QueueText, "Starting download..")
 	if !F.Bulk {
-		pwd = filepath.Join(targetFolder, fmt.Sprintf("%s.mp4", F.Save))
+		pwd = filepath.Join(targetFolder, fmt.Sprintf("%s", F.Save))
+		utils.VideoVerify.Add(pwd) // add for later verification 
+		
+		os.MkdirAll(vd.Tmp.Dir, 0755)
 
-		utils.VideoVerify.Add(pwd)
-		currentRunner := -1
-		s1 := Saver
-		Queue++
-		for {
-			for i, s := range s1 {
-				_, err := os.ReadDir(filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
-				if !s.Ongoing && err != nil {
-					currentRunner = i
-					s.Ongoing = true
-
-					Queue--
-					break
-				}
-
-			}
-			if currentRunner == -1 && len(Saver) < 1 {
-				currentRunner = len(Saver)
-				Saver = append(Saver, Saving{Num: 0, Ongoing: false})
-
-			}
-			if currentRunner != -1 {
-				break
-
-			}
-			time.Sleep(2 * time.Second)
-		}
-		if currentRunner == -1 {
-			currentRunner = len(Saver)
-			Saver = append(Saver, Saving{Num: currentRunner, Ongoing: true})
-
-		}
-		Saver[currentRunner].Ongoing = true
-		runnerPath := filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
-		os.MkdirAll(runnerPath, 0755)
-
-		Data.Text = Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
-		Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, Data.Text)
+		//vd.Data.Text = vd.Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
+		//vd.Data.Init(false, vd.Data.Total, vd.Data.Progress, vd.Data.Current, vd.Data.QueueText, vd.Data.Text)
 		web, err := GetMasterPlaylistURL(F.URL, site)
 		if err != nil {
 		}
+
+		// PornOne, Spankbang
 		if web.IsDirectDownload {
 
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
@@ -98,7 +80,8 @@ func Download(F DownloadForm) (string, string) {
 			}
 
 			// Write to a temp file first, then rename on success (safer)
-			tmp := system.System.DB.Settings.App.Files_folder + "/" + F.Save + ".part"
+			tmp := vd.Tmp.Dir + "/" + F.Save + ".part"
+
 			out, err := os.Create(tmp)
 			if err != nil {
 				return "", ""
@@ -118,50 +101,45 @@ func Download(F DownloadForm) (string, string) {
 			if _, err = io.Copy(out, resp.Body); err != nil {
 				return "", ""
 			}
-			dest := system.System.DB.Settings.App.Files_folder + "/" + F.Save + ".mp4"
+			dest := filepath.Join(targetFolder, F.Save)
 			os.Rename(tmp, dest)
+
 			if system.System.DB.Settings.GoogleDrive.Enabled {
-				gdrive.Service.UploadFile(dest, "GoStreamRecord")
-				drivePath := filepath.Join(system.System.DB.Settings.GoogleDrive.Filepath, filepath.Base(dest))
+				gdrive.Service.UploadFile(dest, "GoStreamRecord") // TODO: Replact string with constant or config setting
+				drivePath := filepath.Join(system.System.DB.Settings.GoogleDrive.Filepath, filepath.Join(site, F.Save))
 				if err := utils.CopyFile(dest, drivePath); err == nil {
 					os.RemoveAll(dest)
 				}
 			}
 			return "", ""
 		}
-		f := Connect(web.MasterPlaylistURL, runnerPath)
+		f := vd.Connect(web.MasterPlaylistURL)
 		if f.NoStream {
 			log.Println("Downloading video..")
 			err := downloadVideo(web.MasterPlaylistURL, pwd)
 			if err != nil {
 
 				log.Println("Error downloading video file:", err)
-				Saver[0].Ongoing = false
 				return pwd, videoName
 			}
 
-		} else {
-			Data.Text = Data.ApendText(fmt.Sprintf("Saving as %s file..\n", pwd)).Text
-			Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, Data.Text)
-			fmt.Printf("\nSaving as %s file..\n", pwd)
-			err = mp4.TSToMP4_n(runnerPath, pwd, TMP.Tmp.TSSegmentsTXT)
-			if err != nil {
+		} else { // Pornhub, Xnxx, Xvideos
 
-				Saver[0].Ongoing = false
+			fmt.Printf("\nSaving as %s file..\n", pwd)
+			err = mp4.TSToMP4_n(vd.Tmp.Dir, pwd, vd.Tmp.TSSegmentsTXT)
+			if err != nil {
 				log.Println("Error saving output file:", err)
 
 				return pwd, videoName
 			}
 		}
-		Data.Init(false, Data.Progress, Data.Progress, Data.Current, Data.QueueText, Data.ApendText("Done! Video saved as "+pwd).Text)
-
-		framePath, err := utils.ExtractFrame(pwd)
+		framePath, err := utils.ExtractFrame(vd.Tmp.Dir, pwd)
 		if err != nil {
 			log.Println("Error extracting frame:", err)
 		}
 		log.Println("Done! Video saved as", pwd)
 		telegram.Bot.SendPhoto(framePath, fmt.Sprintf("\nNew video saved as %s file..\n", pwd))
-		if save(pwd, runnerPath) != "" && err == nil {
+		if vd.save(pwd) != "" && err == nil {
 			telegram.Bot.SendPhoto(framePath, fmt.Sprintf("\nNew video saved and uploaded to google drive as: %s\n", filepath.Base(pwd)))
 		} else if err == nil {
 			telegram.Bot.SendPhoto(framePath, fmt.Sprintf("\nNew video downloaded: %s\n", filepath.Base(pwd)))
@@ -171,14 +149,14 @@ func Download(F DownloadForm) (string, string) {
 		}
 		outFile := OutputFile{Name: videoName, Type: "mp4", Path: pwd}
 		outputReplaced := false
-		for i, _ := range OutputFiles {
-			if OutputFiles[i].Path == "" {
-				OutputFiles[i] = outFile
+		for i, _ := range vd.Output {
+			if vd.Output[i].Path == "" {
+				vd.Output[i] = outFile
 				outputReplaced = true
 			}
 		}
 		if !outputReplaced {
-			OutputFiles = append(OutputFiles, outFile)
+			vd.Output = append(vd.Output, outFile)
 		}
 
 		//os.Remove(pwd)
@@ -197,8 +175,8 @@ func Download(F DownloadForm) (string, string) {
 
 				}
 
-				Data.Total = len(strings.Split(b.Doc, "\n")) - 1
-				Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
+				//	Data.Total = len(strings.Split(b.Doc, "\n")) - 1
+				//	Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
 				b = b.GetBulkPornhub(F.URL)
 
 			case "Xnxx":
@@ -206,8 +184,8 @@ func Download(F DownloadForm) (string, string) {
 					F.URL = "https://www.xnxx.com/search/" + F.Search
 				}
 				b.Doc, err = Gethttp(F.URL)
-				Data.Total = len(strings.Split(b.Doc, "\n")) - 1
-				Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
+				//	Data.Total = len(strings.Split(b.Doc, "\n")) - 1
+				//	Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
 				if err != nil {
 
 				}
@@ -217,8 +195,8 @@ func Download(F DownloadForm) (string, string) {
 					F.URL = "https://www.xvideos.com/?k=" + F.Search
 				}
 				b.Doc, err = Gethttp(F.URL)
-				Data.Total = len(strings.Split(b.Doc, "\n")) - 1
-				Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
+				//	Data.Total = len(strings.Split(b.Doc, "\n")) - 1
+				//	Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
 
 				if err != nil {
 
@@ -240,8 +218,8 @@ func Download(F DownloadForm) (string, string) {
 				}
 
 				b.Doc, err = Gethttp(F.URL)
-				Data.Total = len(strings.Split(b.Doc, "\n")) - 1
-				Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
+				//	Data.Total = len(strings.Split(b.Doc, "\n")) - 1
+				//	Data.Init(false, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("Searching %s for %s", site, F.Search))
 
 				if err != nil {
 
@@ -277,65 +255,29 @@ func Download(F DownloadForm) (string, string) {
 			videoUrls = append(videoUrls, u1)
 		}
 
-		for i, url := range videoUrls {
-			currentRunner := -1
-			s1 := Saver
-			Queue++
-			for {
-				for i, s := range s1 {
-					_, err := os.ReadDir(filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner)))
-					if !s.Ongoing && err != nil {
-						currentRunner = i
-						s.Ongoing = true
-
-						Queue--
-						break
-					}
-
-				}
-				if currentRunner == -1 && len(Saver) < 1 {
-					currentRunner = len(Saver)
-					Saver = append(Saver, Saving{Num: 0, Ongoing: false})
-
-				}
-				if currentRunner != -1 {
-					break
-
-				}
-				time.Sleep(2 * time.Second)
-			}
-			if currentRunner == -1 {
-				currentRunner = len(Saver)
-				Saver = append(Saver, Saving{Num: currentRunner, Ongoing: true})
-
-			}
-			Saver[currentRunner].Ongoing = true
-			runnerPath := filepath.Join(TMP.Tmp.Dir, fmt.Sprintf("runner_%d_", currentRunner))
-			os.MkdirAll(runnerPath, 0755)
+		for i, url := range videoUrls { 
+			os.MkdirAll(vd.Tmp.Dir, 0755)
 			if videoNames[i] != "" {
 				s := strings.Replace(videoNames[i], "/", "-", 99)
 				s = strings.Replace(s, "-", "_", 99)
 				videoNames[i] = strings.Replace(s, "_", "_", 99)
-				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s.mp4", videoNames[i]))
+				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s", videoNames[i]))
 				videoName = videoNames[i]
 			} else {
-				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s_%d.mp4", F.Save, i))
+				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s_%d", F.Save, i))
 				videoName = F.Save
 
 			}
 
-			utils.VideoVerify.Add(pwd)
-			Data.Text = Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
-			Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, Data.Text)
-
+			utils.VideoVerify.Add(pwd) 
 			web, err := GetMasterPlaylistURL(url, site)
 			if err != nil {
 
 			}
 			if !web.IsDirectDownload {
 				// Connect(web.MasterPlaylistURL, runnerPath)
-				framePath, err := utils.ExtractFrame(pwd)
-				if save(pwd, runnerPath) != "" && err == nil {
+				framePath, err := utils.ExtractFrame(vd.Tmp.Dir, pwd)
+				if vd.save(pwd) != "" && err == nil {
 					telegram.Bot.SendPhoto(framePath, fmt.Sprintf("\nNew video saved and uploaded to google drive as: %s\n", filepath.Base(pwd)))
 				} else if err == nil {
 					telegram.Bot.SendPhoto(framePath, fmt.Sprintf("\nNew video downloaded: %s\n", filepath.Base(pwd)))
@@ -365,38 +307,32 @@ func Download(F DownloadForm) (string, string) {
 			log.Println("Done! Video saved as", pwd)
 			outFile := OutputFile{Name: videoName, Type: "mp4", Path: pwd}
 			outputReplaced := false
-			for i, _ := range OutputFiles {
-				if OutputFiles[i].Path == "" {
-					OutputFiles[i] = outFile
+			for i, _ := range vd.Output {
+				if vd.Output[i].Path == "" {
+					vd.Output[i] = outFile
 					outputReplaced = true
 				}
 			}
 			if !outputReplaced {
-				OutputFiles = append(OutputFiles, outFile)
+				vd.Output = append(vd.Output, outFile)
 			}
-			utils.RemoveAll(runnerPath)
+			utils.RemoveAll(vd.Tmp.Dir)
 
-			Saver[currentRunner].Ongoing = false
-
-		}
-
-		Data.Init(false, Data.Total, Data.Progress, 0, "", Data.Text)
+		} 
 	}
-	DownloadIsRunning = false
-	Saver[0].Ongoing = false
+	vd.IsDownloading = false
 
 	utils.VideoVerify.RunCodecVerification()
 	return pwd, videoName
 }
 
-func save(pwd, currentRunner string) string {
-	Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("\nSaving as %s file..\n", pwd))
-	err := mp4.TSToMP4_n(currentRunner, pwd, TMP.Tmp.TSSegmentsTXT)
+func (vd VideoDownloader) save(pwd string) string {
+	// Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprintf("\nSaving as %s file..\n", pwd))
+	err := mp4.TSToMP4_n(vd.Tmp.Dir, pwd, vd.Tmp.TSSegmentsTXT)
 	if err != nil {
 		log.Println("Error saving output file:", err)
 		return ""
 	}
-
 	if system.System.DB.Settings.GoogleDrive.Enabled {
 		_, err := gdrive.Service.UploadFile(pwd, filepath.Join(gdrive.RootFolder, "downloads"))
 		if err == nil {

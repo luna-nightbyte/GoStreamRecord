@@ -6,61 +6,35 @@ import (
 	"path/filepath"
 )
 
-type tmpFiles struct {
-	Dir           string
-	TSContentfile string
-	TSSegmentsTXT string
-}
 type video struct {
 	MP4pwd string
 	Type   string
 	XSize  int
 	YSize  int
 }
-type File struct {
+type tmpFile struct {
 	NoStream bool
 	Mp4      video
-	Tmp      tmpFiles
+	Dir           string
+	TSContentfile string
+	TSSegmentsTXT string
 }
 type OutputFile struct {
 	Type string
 	Path string
 	Name string
 }
-
-var OutputFiles []OutputFile
-
-var (
-	outputDir = "videos"
-	TMP       File
-)
-
-func init() {
-
-	TMP.Tmp.Dir = "tmp"
-	TMP.Tmp.TSContentfile = filepath.Join(TMP.Tmp.Dir, "output.ts")
-	TMP.Tmp.TSSegmentsTXT = "./tsFiles.txt"
-
-	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		err := os.Mkdir(outputDir, 0755)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	TMP.Tmp.CreateTempDirs()
-
-}
-
-func (f *File) RemoveTmps() error {
-	err := os.RemoveAll(f.Tmp.Dir)
+ 
+func (f *tmpFile) RemoveTmps() error {
+	err := os.RemoveAll(f.Dir)
 	if err != nil {
 		return err
 	}
-	return os.RemoveAll(f.Tmp.TSSegmentsTXT)
+	return os.RemoveAll(f.TSSegmentsTXT)
 
 }
 
-func (f *tmpFiles) CreateTempDirs() {
+func (f *tmpFile) CreateTempDirs() {
 	err := os.MkdirAll(f.Dir, os.ModePerm)
 	if err != nil {
 		log.Println("Error creating output directory:", err)
@@ -69,7 +43,7 @@ func (f *tmpFiles) CreateTempDirs() {
 
 }
 
-func (f *tmpFiles) CreateTempFiles() {
+func (f *tmpFile) CreateTempFiles() {
 	outputFile, err := os.Create(f.TSContentfile)
 	if err != nil {
 		log.Println("Error creating f.TSContentfile file:", err)
@@ -84,6 +58,6 @@ func (f *tmpFiles) CreateTempFiles() {
 	defer outputFile.Close()
 }
 
-func (f *tmpFiles) CreateSegment(file string) (*os.File, error) {
+func (f *tmpFile) CreateSegment(file string) (*os.File, error) {
 	return os.Create(filepath.Join(f.Dir, file))
 }
