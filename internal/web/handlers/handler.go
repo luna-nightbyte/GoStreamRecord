@@ -2,13 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"remoteCtrl/internal/embedded"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
-	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -30,30 +26,9 @@ type HealthResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
-func GoStreamRecordUI(w http.ResponseWriter, r *http.Request) { 
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) { 
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-
-	var data, err = embedded.VueDistFiles.ReadFile("app/dist/index.html")
-	if err != nil {
-		log.Println(err.Error())
-	}
-	fmt.Fprint(w, string(data))
-
-}
-
 // HasTimePassed checks if a certain duration has passed since the given timestamp.
 func HasTimePassed(startTime time.Time, duration time.Duration) bool {
 	return time.Since(startTime) >= duration
-}
-
-func GetLogin(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.New("login").Parse(embedded.LoginHTML))
-	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, "Server error", http.StatusInternalServerError)
-	}
 }
 
 // HealthCheckHandler is the HTTP handler for the health check endpoint.

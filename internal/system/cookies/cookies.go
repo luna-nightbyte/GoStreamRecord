@@ -46,7 +46,7 @@ func (s *session) Store() *sessions.CookieStore {
 
 // IsLoggedIn checks if the user is logged in either by session or via a valid API key.
 func (s *session) IsLoggedIn(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Request) bool {
-	return true
+
 	session, err := s.cookies.Get(r, "session")
 	if err != nil {
 		http.RedirectHandler("/login", http.StatusInternalServerError)
