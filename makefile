@@ -36,9 +36,9 @@ copy_frontend:
 	rm -rf internal/embedded/app/dist
 	rm -rf internal/embedded/login/dist
 	mkdir -p internal/embedded/app
-	mkdir -p internal/embedded/login/dist
+	mkdir -p internal/embedded/login
 	cp -r vue/app/dist internal/embedded/app/dist
-	cp -r web/login.html internal/embedded/login/dist/index.html
+	cp -r vue/login/dist internal/embedded/login/dist
 
 build_go: copy_frontend 
 	go build \
