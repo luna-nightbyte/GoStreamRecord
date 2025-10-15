@@ -40,9 +40,13 @@ func Download(F DownloadForm) (string, string) {
 	site := F.Option
 	pwd := ""
 	videoName := ""
+	targetFolder := filepath.Join("videos", site)
+	os.MkdirAll(targetFolder, 0755)
 	Data.Init(false, 100, 0, 0, Data.QueueText, "Starting download..")
 	if !F.Bulk {
-		pwd = filepath.Join("videos", fmt.Sprintf("%s.mp4", F.Save))
+		pwd = filepath.Join(targetFolder, fmt.Sprintf("%s.mp4", F.Save))
+
+		utils.VideoVerify.Add(pwd)
 		currentRunner := -1
 		s1 := Saver
 		Queue++
@@ -116,10 +120,12 @@ func Download(F DownloadForm) (string, string) {
 			}
 			dest := system.System.DB.Settings.App.Files_folder + "/" + F.Save + ".mp4"
 			os.Rename(tmp, dest)
-
-			drivePath := filepath.Join("/home/pi/gdrive/other/videos", filepath.Base(dest))
-			if err := utils.CopyFile(dest, drivePath); err == nil {
-				os.RemoveAll(dest)
+			if system.System.DB.Settings.GoogleDrive.Enabled {
+				gdrive.Service.UploadFile(dest, "GoStreamRecord")
+				drivePath := filepath.Join(system.System.DB.Settings.GoogleDrive.Filepath, filepath.Base(dest))
+				if err := utils.CopyFile(dest, drivePath); err == nil {
+					os.RemoveAll(dest)
+				}
 			}
 			return "", ""
 		}
@@ -310,14 +316,15 @@ func Download(F DownloadForm) (string, string) {
 				s := strings.Replace(videoNames[i], "/", "-", 99)
 				s = strings.Replace(s, "-", "_", 99)
 				videoNames[i] = strings.Replace(s, "_", "_", 99)
-				pwd = filepath.Join("videos", fmt.Sprintf("%s.mp4", videoNames[i]))
+				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s.mp4", videoNames[i]))
 				videoName = videoNames[i]
 			} else {
-				pwd = filepath.Join("videos", fmt.Sprintf("%s_%d.mp4", F.Save, i))
+				pwd = filepath.Join(targetFolder, fmt.Sprintf("%s_%d.mp4", F.Save, i))
 				videoName = F.Save
 
 			}
 
+			utils.VideoVerify.Add(pwd)
 			Data.Text = Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
 			Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, Data.Text)
 
@@ -377,6 +384,8 @@ func Download(F DownloadForm) (string, string) {
 	}
 	DownloadIsRunning = false
 	Saver[0].Ongoing = false
+
+	utils.VideoVerify.RunCodecVerification()
 	return pwd, videoName
 }
 

@@ -90,7 +90,8 @@ func GetMasterPlaylistURL(url, site string) (WEB, error) {
 		runner.IsDirectDownload = true
 		runner.MasterPlaylistURL = Web.GetPornOneVideoURL(url)
 	case "Spankbang":
-		log.Println(site, "doesen't use stream..")
+		log.Println(site, "doesen't use stream..", url)
+		fmt.Println(site, "doesen't use stream..", url)
 		runner.IsDirectDownload = true
 		runner.MasterPlaylistURL = url
 	default:
@@ -366,7 +367,7 @@ func (w WEB) GetPornOneVideoURL(url string) string {
 	defer resp.Body.Close()
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil { 
+	if err != nil {
 		return ""
 	}
 

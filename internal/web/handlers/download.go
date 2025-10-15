@@ -88,8 +88,6 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	if VideoFormData.Option == "onlyfans" {
 		// go onlyfans.Download(FormData.Search, "img")
-	} else if VideoFormData.Option == "pornone" {
-
 	} else {
 		go video_download.Download(VideoFormData)
 	}

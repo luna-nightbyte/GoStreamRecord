@@ -45,8 +45,8 @@ func ExtractFrame(videoPath string) (string, error) {
 
 	//cmd := exec.Command("ffmpeg", "-y", "-ss", "00:00:01", "-i", videoPath, "-frames:v", "1", outputPath)
 
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("ffmpeg command failed: %w", err)
 	}
@@ -151,7 +151,7 @@ func FixHevcToAvc(inputPath, outputPath string) error {
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
 		"-c:v", "libx264", // Force H.264 codec
-		"-preset", "medium", 
+		"-preset", "medium",
 		"-crf", "23", // Constant Rate Factor: 23 is generally considered visually lossless
 		"-c:a", "copy",
 		"-movflags", "faststart",
