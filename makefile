@@ -19,7 +19,8 @@ endif
 
  
 VERSION=0.3.0
-COMMIT_HASH=$(shell git rev-parse HEAD)
+COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
+
 
 all: clean build_go version
 pi:
