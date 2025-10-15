@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"remoteCtrl/internal"
 	"remoteCtrl/internal/embedded"
-	"remoteCtrl/internal/media/video_download"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/prettyprint"
@@ -32,8 +31,8 @@ import (
 func init() {
 
 	fmt.Println(prettyprint.Green("Startup"))
-	fmt.Println(prettyprint.BoldGrey("Software version",version.Version))
-	fmt.Println(prettyprint.BoldGrey("Software sha256:",version.Shasum), "\n")
+	fmt.Println(prettyprint.BoldGrey("Software version", version.Version))
+	fmt.Println(prettyprint.BoldGrey("Software sha256:", version.Shasum), "\n")
 	ytDLP_path := utils.CheckPath("yt-dlp")
 
 	ffmpeg_path := utils.CheckPath("ffmpeg")
@@ -66,7 +65,7 @@ func serveHTTP(ctx context.Context) {
 	var app handlers.API
 	app.Router = mux.NewRouter()
 	app.Router.HandleFunc("/api/download", handlers.DownloadHandler)
-	app.Router.HandleFunc("/api/progress", video_download.Handler)
+	// app.Router.HandleFunc("/api/progress", video_download.Handler)
 	app.Router.HandleFunc("/api/add-streamer", streamers.AddStreamer)
 	app.Router.HandleFunc("/api/get-streamers", streamers.GetStreamers)
 	app.Router.HandleFunc("/api/remove-streamer", streamers.RemoveStreamer)
