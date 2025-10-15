@@ -3,7 +3,7 @@ package bongacams
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -53,24 +53,23 @@ type InitialState struct {
 }
 
 func (b *BongaCams) getState(username string) InitialState {
-	resp, err := http.Get(fmt.Sprintf("https://no.bongacams.com/%s", strings.ToLower(username)))
+	url := fmt.Sprintf("https://bongacams.com/%s", strings.ToLower(username))
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("HTTP request failed: %v\n", err)
-		return InitialState{}
+		log.Fatalf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return InitialState{}
+		log.Fatalf("Failed to read response body: %v", err)
 	}
-	body := string(bodyBytes)
-
 	// Regular expression to extract JSON from <script> tag
 	re := regexp.MustCompile(`<script[^>]*data-type="initialState"[^>]*type="application/json"[^>]*>(.*?)</script>`)
-	matches := re.FindStringSubmatch(body)
+	matches := re.FindStringSubmatch(string(body))
 	if len(matches) < 2 {
 		log.Println(fmt.Errorf("Initial state JSON not found in HTML"))
+		log.Println(string(body))
 		return InitialState{}
 	}
 	jsonData := matches[1]

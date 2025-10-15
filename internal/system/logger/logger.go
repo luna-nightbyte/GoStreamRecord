@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"remoteCtrl/internal/system"
 	"runtime"
 )
 
@@ -27,14 +28,17 @@ func Init(logPath string) {
 }
 
 func (w logWriter) Write(p []byte) (n int, err error) {
-	_, file, _, ok := runtime.Caller(3)
+	_, file, line, ok := runtime.Caller(3)
 	if !ok {
 		file = "???"
 		// line = 0
 	} else {
 		file = trimPath(file)
 	}
-
+	if system.DEBUG {
+		formattedMsg := fmt.Sprintf("\"./%s\":[%d] %s", file, line, p)
+		return logFile.Write([]byte(formattedMsg))
+	}
 	// formattedMsg := fmt.Sprintf("\"./%s\":[%d] %s", file, line, p)
 	formattedMsg := fmt.Sprintf("%s", p)
 	return logFile.Write([]byte(formattedMsg))

@@ -24,6 +24,8 @@ type Core struct {
 var (
 	System        Core
 	onlineCheckIP string = "8.8.8.8"
+	enableDebug   string = "false"
+	DEBUG                = enableDebug == "true"
 )
 
 func Init() error {

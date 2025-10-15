@@ -88,6 +88,7 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	list := []string{}
 	for _, s := range system.System.DB.Streamers.List {
+		//list[s.Name] = s.Provider
 		list = append(list, s.Name)
 	}
 	json.NewEncoder(w).Encode(list)
@@ -120,9 +121,12 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if reqData.Provider == "" {
-		log.Println("Provider name is required")
-		status.ResponseHandler(w, r, "Streamer name is required", nil)
-		return
+		for _, streamer := range system.System.DB.Streamers.List {
+			if streamer.Name == reqData.Streamer {
+				reqData.Provider = streamer.Provider
+				break
+			}
+		}
 	}
 
 	var re recorder.Recorder

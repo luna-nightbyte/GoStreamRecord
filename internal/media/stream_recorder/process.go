@@ -47,7 +47,6 @@ func (b *Controller) ListRecorders() map[string]*recorder.Recorder {
 	return b.bots
 }
 func (b *Controller) StopRunningEmpty() {
-
 	if b == nil {
 		return
 	}
@@ -71,7 +70,10 @@ func (b *Controller) checkProcesses() int {
 	b.mux.Lock()
 	defer b.mux.Unlock()
 	for name := range b.bots {
-		if !b.bots[name].ShouldStop() || b.bots[name].Cmd == nil {
+		if b.bots[name].Cmd == nil {
+			continue
+		}
+		if !b.bots[name].ShouldStop() {
 			continue
 		}
 		b.bots[name].Cmd.Process.Signal(syscall.SIGTERM)
@@ -81,13 +83,12 @@ func (b *Controller) checkProcesses() int {
 }
 
 func (b *Controller) stopProcessIfRunning(bot *recorder.Recorder) {
-	if b == nil {
+	if bot == nil {
 		return
 	}
 	if bot.Cmd != nil {
 		bot.Stop()
 		if err := bot.Cmd.Process.Signal(syscall.SIGINT); err != nil {
-
 			log.Println("Error signaling stop: ", err)
 		}
 	}

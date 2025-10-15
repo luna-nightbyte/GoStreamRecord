@@ -75,21 +75,22 @@ const refreshAllData = async () => {
 
 // Streamer API
 const addStreamer = async () => {
-  const providerName = document.getElementById("providerName");
+  // const providerName = document.getElementById("providerName");
   const streamerName = document.getElementById("streamerName");
-  if (!streamerName.value.trim() || !providerName.value.trim()) {
+  if (!streamerName.value.trim()) { // || !providerName.value.trim()) {
     showResponse("Streamer and provider cannot be empty.", true);
     return;
   }
   try {
-    await fetch(`/api/add-streamer?provider=${providerName.value}`, {
+    await fetch(
+      `/api/add-streamer?provider=chaturbate`, { // ${providerName.value}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: streamerName.value.trim() })
     });
     showResponse(`Added '${streamerName.value}'`);
     streamerName.value = '';
-    providerName.value = '';
+    // providerName.value = '';
     updateRecorders(); // Refresh the list after adding
   } catch (err) { showResponse(err, true); }
 };
@@ -116,12 +117,11 @@ const updateRecorders = async () => {
   try {
     const res = await fetch("/api/get-streamers");
     const streamers = await res.json();
-    const activeMap = new Map(activeProcesses.value.map(p => [p.website.username, p.is_recording]));
-
+    const activeMap = new Map(activeProcesses.value.map(p => [ p.website.username, p.is_recording]));
     const updated = [];
-    for (const s of streamers) {
-      const isRecording = activeMap.get(s) || false;
-      const isAvailable = await checkAvailability(s, "chaturbate");
+    for (const s of streamers) {  
+      const   isRecording = activeMap.get(s) || false; 
+      const isAvailable = await checkAvailability(s,"");
       updated.push({ name: s, isRecording, isAvailable });
     }
     recorderProcesses.value = updated;
@@ -220,14 +220,14 @@ onMounted(() => {
       </div>
     </div>
     <div class="card_rec mb-4 bg-white rounded-lg shadow-sm">
-      <div class="card-header p-4 border-b">Add a New Streamer</div>
+      <div class="card-header p-4 border-b">Add a New Chaturbate Streamer</div>
       <div class="card-body p-4">
         <form @submit.prevent="addStreamer" class="space-y-4">
           <div class="form-option grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             <input type="text" id="streamerName" class="form-control col-span-1 md:col-span-1 p-2 border rounded-md"
               placeholder="Streamer name" required />
-            <input type="text" id="providerName" class="form-control col-span-1 md:col-span-1 p-2 border rounded-md"
-              placeholder="Hosting site" required />
+            <!-- <input type="text" id="providerName" class="form-control col-span-1 md:col-span-1 p-2 border rounded-md"
+              placeholder="Hosting site" required /> -->
             <button type="submit"
               class="buttonclass bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
               Add</button>

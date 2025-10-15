@@ -31,7 +31,14 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
+	if reqData.Name == "" { // All was selected
+		for _, recorder := range stream_recorder.Streamer.ListRecorders() {
+			go stream_recorder.Streamer.Execute(reqData.Command, recorder.Website.Username)
+		}
+	} else {
+
+		go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
+	}
 	resp := status.Response{
 		Message: fmt.Sprintf("Exected command '%s'", reqData.Command),
 		Status:  "success",

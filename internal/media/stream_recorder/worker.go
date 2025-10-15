@@ -10,6 +10,7 @@ import (
 	"remoteCtrl/internal/utils"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Bot encapsulates the recording bot’s state.
@@ -62,23 +63,35 @@ func (b *Controller) Execute(command string, name string) {
 				log.Println("Alredy recording video from '%s'", name)
 			}
 			log.Println("Starting bot")
-			go b.RecordLoop(name)
-			b.bots[name].IsRestarting = false
+			b.bots[name].Start()
+
+			go b.bots[name].StartRecordTicker(b.ctx)
+
 		} else {
-			fmt.Println("Starting bot for", name)
+			//fmt.Println("Starting bot for", name)
 			if err := b.writeYoutubeDLdb(); err != nil {
 				log.Println("Error writing youtube-dl db:", err)
 				return
 			}
 			var streamer settings.Streamer
-			for configIndex := range system.System.DB.Streamers.List {
-				streamer = system.System.DB.Streamers.List[configIndex]
+			found := false
+			for _, streamConf := range system.System.DB.Streamers.List {
+				if streamConf.Name == name {
+					streamer = streamConf
+					found = true
+					break
+				}
 			}
-
+			if !found {
+				log.Println("Error retrieving streamer from the config..")
+				return
+			}
 			b.mux.Lock()
 			b.AddProcess(streamer.Provider, streamer.Name)
 			b.mux.Unlock()
-			b.Execute("start", name)
+
+			b.bots[name].IsRestarting = false
+			go b.Execute("start", name)
 			return
 		}
 	case "stop":
@@ -88,22 +101,16 @@ func (b *Controller) Execute(command string, name string) {
 			break
 		}
 		log.Println("Stopping recording for", name)
-		b.mux.Lock()
 		b.stopProcessIfRunning(b.bots[name])
-		for _, s := range b.bots {
-			// Stop only the specified process (or all if name is empty).
-			if name == "" || s.Website.Username == name {
-				b.stopProcessIfRunning(s)
-			} else {
-				log.Println("Not stopping..")
-			}
-		}
 
-		b.mux.Unlock()
-		b.checkProcesses()
 		if b.bots[name].IsRestarting {
-			b.Execute("start", name)
+			time.Sleep(1 * time.Second)
+			fmt.Println("Starting again")
+			b.bots[name].Start()
+			break
 		}
+		b.bots[name].StopTicker()
+		b.checkProcesses()
 	case "restart":
 		log.Println("Restarting bot")
 		// b.ctx, b.cancel = context.WithCancel(context.Background())
