@@ -18,7 +18,7 @@ func (b *Controller) AddProcess(provider_type, streamerName string) {
 	b.bots[streamerName] = &recorder.Recorder{
 		Website:      provider.Provider{},
 		IsRestarting: false,
-		IsRecording:  true,
+		IsRecording:  false,
 	}
 	b.bots[streamerName].Website.New(provider_type, streamerName)
 	// next_index := len(b.status)

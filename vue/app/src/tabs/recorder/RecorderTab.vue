@@ -193,6 +193,7 @@ const populateVideos = async () => {
 onMounted(() => {
   refreshAllData();
   populateVideos();
+  updateRecorders();
 });
 </script>
 
@@ -242,9 +243,9 @@ onMounted(() => {
           <!-- <button class="buttonclass nav-link flex-1 py-3 px-4 text-center" id="video-tab" data-bs-toggle="tab"
             data-bs-target="#videoFilesSection" type="button" role="tab" @click="populateVideos">Video Files
           </button> -->
-          <button class="buttonclass nav-link flex-1 py-3 px-4 text-center" id="recorderStatus-tab" data-bs-toggle="tab"
+          <!-- <button class="buttonclass nav-link flex-1 py-3 px-4 text-center" id="recorderStatus-tab" data-bs-toggle="tab"
             data-bs-target="#activeRecordersSection" type="button" role="tab" @click="updateRecorders">Individual bots
-          </button>
+          </button> -->
         </div>
         <div class="tab-content">
           <!-- Video Files Section -->

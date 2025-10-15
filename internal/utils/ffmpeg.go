@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -52,59 +54,89 @@ func ExtractFrame(videoPath string) (string, error) {
 	return outputPath, nil
 }
 
-// Constants for format checking
+// --- Constants for Failure Detection ---
 const (
-	TargetFormat  = "mov,mp4,m4a,3gp,3g2,mj2" // The format names returned by ffprobe for standard web containers
-	FailingFormat = "mpegts"                  // The container format that causes web playback issues
+	FailingContainer = "mpegts" // Problem 1: Container format
+	FailingCodec     = "hevc"   // Problem 2: Video codec (H.265)
+	WorkingCodec     = "h264"   // Target working video codec (AVC)
 )
 
-// CheckVideoFormat runs ffprobe on the given file path to determine its container format.
-// It returns true if the format is the problematic MPEG-TS, and the detected format name.
-func CheckVideoFormat(filePath string) (bool, string, error) {
-	// ffprobe command to extract the format name
-	// -v error: suppress verbose output, only show errors
-	// -show_entries format=format_name: only show the format name
-	// -of default=noprint_wrappers=1:nokey=1: format the output to be just the raw value
+// VideoCheckResult stores the results of the format and codec check.
+type VideoCheckResult struct {
+	NeedsFix         bool
+	IsContainerIssue bool
+	IsCodecIssue     bool
+	DetectedFormat   string
+	DetectedCodec    string
+}
+
+// ffprobe JSON structure for quick parsing of format and streams
+type ffprobeOutput struct {
+	Format struct {
+		FormatName string `json:"format_name"`
+	} `json:"format"`
+	Streams []struct {
+		CodecName string `json:"codec_name"`
+		CodecType string `json:"codec_type"`
+	} `json:"streams"`
+}
+
+// CheckVideoFormat runs ffprobe and parses the output to check for both known failure modes.
+func CheckVideoFormat(filePath string) (VideoCheckResult, error) {
+	result := VideoCheckResult{}
+
+	// ffprobe command to dump format and stream info as JSON
 	cmd := exec.Command("ffprobe",
 		"-v", "error",
-		"-show_entries", "format=format_name",
-		"-of", "default=noprint_wrappers=1:nokey=1",
+		"-select_streams", "v:0", // Select only the first video stream
+		"-show_entries", "format=format_name:stream=codec_name,codec_type",
+		"-of", "json",
 		filePath,
 	)
 
-	// Execute the command and capture the output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		// If ffprobe fails (e.g., file not found, bad file), return the error
-		return false, "", fmt.Errorf("ffprobe execution failed for %s: %w\nOutput: %s", filePath, err, string(output))
+		return result, fmt.Errorf("ffprobe execution failed for %s: %w\nOutput: %s", filePath, err, string(output))
 	}
 
-	// The output is the format name, possibly with surrounding whitespace
-	formatName := strings.TrimSpace(string(output))
+	var data ffprobeOutput
+	if err := json.Unmarshal(output, &data); err != nil {
+		return result, fmt.Errorf("failed to parse ffprobe JSON output: %w", err)
+	}
 
-	// Check if the detected format is the known failing format (mpegts)
-	needsFix := strings.EqualFold(formatName, FailingFormat)
+	// 1. Check Container Format
+	result.DetectedFormat = data.Format.FormatName
+	if strings.EqualFold(result.DetectedFormat, FailingContainer) {
+		result.NeedsFix = true
+		result.IsContainerIssue = true
+	}
 
-	return needsFix, formatName, nil
+	// 2. Check Video Codec
+	for _, stream := range data.Streams {
+		if stream.CodecType == "video" {
+			result.DetectedCodec = stream.CodecName
+			if strings.EqualFold(result.DetectedCodec, FailingCodec) {
+				result.NeedsFix = true
+				result.IsCodecIssue = true
+			}
+			break // Only need to check the first video stream
+		}
+	}
+
+	return result, nil
 }
 
-// FixMpegTsToMp4 re-muxes the input file from MPEG-TS to MP4 container using ffmpeg.
-// It uses -c copy to avoid re-encoding and -movflags faststart for web optimization.
+// FixMpegTsToMp4 performs a fast, lossless container re-mux for MPEG-TS issues.
 func FixMpegTsToMp4(inputPath, outputPath string) error {
-	fmt.Printf("--- Fixing %s -> %s (Re-muxing)\n", inputPath, outputPath)
+	fmt.Printf("--- Fix: Lossless Re-muxing %s (MPEG-TS -> MP4)\n", inputPath)
 
-	// ffmpeg command for lossless container conversion
-	// -i: input file
-	// -c copy: copy all streams (video/audio) without re-encoding (fast and lossless)
-	// -movflags faststart: optimize the MP4 for web streaming
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
-		"-c", "copy",
+		"-c", "copy", // Copy streams without re-encoding
 		"-movflags", "faststart",
 		outputPath,
 	)
 
-	// Run the command and pipe the output to a buffer to capture errors
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ffmpeg re-muxing failed for %s: %w\nOutput: %s", inputPath, err, string(output))
@@ -113,33 +145,117 @@ func FixMpegTsToMp4(inputPath, outputPath string) error {
 	fmt.Printf("--- Successfully re-muxed to %s\n", outputPath)
 	return nil
 }
- 
-func VerifyCodec(pathToCheck string) {
-	needsFix, format, err := CheckVideoFormat(pathToCheck)
-	if err != nil {
-		log.Printf("Error during format check: %v\n", err)
-		if strings.Contains(err.Error(), "executable file not found") {
-			log.Println("'ffprobe' was not found. Please ensure ffmpeg/ffprobe is installed and in your system PATH.")
-		} else if strings.Contains(err.Error(), "No such file or directory") || strings.Contains(err.Error(), "Invalid argument") {
-			log.Println("The file path used in the demo is hypothetical. Please change 'pathToCheck' in main() to a real video file path.")
-		}
-		os.Exit(1)
-	}
-	if needsFix {
-		base := strings.TrimSuffix(pathToCheck, filepath.Ext(pathToCheck))
-		fixedPath := fmt.Sprintf("%s_fixed_%d.mp4", base, time.Now().Unix())
-		fixErr := FixMpegTsToMp4(pathToCheck, fixedPath)
-		if fixErr != nil {
-			fmt.Printf("FATAL Error during fix process: %v\n", fixErr)
-		} else {
-			fmt.Printf("SUCCESS: Video successfully converted to web-compatible MP4 container at: %s\n", fixedPath)
-		}
 
-	} else {
-		if strings.Contains(format, "mp4") || strings.Contains(format, "mov") {
-			return
-		} else {
-			log.Printf("Unknown video format. Detected '%s'. Video might not be playable in the web browser\n", format)
+// FixHevcToAvc performs a re-encode from HEVC (H.265) to AVC (H.264) for browser compatibility.
+func FixHevcToAvc(inputPath, outputPath string) error {
+	fmt.Printf("--- Fix: Re-encoding %s (HEVC -> AVC)\n", inputPath)
+	fmt.Println("    (Using -c:v libx264 -crf 23 for high-quality conversion. This will take time.)")
+
+	cmd := exec.Command("ffmpeg",
+		"-i", inputPath,
+		"-c:v", "libx264", // Force H.264 codec
+		"-preset", "medium", // A good balance between speed and quality. Can change to 'slow' for better quality/smaller file.
+		"-crf", "23", // Constant Rate Factor: 23 is generally considered visually lossless
+		"-c:a", "copy", // Keep the audio stream as is (AAC is fine)
+		"-movflags", "faststart",
+		outputPath,
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("ffmpeg re-encoding failed for %s: %w\nOutput: %s", inputPath, err, string(output))
+	}
+
+	fmt.Printf("--- Successfully re-encoded to web-compatible H.264 MP4 at %s\n", outputPath)
+	return nil
+}
+
+// Helper to check for necessary binaries and provide better error messages
+func checkFFmpegDependencies() {
+	for _, bin := range []string{"ffprobe", "ffmpeg"} {
+		if _, err := exec.LookPath(bin); err != nil {
+			fmt.Printf("\nFATAL: '%s' was not found. Please ensure ffmpeg/ffprobe is installed and in your system PATH.\n", bin)
+			os.Exit(1)
 		}
 	}
+}
+
+type VideoIntegrity struct {
+	mu    sync.Mutex
+	queue []string // queue of videos that needs to be checked.
+}
+
+var VideoVerify VideoIntegrity
+
+func (vi *VideoIntegrity) Contains(videoPath string) bool {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
+	for _, video := range vi.queue {
+		if video == videoPath {
+			return true
+		}
+	}
+	return false
+}
+func (vi *VideoIntegrity) Add(videoPath string) {
+	if vi.Contains(videoPath) {
+		return
+	}
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
+	vi.queue = append(vi.queue, videoPath)
+}
+func (vi *VideoIntegrity) RunCodecVerification() {
+	vi.mu.Lock()
+	queueCopy := make([]string, len(vi.queue))
+	copy(queueCopy, vi.queue)
+	vi.queue = nil
+	vi.mu.Unlock()
+	for _, video := range queueCopy {
+		VerifyCodec(video)
+	}
+}
+
+func VerifyCodec(pathToCheck string) {
+	results, err := CheckVideoFormat(pathToCheck)
+	if err != nil {
+		switch {
+		case strings.Contains(err.Error(), "executable file not found"):
+			log.Println("ERROR: 'ffprobe' not found. Please install ffmpeg/ffprobe and ensure it's in PATH.")
+		case strings.Contains(err.Error(), "No such file or directory"):
+			log.Printf("ERROR: File not found: %s\n", pathToCheck)
+		case strings.Contains(err.Error(), "Invalid argument"):
+			log.Printf("ERROR: Invalid input file: %s\n", pathToCheck)
+		default:
+			log.Printf("ERROR during format check: %v\n", err)
+		}
+		return
+	}
+
+	if !results.NeedsFix {
+		return
+	}
+
+	var fixFunc func(string, string) error
+	switch {
+	case results.IsContainerIssue:
+		fixFunc = FixMpegTsToMp4
+	case results.IsCodecIssue:
+		fixFunc = FixHevcToAvc
+	default:
+		log.Printf("WARN: Unknown issue type for %s\n", pathToCheck)
+		return
+	}
+
+	base := strings.TrimSuffix(pathToCheck, filepath.Ext(pathToCheck))
+	fixedPath := fmt.Sprintf("%s_fixed_%d.mp4", base, time.Now().Unix())
+
+	if err := fixFunc(pathToCheck, fixedPath); err != nil {
+		log.Printf("FATAL: Failed to fix %s: %v\n", pathToCheck, err)
+		return
+	}
+
+	log.Printf("SUCCESS: Fixed video saved at %s\n", fixedPath)
+	os.Remove(pathToCheck)
+	os.Rename(fixedPath, pathToCheck)
 }

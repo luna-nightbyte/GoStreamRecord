@@ -11,25 +11,7 @@ import (
 )
 
 func (b *Controller) RecordLoop(streamerName string) {
-	if b.bots[streamerName] != nil {
-		return
-	}
-	if b.bots[streamerName].IsRecording {
-		return
-	}
-	// Write youtube-dl db.
-	if err := b.writeYoutubeDLdb(); err != nil {
-		log.Println("Error writing youtube-dl db:", err)
-		return
-	}
-	var streamer settings.Streamer
-	for configIndex := range system.System.DB.Streamers.List {
-		streamer = system.System.DB.Streamers.List[configIndex]
-	}
 
-	b.mux.Lock()
-	b.AddProcess(streamer.Provider, streamer.Name)
-	b.mux.Unlock()
 	var wg sync.WaitGroup
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -38,7 +20,7 @@ func (b *Controller) RecordLoop(streamerName string) {
 
 	wg.Add(1)
 	// Pass the index and streamer name into the closure to avoid capture issues.
-	go func(bot *recorder.Recorder, sName string) {
+	go func(bot *recorder.Recorder, streamerName string) {
 		defer wg.Done()
 		for {
 			select {
@@ -49,19 +31,20 @@ func (b *Controller) RecordLoop(streamerName string) {
 				}
 				db.LoadConfig(settings.CONFIG_SETTINGS_PATH, &system.System.DB.Settings)
 				log.Printf("Checking %s online status", bot.Website.Username)
-				if !bot.Website.Interface.IsOnline(sName) {
+				if !bot.Website.Interface.IsOnline(streamerName) {
 					log.Printf("Not online.")
 					return
 				}
-				log.Printf("Online! Starting new recording", sName)
-				bot.StartRecording(sName)
+				log.Println("Online! Starting new recording", streamerName)
+
+				bot.StartRecording(streamerName)
 
 				b.mux.Lock()
 				bot.IsRecording = false
 				bot.Stop()
 				b.mux.Unlock()
 
-				log.Printf("Recording for %s finished", sName)
+				log.Printf("Recording for %s finished", streamerName)
 			}
 		}
 	}(b.bots[streamerName], streamerName)

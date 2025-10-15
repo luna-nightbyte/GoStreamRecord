@@ -1,7 +1,11 @@
 <template>
   <div class="videoD-container">
 
+        <button @click="sendCommand('repair', '')"
+          class="buttonclass bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300">
+          Run video codec repair </button>
       <div class="card-header p-4 border-b">Gallery</div>
+
     <section class="media-list card_rec" id="localFilesID">
       <div v-if="localMedia.length === 0">
         No videos available
@@ -45,41 +49,67 @@ export default {
       fullScreenMedia: null,
     };
   },
-  computed: {
-    filteredMedia() {
-      return this.localMedia.filter(url =>
-        typeof url === 'string' && url.toLowerCase().includes(this.searchTerm.toLowerCase())
-      );
-    },
-  },
   methods: {
+    async sendCommand(command, name = '') {
+      try {
+        await fetch("/api/control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command, name }),
+        });
+        this.showResponse("Success!");
+      } catch (err) {
+        this.showResponse(`Error: ${err}`, true);
+      }
+    },
+
+    showResponse(message, isError = false) {
+      const responseArea = document.getElementById("responseArea");
+      if (!responseArea) return;
+
+      while (responseArea.childNodes.length > 5) {
+        responseArea.removeChild(responseArea.firstChild);
+      }
+
+      const alertDiv = document.createElement("div");
+      alertDiv.className = `alert ${isError ? "alert-danger" : "alert-info"}`;
+      alertDiv.innerText = message;
+      responseArea.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 5000);
+    },
+
     fetchVideos() {
       axios.get(`/api/videos?page=${this.page}`)
         .then(response => {
-          this.localMedia = response.data; // Update the correct array
+          this.localMedia = response.data;
         })
         .catch(error => {
           console.error("There was an error fetching the videos!", error);
         });
     },
+
     nextPage() {
       this.page++;
       this.fetchVideos();
     },
+
     prevPage() {
       if (this.page > 1) {
         this.page--;
         this.fetchVideos();
       }
     },
+
     isImage(url) {
       return /\.(jpg|jpeg|png|gif)$/i.test(url);
     },
+
     isVideo(url) {
       return /\.(mp4)$/i.test(url);
     },
+
     searchMedia() {
-      // This method will update the filteredMedia computed property automatically
+      // no-op for now
     }
   },
   mounted() {
@@ -87,6 +117,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 :root {

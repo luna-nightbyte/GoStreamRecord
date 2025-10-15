@@ -39,5 +39,5 @@ func (rec *Recorder) StartRecording(streamerName string) {
 	rec.Cmd.Wait()
 
 	// TODO
-	utils.VerifyCodec("")
+	//utils.VerifyCodec("")
 }

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"remoteCtrl/internal/media/stream_recorder/recorder"
+	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/system/settings"
+	"remoteCtrl/internal/utils"
 	"strings"
 	"sync"
 )
@@ -39,17 +42,19 @@ func NewBot() Controller {
 
 func (b *Controller) Execute(command string, name string) {
 
-	if b.bots[name] == nil {
-		log.Println("Bot was not started.")
-		return
-	}
 	if len(command) == 0 {
+		fmt.Println("No command provided..")
 		log.Println("No command provided..")
 		return
 	}
 	switch strings.ToLower(command) {
+	case "repair":
+		log.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
+		fmt.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
+		utils.VideoVerify.RunCodecVerification()
+		log.Println("Done!")
+		fmt.Println("Done!")
 	case "start":
-		fmt.Println("Starting bot for", name)
 		// If the bot was previously stopped, reinitialize the context.
 		if b.ctx.Err() != nil {
 			b.ctx, b.cancel = context.WithCancel(context.Background())
@@ -59,6 +64,27 @@ func (b *Controller) Execute(command string, name string) {
 			if b.bots[name].Cmd != nil {
 				log.Println("Alredy recording video from '%s'", name)
 			}
+			fmt.Println("Starting bot")
+			log.Println("Starting bot")
+			go b.RecordLoop(name)
+			b.bots[name].IsRestarting = false
+		} else {
+			fmt.Println("Starting bot for", name)
+			// Write youtube-dl db.
+			if err := b.writeYoutubeDLdb(); err != nil {
+				log.Println("Error writing youtube-dl db:", err)
+				return
+			}
+			var streamer settings.Streamer
+			for configIndex := range system.System.DB.Streamers.List {
+				streamer = system.System.DB.Streamers.List[configIndex]
+			}
+
+			b.mux.Lock()
+			b.AddProcess(streamer.Provider, streamer.Name)
+			b.mux.Unlock()
+			b.Execute("start", name)
+			return
 		}
 		// for _, s := range b.status {
 		// 	if name == s.Website.Username && s.Cmd != nil {
@@ -67,10 +93,6 @@ func (b *Controller) Execute(command string, name string) {
 		// 		return
 		// 	}
 		// }
-		fmt.Println("Starting bot")
-		log.Println("Starting bot")
-		go b.RecordLoop(name)
-		b.bots[name].IsRestarting = false
 	case "stop":
 		botsAvailable := len(b.bots) != 0
 		if !botsAvailable {

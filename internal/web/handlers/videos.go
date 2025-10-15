@@ -3,10 +3,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"remoteCtrl/internal/utils"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -37,6 +39,9 @@ func getVideos(baseDir string) http.HandlerFunc {
 				return nil
 			}
 			rel = filepath.ToSlash(rel) // e.g. "sub/My File.mp4"
+			fmt.Println("adding")
+			utils.VideoVerify.Add(filepath.Join(baseDir, rel))
+			fmt.Println("added")
 
 			// Build a URL-encoded path segment-by-segment
 			segs := strings.Split(rel, "/")
@@ -44,7 +49,6 @@ func getVideos(baseDir string) http.HandlerFunc {
 				segs[i] = url.PathEscape(s) // encodes spaces, #, +, etc.
 			}
 			encoded := strings.Join(segs, "/")
-
 			videos = append(videos, Video{
 				URL:  "/videos/" + encoded, // maps 1:1 to FileServer
 				Name: rel,                  // nice for display
@@ -64,6 +68,7 @@ func getVideos(baseDir string) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(videos)
+
 	}
 }
 
