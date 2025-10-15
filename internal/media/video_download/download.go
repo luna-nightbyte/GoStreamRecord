@@ -355,7 +355,7 @@ func Download(F DownloadForm) (string, string) {
 				}
 			}
 
-			fmt.Println("Done! Video saved as", pwd)
+			log.Println("Done! Video saved as", pwd)
 			outFile := OutputFile{Name: videoName, Type: "mp4", Path: pwd}
 			outputReplaced := false
 			for i, _ := range OutputFiles {

@@ -13,7 +13,6 @@ var (
 	Log_path string = "./remoteCtrl.log"
 )
 
-// logWriter implements io.Writer to format logs with timestamp & caller info
 type logWriter struct{}
 
 func Init(logPath string) {
@@ -23,32 +22,32 @@ func Init(logPath string) {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
 
-	// Set our custom writer as the output for Go's log package
 	log.SetOutput(logWriter{})
-	log.SetFlags(0) // Disable default flags, since we're adding our own timestamp
+	log.SetFlags(0)
 }
 
 func (w logWriter) Write(p []byte) (n int, err error) {
-	_, file, line, ok := runtime.Caller(3) // Adjust stack depth to get the actual caller
+	_, file, _, ok := runtime.Caller(3)
 	if !ok {
 		file = "???"
-		line = 0
+		// line = 0
 	} else {
-		file = trimPath(file) // Convert absolute to relative path
+		file = trimPath(file)
 	}
 
-	formattedMsg := fmt.Sprintf("\"./%s\":[%d] %s", file, line, p)
+	// formattedMsg := fmt.Sprintf("\"./%s\":[%d] %s", file, line, p)
+	formattedMsg := fmt.Sprintf("%s", p)
 	return logFile.Write([]byte(formattedMsg))
 }
 
 func trimPath(fullPath string) string {
-	wd, err := os.Getwd() // Get working directory
+	wd, err := os.Getwd()
 	if err != nil {
-		return fullPath // Return absolute path if error occurs
+		return fullPath
 	}
 	relPath, err := filepath.Rel(wd, fullPath)
 	if err != nil {
-		return fullPath // Return absolute path if relative conversion fails
+		return fullPath
 	}
 	return relPath
 }

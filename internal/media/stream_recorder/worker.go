@@ -43,17 +43,14 @@ func NewBot() Controller {
 func (b *Controller) Execute(command string, name string) {
 
 	if len(command) == 0 {
-		fmt.Println("No command provided..")
 		log.Println("No command provided..")
 		return
 	}
 	switch strings.ToLower(command) {
 	case "repair":
 		log.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
-		fmt.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
 		utils.VideoVerify.RunCodecVerification()
 		log.Println("Done!")
-		fmt.Println("Done!")
 	case "start":
 		// If the bot was previously stopped, reinitialize the context.
 		if b.ctx.Err() != nil {
@@ -64,13 +61,11 @@ func (b *Controller) Execute(command string, name string) {
 			if b.bots[name].Cmd != nil {
 				log.Println("Alredy recording video from '%s'", name)
 			}
-			fmt.Println("Starting bot")
 			log.Println("Starting bot")
 			go b.RecordLoop(name)
 			b.bots[name].IsRestarting = false
 		} else {
 			fmt.Println("Starting bot for", name)
-			// Write youtube-dl db.
 			if err := b.writeYoutubeDLdb(); err != nil {
 				log.Println("Error writing youtube-dl db:", err)
 				return
@@ -86,13 +81,6 @@ func (b *Controller) Execute(command string, name string) {
 			b.Execute("start", name)
 			return
 		}
-		// for _, s := range b.status {
-		// 	if name == s.Website.Username && s.Cmd != nil {
-		// 		fmt.Println("Bot already running for", name)
-		// 		log.Println("Bot already running..")
-		// 		return
-		// 	}
-		// }
 	case "stop":
 		botsAvailable := len(b.bots) != 0
 		if !botsAvailable {

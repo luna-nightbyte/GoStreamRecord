@@ -52,12 +52,12 @@ func Init() error {
 			if attempts == max {
 				if telegram.Bot.Enabled() {
 					fmt.Println(prettyprint.BoldRed("No network. Telegram disabled!"))
+					log.Println("No network. Telegram disabled!")
 					system.System.DB.Settings.Telegram.Enabled = false
 					telegram.Bot.Disable()
 				}
 				break
 			}
-			fmt.Println("No network connection..")
 			log.Println("No network connection..")
 			time.Sleep(30 * time.Second)
 			isLive = utils.Ping(onlineCheckIP)
@@ -82,6 +82,7 @@ func Init() error {
 	if !exists {
 		system.StartupError()
 		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
+		log.Println("Unknown command:", cmdName)
 		return fmt.Errorf("unknown command")
 	}
 

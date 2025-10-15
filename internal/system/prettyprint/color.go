@@ -8,5 +8,6 @@ var (
 	Yellow    = color.New(color.FgYellow).SprintFunc()
 	BoldRed   = color.New(color.FgRed, color.Bold).SprintFunc()
 	BoldWhite = color.New(color.FgWhite, color.Bold).SprintFunc()
+	BoldGrey = color.New(color.FgHiBlack, color.Bold).SprintFunc()
 	BoldBlue  = color.New(color.FgBlue, color.Bold).SprintFunc()
 )

@@ -25,9 +25,6 @@ var (
 	System        Core
 	onlineCheckIP string = "8.8.8.8"
 )
-var (
-	Version string = "dev"
-)
 
 func Init() error {
 	return nil

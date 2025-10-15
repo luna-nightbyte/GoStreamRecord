@@ -146,17 +146,14 @@ func FixMpegTsToMp4(inputPath, outputPath string) error {
 	return nil
 }
 
-// FixHevcToAvc performs a re-encode from HEVC (H.265) to AVC (H.264) for browser compatibility.
 func FixHevcToAvc(inputPath, outputPath string) error {
-	fmt.Printf("--- Fix: Re-encoding %s (HEVC -> AVC)\n", inputPath)
-	fmt.Println("    (Using -c:v libx264 -crf 23 for high-quality conversion. This will take time.)")
 
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
 		"-c:v", "libx264", // Force H.264 codec
-		"-preset", "medium", // A good balance between speed and quality. Can change to 'slow' for better quality/smaller file.
+		"-preset", "medium", 
 		"-crf", "23", // Constant Rate Factor: 23 is generally considered visually lossless
-		"-c:a", "copy", // Keep the audio stream as is (AAC is fine)
+		"-c:a", "copy",
 		"-movflags", "faststart",
 		outputPath,
 	)
@@ -170,7 +167,6 @@ func FixHevcToAvc(inputPath, outputPath string) error {
 	return nil
 }
 
-// Helper to check for necessary binaries and provide better error messages
 func checkFFmpegDependencies() {
 	for _, bin := range []string{"ffprobe", "ffmpeg"} {
 		if _, err := exec.LookPath(bin); err != nil {
@@ -255,7 +251,6 @@ func VerifyCodec(pathToCheck string) {
 		return
 	}
 
-	log.Printf("SUCCESS: Fixed video saved at %s\n", fixedPath)
 	os.Remove(pathToCheck)
 	os.Rename(fixedPath, pathToCheck)
 }

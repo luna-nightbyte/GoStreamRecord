@@ -69,14 +69,14 @@ func Ping(ipAddr string) bool {
 	// Resolve the IP address.
 	addr, err := net.ResolveIPAddr("ip", ipAddr)
 	if err != nil {
-		fmt.Println("Error resolving IP address:", err)
+		log.Println("Error resolving IP address:", err)
 		return false
 	}
 
 	// Create a new ICMP connection.
 	conn, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
 	if err != nil {
-		fmt.Println("Error creating ICMP connection:", err)
+		log.Println("Error creating ICMP connection:", err)
 		return false
 	}
 	defer conn.Close()
@@ -95,7 +95,7 @@ func Ping(ipAddr string) bool {
 	// Marshal the message into a byte slice.
 	msgBytes, err := message.Marshal(nil)
 	if err != nil {
-		fmt.Println("Error marshaling ICMP message:", err)
+		log.Println("Error marshaling ICMP message:", err)
 		return false
 	}
 
@@ -108,7 +108,7 @@ func Ping(ipAddr string) bool {
 	// Send the ICMP message.
 	_, err = conn.WriteTo(msgBytes, addr)
 	if err != nil {
-		fmt.Println("Error sending ICMP message:", err)
+		log.Println("Error sending ICMP message:", err)
 		return false
 	}
 
@@ -118,7 +118,7 @@ func Ping(ipAddr string) bool {
 	// Wait for the response.
 	n, _, err := conn.ReadFrom(reply)
 	if err != nil {
-		fmt.Println("Ping failed:", err)
+		log.Println("Ping failed:", err)
 		return false
 	}
 
@@ -128,7 +128,7 @@ func Ping(ipAddr string) bool {
 	// Unmarshal the response.
 	replyMsg, err := icmp.ParseMessage(1, reply[:n])
 	if err != nil {
-		fmt.Println("Error parsing ICMP reply:", err)
+		log.Println("Error parsing ICMP reply:", err)
 		return false
 	}
 
