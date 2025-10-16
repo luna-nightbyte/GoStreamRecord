@@ -32,12 +32,10 @@ This app depends on the following to be installed:
 - `curl` - `sudo apt install curl`
 
 ### Prerequisites (building the source)
-This app depends on the following to be installed:
 - `node` - `sudo apt install nodejs`
 - `npm` - `sudo apt install npm`
 - `golang` - See the [official](https://go.dev/doc/install) installation instructions
-- `git` - `sudo apt install git`
-- `curl` - `sudo apt install curl`
+- `git` - `sudo apt install git` 
 
 _Windows / Mac users will have to google or ask ChatGPT how to install these on their system._
 
