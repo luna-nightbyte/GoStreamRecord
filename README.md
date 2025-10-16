@@ -1,7 +1,6 @@
 # GoStreamRecord
  
 ## Core Features
-- Pre-built docker images. Base and minimal image. See the [docker section](https://github.com/luna-nightbyte/GoStreamRecord?tab=readme-ov-file#docker) for example startup command.
 ### Recorder:
 - Streamer status checks bypasses rate limits; recording rate limits still under testing.
 - Start, stop, and restart all recordings.
