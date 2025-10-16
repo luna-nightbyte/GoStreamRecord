@@ -16,8 +16,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const messages = ref([]);
-
-/* Simple unique id */
+ 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 function close(id) {

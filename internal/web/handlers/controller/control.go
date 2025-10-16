@@ -7,6 +7,7 @@ import (
 	"remoteCtrl/internal/media/stream_recorder"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/status"
 )
 
@@ -31,17 +32,26 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	if reqData.Name == "" { // All was selected
-		for _, recorder := range stream_recorder.Streamer.ListRecorders() {
+
+	resp := status.Response{
+		Message: fmt.Sprintf("Executed command '%s'", reqData.Command),
+	}
+	if reqData.Name == "" { // All was selected or Video codec fix
+		recorders := stream_recorder.Streamer.ListRecorders()
+		for _, recorder := range recorders {
 			go stream_recorder.Streamer.Execute(reqData.Command, recorder.Website.Username)
 		}
 	} else {
-
+		currentCodecQueue := len(utils.VideoVerify.Queue)
+		if currentCodecQueue == 0 {
+			status.Status.Ok = false
+			status.Status.Is_Fixing_Codec = false
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
 		go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
-	}
-	resp := status.Response{
-		Message: fmt.Sprintf("Exected command '%s'", reqData.Command),
-		Status:  status.Status,
+
 	}
 	status.Status.Ok = true
 	w.Header().Set("Content-Type", "application/json")

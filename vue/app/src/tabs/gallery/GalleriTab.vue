@@ -1,10 +1,10 @@
 <template>
   <div class="videoD-container">
 
-        <button @click="sendCommand('repair', '')"
-          class="buttonclass bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300">
-          Run video codec repair </button>
-      <div class="card-header p-4 border-b">Gallery</div>
+    <button @click="sendCommand('repair', 'null')"
+      class="buttonclass bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300">
+      Run video codec repair </button>
+    <div class="card-header p-4 border-b">Gallery</div>
 
     <section class="media-list card_rec" id="localFilesID">
       <div v-if="localMedia.length === 0">
@@ -15,14 +15,14 @@
           <div class="notransform" v-if="url.error.length !== 0">
             <p>{{ url.error }}</p>
           </div>
-          <div v-else >
-          
-          <img v-if="isImage(url.url)" :src="url.url" alt="Image" class="image" />
-          <video v-if="isVideo(url.url)" controls class="video">
-            <source :src="url.url" type="video/mp4" />
-          </video>
-          <figure class="media-caption ">{{ url.name }}</figure>
-        </div>
+          <div v-else>
+
+            <img v-if="isImage(url.url)" :src="url.url" alt="Image" class="image" />
+            <video v-if="isVideo(url.url)" controls class="video">
+              <source :src="url.url" type="video/mp4" />
+            </video>
+            <figure class="media-caption ">{{ url.name }}</figure>
+          </div>
         </figure>
 
       </div>
@@ -54,14 +54,30 @@ export default {
   methods: {
     async sendCommand(command, name = '') {
       try {
-        await fetch("/api/control", {
+        // 1. Await the fetch call to get the Response object
+        const response = await fetch("/api/control", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ command, name }),
         });
-        showResponse("Success!");
-      } catch (err) {
-        showResponse(`Error: ${err}`, true);
+ 
+        if (!response.ok) { 
+          const errorText = await response.text();  
+          throw new Error(`HTTP error! Status: ${response.status}. Message: ${errorText}`);
+        }
+ 
+        const data = await response.json();  
+        if (data.status.ok) {
+        showResponse(`Success! Server response: ${JSON.stringify(data)}`);
+
+        } else {
+        showResponse(`No new videos downloaded to fix.`, true); 
+        } 
+        return data; // Return the data for the caller to use
+
+      } catch (err) { 
+        showResponse(`Error: ${err.message || err}`, true); 
+        throw err;
       }
     },
 
@@ -110,7 +126,7 @@ export default {
       return /\.(mp4)$/i.test(url);
     },
 
-    searchMedia() { 
+    searchMedia() {
     }
   },
   mounted() {
@@ -171,19 +187,19 @@ body {
 
 @media (max-width: 1200px) {
   .column {
-    flex: 1 1 calc(25% - 16px); 
+    flex: 1 1 calc(25% - 16px);
   }
 }
 
 @media (max-width: 768px) {
   .column {
-    flex: 1 1 calc(50% - 16px); 
+    flex: 1 1 calc(50% - 16px);
   }
 }
 
 @media (max-width: 480px) {
   .column {
-    flex: 1 1 100%; 
+    flex: 1 1 100%;
   }
 }
 
