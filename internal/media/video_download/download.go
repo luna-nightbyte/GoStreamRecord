@@ -19,11 +19,11 @@ import (
 )
 
 type VideoDownloader struct {
-	IsDownloading bool 
+	IsDownloading bool
 	Output        []OutputFile
 
-	segmentErrors, retries int 
-	Tmp tmpFile
+	segmentErrors, retries int
+	Tmp                    tmpFile
 }
 type DownloadForm struct {
 	Option string
@@ -32,11 +32,11 @@ type DownloadForm struct {
 	Save   string
 	Search string
 }
- 
+
 func (vd *VideoDownloader) InitTemp(uid string) {
 
-	vd.Tmp.Dir = fmt.Sprintf("tmp_%s")
-	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp__ts_%s.txt")
+	vd.Tmp.Dir = fmt.Sprintf("tmp_%s", uid)
+	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp_%s", uid)
 	vd.Tmp.TSContentfile = filepath.Join(vd.Tmp.Dir, "output.ts")
 
 	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
@@ -58,8 +58,8 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 	//vd.Data.Init(false, 100, 0, 0, vd.Data.QueueText, "Starting download..")
 	if !F.Bulk {
 		pwd = filepath.Join(targetFolder, fmt.Sprintf("%s", F.Save))
-		utils.VideoVerify.Add(pwd) // add for later verification 
-		
+		utils.VideoVerify.Add(pwd) // add for later verification
+
 		os.MkdirAll(vd.Tmp.Dir, 0755)
 
 		//vd.Data.Text = vd.Data.ApendText(fmt.Sprintf("Downloading video from %s", site)).Text
@@ -255,7 +255,7 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 			videoUrls = append(videoUrls, u1)
 		}
 
-		for i, url := range videoUrls { 
+		for i, url := range videoUrls {
 			os.MkdirAll(vd.Tmp.Dir, 0755)
 			if videoNames[i] != "" {
 				s := strings.Replace(videoNames[i], "/", "-", 99)
@@ -269,7 +269,7 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 
 			}
 
-			utils.VideoVerify.Add(pwd) 
+			utils.VideoVerify.Add(pwd)
 			web, err := GetMasterPlaylistURL(url, site)
 			if err != nil {
 
@@ -318,7 +318,7 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 			}
 			utils.RemoveAll(vd.Tmp.Dir)
 
-		} 
+		}
 	}
 	vd.IsDownloading = false
 

@@ -18,7 +18,7 @@ ifneq ($(shell command -v wget 1>/dev/null 2>&1; echo $$?), 0)
 endif
 
  
-VERSION=0.3.0-dev
+VERSION=0.3.1
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
