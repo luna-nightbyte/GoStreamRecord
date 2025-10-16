@@ -18,7 +18,7 @@
 - Directly view ~~logs and~~ recorded videos through the WebUI.
 - Watch live streams directly from the WebUI.
 - Check streamer online status.
-- 
+
 ## Usage
 **See the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) to find pre-built binaries**
 |Username|Password|
@@ -84,9 +84,10 @@ __Notes__:
 ```
 ### Docker
 
+#### Output files
 **Note:**
 The `output` folder path defined in the configuration file applies **only inside the Docker container**.
-To ensure recorded files are saved correctly, the Docker volume path **must match** the folder specified in the configuration file.  
+To ensure recorded files are saved correctly, the Docker volume path **must match** the folder specified in the configuration file.
   Example: 
   - `settings.json`:
     ```json
@@ -98,6 +99,8 @@ To ensure recorded files are saved correctly, the Docker volume path **must matc
       - ./output:/app/MyCustomFolder`
     ```
 
+The recorded files will in this example be available outside of docker in a folder called `output` (Or whatever else you call your output folder in the docker-compose file)
+#### Docker image
 There are two docker images available:
 - [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size < 1GB )
 - [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 100MB )
@@ -108,18 +111,13 @@ Use the `docker-compose.yml` file to build images.
 docker compose build base
 docker compose build GoRecord
 ```
-##### Startup
+#### Startup
 
 ```bash
 docker compose up GoRecord -d
 # or
 docker compose up dev -d
 ```
-
-
-##### Logs
-
-Docker logs can be found using `docker logs --tail 200 -f GoRecord`. 
 
 #### APP (Minimalistic image)
 - [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/settings) save login, api and streamer lists.
@@ -130,6 +128,7 @@ App uses port __8050__ by default internally.
 user@hostname:~$ docker run \
   -v ./settings:/app/settings \
   -v ./output:/app/videos \
+  -v ./app.log:/app/remoteCtrl.log \ # Use this to access the logfile outside of docker
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:latest
 ```
@@ -141,6 +140,7 @@ Building the code wil create a binary for your os system. Although golang is [cr
 
 ##### Build binary: 
 ```bash
+make vue # Only needed if frontend has been modified
 make app
 
 # Run the newly compiled binary:
@@ -149,9 +149,11 @@ make app
 
 ##### Build & start :
 ```bash
-make vue # Only needed if frontend has been modified
 make run
 ``` 
+
+### Logs
+Check the `app.log` to read any logs.
 
 ## Additional startup arguments
 - `./GoStreamRecord reset-pwd admin MySecretPassword` - Resets password for the __admin__ user.
