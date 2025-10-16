@@ -1,6 +1,4 @@
-// File: src/components/ResponseArea.vue
-<template>
-  <!-- Minimal: no <teleport>, no transitions yet; still overlays (fixed, high z-index) -->
+<template> 
   <div class="notification-container" role="region" aria-live="polite" aria-label="Notifications">
     <div
       v-for="msg in messages"
@@ -28,10 +26,10 @@ function close(id) {
 
 function onNotify(e) {
   const d = e?.detail;
-  if (!d || typeof d.text !== 'string') return;           /* guard: avoid crashes */
+  if (!d || typeof d.text !== 'string') return; 
   const id = uid();
   messages.value.push({ id, text: d.text, isError: !!d.isError });
-  if (messages.value.length > 6) messages.value.shift();  /* cap stack */
+  if (messages.value.length > 6) messages.value.shift();  
   const ttl = Math.max(1000, Number(d.ttl ?? 5000));
   setTimeout(() => close(id), ttl);
 }
@@ -40,8 +38,7 @@ onMounted(() => window.addEventListener('notify', onNotify));
 onBeforeUnmount(() => window.removeEventListener('notify', onNotify));
 </script>
 
-<style scoped>
-/* Fixed overlay; removed from layout; never pushes content */
+<style scoped> 
 .notification-container {
   position: fixed;
   bottom: 10%;
@@ -51,12 +48,12 @@ onBeforeUnmount(() => window.removeEventListener('notify', onNotify));
   gap: 10px;
   max-height: 80vh;
   overflow-y: auto;
-  pointer-events: none;          /* clicks pass through container */
-  z-index: 2147483646;           /* overlay above everything */
+  pointer-events: none;    
+  z-index: 2147483646;  
 }
 
 .notification-box {
-  pointer-events: auto;          /* clickable */
+  pointer-events: auto; 
   display: flex;
   align-items: center;
   justify-content: space-between;

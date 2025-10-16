@@ -9,8 +9,7 @@ const statusText = ref('Not recording');
 const statusColor = ref('#fab1a0');
 const recorderProcesses = ref([]);
 const videoFiles = ref({});
-const logTerminal = ref(null);
-// const selectedVideos = ref(new Set()); // Stores video URLs
+const logTerminal = ref(null); 
 const activeProcesses = ref([]);
  
 
@@ -19,7 +18,7 @@ const sendCommand = async (command, name = '') => {
   try {
     await fetch("/api/control", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command, name }) });
     showResponse("Success!");
-    await refreshAllData(); // Automatically refresh data after a command
+    await refreshAllData();  
   } catch (err) { showResponse(`Error: ${err}`, true); }
 };
 
@@ -43,14 +42,11 @@ const fetchStatus = async () => {
     activeProcesses.value = Array.isArray(data.botStatus) ? data.botStatus : [];
   } catch (err) { console.error(err); }
 };
-
-// NEW: Manual refresh function to replace intervals
+ 
 const refreshAllData = async () => {
   showResponse("Refreshing data...");
-  try {
-    // Fetch status first, as updateRecorders depends on its data (activeProcesses)
-    await fetchStatus();
-    // Update recorders and logs in parallel for efficiency
+  try { 
+    await fetchStatus(); 
     await Promise.all([updateRecorders(), fetchLogs()]);
     showResponse("Data refreshed!");
   } catch (err) {
@@ -61,23 +57,21 @@ const refreshAllData = async () => {
 
 
 // Streamer API
-const addStreamer = async () => {
-  // const providerName = document.getElementById("providerName");
+const addStreamer = async () => { 
   const streamerName = document.getElementById("streamerName");
-  if (!streamerName.value.trim()) { // || !providerName.value.trim()) {
+  if (!streamerName.value.trim()) {   
     showResponse("Streamer and provider cannot be empty.", true);
     return;
   }
   try {
     await fetch(
-      `/api/add-streamer?provider=chaturbate`, { // ${providerName.value}`, {
+      `/api/add-streamer?provider=chaturbate`, { 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: streamerName.value.trim() })
     });
     showResponse(`Added '${streamerName.value}'`);
-    streamerName.value = '';
-    // providerName.value = '';
+    streamerName.value = ''; 
     updateRecorders(); // Refresh the list after adding
   } catch (err) { showResponse(err, true); }
 };
@@ -136,8 +130,7 @@ const populateVideos = async () => {
     videoFiles.value = folders;
   } catch (err) { showResponse(err, true); }
 };
- 
-// Lifecycle: onMounted now just calls the initial data load functions once.
+  
 onMounted(() => {
   refreshAllData();
   populateVideos();
@@ -173,24 +166,20 @@ onMounted(() => {
         <form @submit.prevent="addStreamer" class="space-y-4">
           <div class="form-option grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             <input type="text" id="streamerName" class="form-control col-span-1 md:col-span-1 p-2 border rounded-md"
-              placeholder="Streamer name" required />
-            <!-- <input type="text" id="providerName" class="form-control col-span-1 md:col-span-1 p-2 border rounded-md"
-              placeholder="Hosting site" required /> -->
+              placeholder="Streamer name" required /> 
             <button type="submit"
               class="buttonclass bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
               Add</button>
           </div>
         </form>
       </div>
-    </div>
-    <!-- Monitor Card with Nested Tabs -->
+    </div> 
     <div class="card_rec bg-white rounded-lg shadow-sm">
       <div class="card-header p-4 border-b">Details</div>
       <div class="card-body p-4">
         <div class="flex space-x-2 mb-4"> 
         </div>
-        <div class="tab-content"> 
-          <!-- Active Recorders Section -->
+        <div class="tab-content">  
           <div class="tab-pane fade" id="activeRecordersSection" role="tabpanel">
             <div id="recorderProcessesContainer" class="space-y-4">
               <div v-for="process in recorderProcesses" :key="process.name"

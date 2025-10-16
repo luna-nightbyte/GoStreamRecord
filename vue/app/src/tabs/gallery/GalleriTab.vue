@@ -110,8 +110,7 @@ export default {
       return /\.(mp4)$/i.test(url);
     },
 
-    searchMedia() {
-      // no-op for now
+    searchMedia() { 
     }
   },
   mounted() {
@@ -172,22 +171,19 @@ body {
 
 @media (max-width: 1200px) {
   .column {
-    flex: 1 1 calc(25% - 16px);
-    /* 3 columns */
+    flex: 1 1 calc(25% - 16px); 
   }
 }
 
 @media (max-width: 768px) {
   .column {
-    flex: 1 1 calc(50% - 16px);
-    /* 2 columns */
+    flex: 1 1 calc(50% - 16px); 
   }
 }
 
 @media (max-width: 480px) {
   .column {
-    flex: 1 1 100%;
-    /* 1 column */
+    flex: 1 1 100%; 
   }
 }
 

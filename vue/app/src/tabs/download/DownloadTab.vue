@@ -125,8 +125,7 @@ export default {
 };
 </script>
 
-<style>
-/* No scoped styles: uses global theme */
+<style> 
 .form-option {
   margin-bottom: 1rem;
 }
