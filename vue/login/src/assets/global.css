@@ -1,0 +1,210 @@
+/* Cleaned CSS for Login.vue: only selectors used by the login component */
+
+:root {
+  --primary: #00796B;
+  --primary-light: #4DB6AC;
+  --accent: #FFC107;
+  --danger: #D32F2F;
+  --background: #121212;
+  --surface: #1E1E1E;
+  --radius: 0.5rem;
+  --shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  --text-color: #b5cddbd8;
+  --text-light: #B0B0B0;
+  --font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Base */
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text-color);
+}
+
+/* Layout */
+.login-page {
+  min-height: calc(100vh - 2rem);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--background);
+  color: var(--text-color);
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid #282828;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: fadeIn 200ms ease-out;
+}
+
+/* Header */
+.card__header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #263a37;
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
+}
+.card__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.title { margin: 0; font-size: 1.3rem; }
+.subtitle { margin: .25rem 0 0; font-size: .95rem; color: var(--text-light); }
+
+/* Status */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .6rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: .85rem;
+  border: 1px solid #3a3a3a;
+  background: #242424;
+}
+.status__dot {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 9999px;
+  display: inline-block;
+  background: #909090;
+}
+.status--ok { background: color-mix(in oklab, var(--primary) 16%, #242424 84%); border-color: color-mix(in oklab, var(--primary) 60%, #2a2a2a); }
+.status--ok .status__dot { background: var(--primary-light); }
+.status--warn { background: color-mix(in oklab, var(--accent) 20%, #242424 80%); border-color: color-mix(in oklab, var(--accent) 55%, #2a2a2a); color: #111; }
+.status--warn .status__dot { background: var(--accent); }
+.status--down { background: color-mix(in oklab, var(--danger) 18%, #242424 82%); border-color: color-mix(in oklab, var(--danger) 55%, #2a2a2a); }
+.status--down .status__dot { background: var(--danger); }
+
+/* Form */
+.form { padding: 1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }
+.field { display: grid; gap: .5rem; }
+.label { font-weight: 600; color: var(--text-light); }
+.input {
+  color:#d2d2d2;
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid #3A3A3A;
+  background: #242424;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  display: flex;
+  align-items: center;
+}
+
+.input:hover { background: #262626; }
+
+.input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+/* Ensure both username & password inputs align identically */
+.input--with-btn {
+  width: 100%;
+}
+
+/* Inner control field */
+.input__control {
+  flex: 1;
+  padding: 0.72rem 0.9rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  font: inherit;
+  min-width: 0;
+}
+
+/* Eye icon button */
+.icon-btn {
+  flex-shrink: 0;
+  margin-right: 0.35rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, filter .18s ease;
+}
+.icon-btn:hover { background: #2a2a2a; border-color: #3a3a3a; filter: brightness(1.08); }
+
+/* Submit Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 60%, #0d0d0d);
+  background: linear-gradient(180deg, var(--primary-light), var(--primary));
+  color: #fff;
+  font-weight: 700;
+  transition: transform .12s ease, filter .18s ease, box-shadow .18s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.btn:hover { filter: saturate(1.05) brightness(1.02); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+
+/* Footer */
+.card__footer { padding: 0 1.25rem 1.1rem; display: flex; justify-content: flex-end; }
+.link { color: var(--primary-light); }
+.link:hover { text-decoration: underline; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: min(360px, 92vw);
+  padding: .85rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid #2a2a2a;
+  box-shadow: var(--shadow);
+  background: #242424;
+  color: var(--text-color);
+}
+.toast--danger { border-color: color-mix(in oklab, var(--danger) 70%, #2a2a2a); background: color-mix(in oklab, var(--danger) 12%, #242424); }
+.toast--info { border-color: color-mix(in oklab, var(--primary) 70%, #2a2a2a); background: color-mix(in oklab, var(--primary) 12%, #242424); }
+.toast-enter-active, .toast-leave-active { transition: transform .16s ease, opacity .16s ease; }
+.toast-enter-from, .toast-leave-to { transform: translateY(6px); opacity: 0; }
+
+/* Spinner */
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  animation: spin .8s linear infinite;
+}
+
+/* A11y helpers */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Keyframes */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
+
+/* Small screens */
+@media (max-width: 420px) {
+  .card__header-row { flex-direction: column; align-items: flex-start; gap: .5rem; }
+}

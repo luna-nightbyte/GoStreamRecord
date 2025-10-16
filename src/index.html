@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GoStreamRecord WebUI</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    /* Global styles */
+    body {
+      background-color: #f0f4f8;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    header h1 {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 2.5rem;
+      color: #333;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    #statusIndicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 5px 10px;
+      background-color: #9c9c9cce;
+      color: #fff;
+      border-radius: 5px;
+      font-weight: bold;
+      z-index: 1100;
+    }
+
+    /* Sidebar Navigation */
+    aside nav .nav-link {
+      color: #636e72;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    aside nav .nav-link.active {
+      background-color: #6b5f6a13;
+      color: #2d3436;
+    }
+
+    /* Card styling */
+    .card {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .card-header {
+      background-color: #dfe6e9;
+      border-bottom: 1px solid #b2bec3;
+      font-weight: bold;
+    }
+
+    .list-group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      border: 1px solid #dfe4ea;
+    }
+
+    /* Terminal styles */
+    .terminal {
+      background-color: #2d3436;
+      color: #dfe6e9;
+      font-family: monospace;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 5px;
+    }
+
+    /* Livestream radio buttons */
+    input[type="radio"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #8d98bb;
+      border-radius: 50%;
+      outline: none;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    input[type="radio"]:checked {
+      background-color: #3382d6c3;
+      border: 6px solid white;
+      box-shadow: 0 0 0 2px #194370c3;
+    }
+
+    label:hover {
+      background-color: #f0f8ff;
+    }
+
+    /* Transient message area */
+    #responseArea {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1050;
+      width: 300px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header with Title and Status -->
+  <header>
+    <h1>GoStreamRecord WebUI</h1>
+  </header>
+  <div id="statusIndicator">Status:</div>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar Navigation -->
+      <aside class="col-md-3">
+        <nav class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+
+          <a class="nav-link active" id="v-pills-recorder-tab" data-bs-toggle="pill" href="#recorderSection" role="tab"
+            aria-controls="recorderSection" aria-selected="true">
+            Bot
+          </a>
+          <a class="nav-link" id="v-pills-settings-tab" data-bs-toggle="pill" href="#settingsSection" role="tab"
+            aria-controls="settingsSection" aria-selected="false">
+            Settings
+          </a>
+          <a class="nav-link" id="v-pills-LiveStream-tab" data-bs-toggle="pill" href="#LiveStreamSection" role="tab"
+            aria-controls="LiveStreamSection" aria-selected="false">
+            LiveStream
+          </a>
+        </nav>
+      </aside>
+      <!-- Main Content Area -->
+      <main class="col-md-9">
+        <div class="tab-content" id="v-pills-tabContent">
+          <!-- Recorder Section -->
+          <section class="tab-pane fade show active" id="recorderSection" role="tabpanel"
+            aria-labelledby="v-pills-recorder-tab">
+            <!-- Control Panel Card -->
+            <div class="card mb-4">
+              <div class="card-header">Control Panel</div>
+              <div class="card-body text-center">
+                <button type="button" class="btn btn-success me-3" id="startAllCommand">Start all recordings</button>
+                <button type="button" class="btn btn-dark me-3" id="stopAllCommand">Stop all recordings</button>
+                <button type="button" class="btn btn-secondary" id="restartAllCommand">Restart all recordings</button>
+              </div>
+            </div>
+
+            <!-- Monitor Card with Nested Tabs -->
+            <div class="card">
+              <div class="card-header">Details</div>
+              <div class="card-body">
+                <ul class="nav nav-tabs" id="recorderTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="logs-tab" data-bs-toggle="tab"
+                      data-bs-target="#logsTerminalSection" type="button" role="tab">Logs</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="video-tab" data-bs-toggle="tab" data-bs-target="#videoFilesSection"
+                      type="button" role="tab">Video Files</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recorderStatus-tab" data-bs-toggle="tab"
+                      data-bs-target="#activeRecordersSection" type="button" role="tab">Individual bots</button>
+                  </li>
+                </ul>
+                <div class="tab-content mt-3">
+                  <div class="tab-pane fade show active" id="logsTerminalSection" role="tabpanel">
+                    <div class="terminal" id="logTerminal"></div>
+                  </div>
+                  <div class="tab-pane fade" id="videoFilesSection" role="tabpanel">
+                    <div id="videoFilesContainer"></div>
+                  </div>
+                  <div class="tab-pane fade" id="activeRecordersSection" role="tabpanel">
+                    <div class="card mb-3">
+                      <div class="card-header">
+                        Add a New Streamer
+                      </div>
+                      <div class="card-body">
+                        <form id="streamerFormActive">
+                          <div class="row g-3 align-items-center">
+                            <div class="col-md-5">
+                              <input type="text" id="streamerInputActive" class="form-control"
+                                placeholder="Streamer name" required />
+                            </div>
+                            <div class="col-md-5">
+                              <input type="text" id="providerInputActive" class="form-control"
+                                placeholder="Hosting site" required />
+                            </div>
+                            <div class="col-md-2">
+                              <button type="button" class="btn btn-primary w-100" id="addStreamerButton1">Add</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                    <div id="recorderProcessesContainer"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section class="tab-pane fade" id="settingsSection" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+            <div class="card">
+
+              <div class="card-header">Settings</div>
+              <div class="card-body">
+                <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#usersSection" type="button" role="tab">Users</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recorder-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#recorderManagementSection" type="button" role="tab">Recorder</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="api-management-tab" data-bs-toggle="tab"
+                      data-bs-target="#apiManagementSection" type="button" role="tab">API</button>
+                  </li>
+                </ul>
+                <div class="tab-content mt-3">
+                  <div class="tab-pane fade show active" id="usersSection" role="tabpanel">
+
+                    <div class="card-body">
+                      <div class="card-header">Add user</div>
+                      <!-- Add New User -->
+
+                      <article class="mb-4">
+                        <form id="addUserForm">
+                          <div class="mb-3">
+                            <input type="text" id="addUserName" class="form-control" placeholder="Username" required />
+                          </div>
+                          <div class="mb-3">
+                            <input type="password" id="addUserPassword" class="form-control" placeholder="Password"
+                              required />
+                          </div>
+                          <button type="button" class="btn btn-primary" id="addUserButton">Add User</button>
+                        </form>
+                      </article>
+                      <hr />
+                      <!-- Update Existing User -->
+                      <article class="mb-4">
+                        <div class="card-header">Update User</div>
+                        <form id="updateUserForm">
+                          <div class="mb-3">
+                            <input type="text" id="updateUserName" class="form-control"
+                              placeholder="Select a user from the list to modify." />
+                          </div>
+                          <div class="mb-3">
+                            <input type="password" id="updateUserPassword" class="form-control"
+                              placeholder="New Password" />
+                          </div>
+                          <button type="button" class="btn btn-primary" id="updateUserButton">Update User</button>
+                        </form>
+                      </article>
+                      <!-- Current Users List -->
+                      <article>
+                        <div class="card-header">Current users</div>
+                        <ul class="list-group" id="userList">
+                          <!-- Dynamically populated -->
+                        </ul>
+                      </article>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="apiManagementSection" role="tabpanel">
+
+                    <div class="card-header" id="apiHeader">API keys</div>
+                    <div class="card-body">
+                      <form id="apiForm" class="mb-3">
+                        <label for="generateNewAPI" class="form-label">Generate new API secret key</label>
+                        <div class="input-group">
+                          <button type="button" class="btn btn-primary" id="generateNewAPIButton">Add</button>
+                        </div>
+                      </form>
+                      <article class="mb-4">
+                        <div class="card-header">API Keys</div>
+                        <ul class="list-group" id="apiKeyList">
+                          <!-- Dynamically populated -->
+                        </ul>
+
+                      </article>
+                    </div>
+                  </div>
+
+                  <div class="tab-pane fade" id="recorderManagementSection" role="tabpanel">
+
+                    <div class="card-header">Streamers</div>
+                    <div class="card-body">
+                      <form id="streamerFormSettings" class="mb-3">
+                        <label for="streamerInputSettings" class="form-label">Add a New Streamer:</label>
+                        <div class="input-group">
+                          <input type="text" id="streamerInputSettings" class="form-control" placeholder="Streamer name"
+                            required />
+                          <input type="text" id="providerInputSettings" class="form-control" placeholder="Hosting site"
+                            required />
+                          <button type="button" class="btn btn-primary" id="addStreamerButton2">Add</button>
+                        </div>
+                      </form>
+                      <article class="mb-4">
+                        <div class="card-header">Current Streamers
+
+                        </div>
+                        <ul class="list-group" id="streamersList">
+                          <!-- Dynamically populated -->
+                        </ul>
+                      </article>
+                    </div>
+                    <!-- Import/Export Card -->
+                    <div class="card">
+                      <div class="card-header">Import/Export
+
+                      </div>
+                      <div class="card-body">
+                        <div class="mb-4">
+                          <label for="importFile" class="form-label">Import File:</label>
+                          <input type="file" id="importFile" class="form-control mb-2" />
+                          <button type="button" class="btn btn-secondary" id="uploadFileButton">Upload</button>
+                        </div>
+                        <div>
+                          <label class="form-label">Export File:</label><br />
+                          <button type="button" class="btn btn-secondary" id="downloadFileButton">Download</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+
+
+          <!-- LiveStream Section -->
+          <section class="tab-pane fade" id="LiveStreamSection" role="tabpanel"
+            aria-labelledby="v-pills-LiveStream-tab">
+            <div class="card">
+              <div class="card-header">Live Stream Settings</div>
+              <div class="card-body">
+
+                <form id="livestreamForm" class="mb-3">
+                  <div class="mb-3">
+                    <label for="chatStreamer" class="form-label">Streamer Name:</label>
+                    <input type="text" id="chatStreamer" class="form-control" placeholder="Streamer name" required />
+                  </div>
+                  <div class="mb-3">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionChat"
+                        value="chat">
+                      <label class="form-check-label" for="optionChat">Show chat</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionLive" value="live"
+                        checked>
+                      <label class="form-check-label" for="optionLive">Live only</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="livestream-option" id="optionInteractive"
+                        value="interactive">
+                      <label class="form-check-label" for="optionInteractive">Interactive</label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Apply</button>
+                </form>
+                <hr />
+
+              </div>
+              <article class="mb-4">
+                <div class="card-header">Live Stream</div>
+                <ul id="liveStreamCamera">
+                  <!-- Dynamically populated -->
+                </ul>
+
+              </article>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Response area for transient messages -->
+  <div id="responseArea"></div>
+
+  <!-- Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    // Variables
+    let recorder_processes = [];
+    let liveStreamSrc = null;
+    let selectedUser = null;
+    let videoFiles = [];
+    let spinnerListRunning = []
+    let activeProcesses = [];
+    // Helper function to display transient messages
+    const showResponse = (message, isError = false) => {
+      const responseArea = document.getElementById("responseArea");
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "alert " + (isError ? "alert-danger" : "alert-info");
+      alertDiv.innerText = message;
+      responseArea.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 5000);
+    };
+
+    /* ------------------ API SECTION -----------------------*/
+    document.addEventListener("DOMContentLoaded", function () {
+      const generateButton = document.getElementById("generateNewAPIButton");
+      const apiKeyList = document.getElementById("apiKeyList");
+      generateButton.addEventListener("click", async function () {
+        const apiKeyName = prompt("Enter a name for the new API key:");
+        if (!apiKeyName) return;
+
+        try {
+          const response = await fetch("/api/generate-api-key?name=" + apiKeyName, { method: "POST" });
+          const data = await response.json();
+
+          if (data.status) {
+            displayApiKey(data.key);
+            addAPIKeyToList(apiKeyName, data.key); // Store locally for display
+          } else {
+            showError("Error generating API key.");
+          }
+        } catch (error) {
+          console.error("Request failed", error);
+          showError("An unexpected error occurred.");
+        }
+      });
+
+    });
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch(`/api/keys`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to retrieve API keys.");
+        }
+
+        const data = await response.json();
+
+        // Log or handle API keys (display them in the UI, for instance)
+        data.forEach((key) => {
+          // Example: Display key on the page (or handle it as needed)
+          addAPIKeyToList(key.name, "*************")
+        });
+      } catch (error) {
+        showResponse("Error fetching API key.", true);
+      }
+    };
+    function displayApiKey(key) {
+      // Remove existing API key div if present
+      const existingDiv = document.getElementById("api-key-display");
+      if (existingDiv) existingDiv.remove();
+
+      // Create new div
+      const keyDiv = document.createElement("div");
+      keyDiv.id = "api-key-display";
+      keyDiv.style.position = "fixed";
+      keyDiv.style.top = "20px";
+      keyDiv.style.left = "20px";
+      keyDiv.style.background = "#fff";
+      keyDiv.style.padding = "10px";
+      keyDiv.style.border = "1px solid #ccc";
+      keyDiv.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.1)";
+      keyDiv.style.zIndex = "1000";
+      keyDiv.style.fontFamily = "monospace";
+
+      keyDiv.innerHTML = `
+        <p><strong>Your API Key:</strong></p>
+  <p><strong>This will only be shown once!</strong></p>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" value="${key}" id="api-key-input" readonly 
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background-color: #f9f9f9;">
+      <button id="copy-api-key" 
+          style="padding: 8px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
+          Copy
+      </button>
+      <button id="close-api-key" 
+          style="padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
+          Close
+      </button>
+  </div>
+
+  `;
+
+      document.body.appendChild(keyDiv);
+
+      // Copy to clipboard functionality
+      document.getElementById("copy-api-key").addEventListener("click", function () {
+        const input = document.getElementById("api-key-input");
+        input.select();
+        document.execCommand("copy");
+        this.innerText = "Copied!";
+        setTimeout(() => (this.innerText = "Copy"), 2000);
+      });
+
+      document.getElementById('close-api-key').addEventListener('click', function () {
+        this.parentElement.parentElement.remove(); // Removes the API key display
+      });
+      // Remove the div after 30 seconds
+      setTimeout(() => keyDiv.remove(), 30000);
+    };
+
+    function showError(message) {
+      const errorDiv = document.createElement("div");
+      errorDiv.innerText = message;
+      errorDiv.style.position = "fixed";
+      errorDiv.style.bottom = "20px";
+      errorDiv.style.right = "20px";
+      errorDiv.style.background = "#ff4d4d";
+      errorDiv.style.color = "#fff";
+      errorDiv.style.padding = "10px";
+      errorDiv.style.borderRadius = "5px";
+      errorDiv.style.zIndex = "1000";
+
+      document.body.appendChild(errorDiv);
+      setTimeout(() => errorDiv.remove(), 5000);
+    };
+
+
+    function addAPIKeyToList(name, key) {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+              <span>${name}</span>
+              <button class="btn btn-danger btn-sm delete-key">Delete</button>
+          `;
+
+      li.querySelector(".delete-key").addEventListener("click", async function () {
+        if (confirm(`Are you sure you want to delete '${name}'?`)) {
+          try {
+            const res = await fetch("/api/delete-api-key", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ data: { new: name } })
+            });
+            const data = await res.json();
+            showResponse("API key deleted!", false);
+          } catch (err) {
+            console.error(err);
+            showResponse("Error deleting api key.", true);
+          }
+          li.remove();
+        }
+      });
+
+      apiKeyList.appendChild(li);
+    }
+
+    /* ------------------ STREAMERS SECTION ------------------ */
+    // Parameterized function that accepts the IDs for streamer name and provider
+    const addStreamer = async (streamerInputId, providerInputId) => {
+      const input = document.getElementById(streamerInputId);
+      const providerInput = document.getElementById(providerInputId);
+      const provider = providerInput.value.trim();
+      const name = input.value.trim();
+
+      if (!name) {
+        showResponse("Streamer name cannot be empty.", true);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/add-streamer?provider=" + provider, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: name })
+        });
+        const data = await res.json();
+        showResponse("Added '" + name + "' to the list", false);
+        input.value = "";
+        populateStreamers();
+      } catch (err) {
+        console.error(err);
+        showResponse("Error adding streamer.", true);
+      }
+    };
+
+
+
+
+    const populateStreamers = async () => {
+      try {
+        const res = await fetch("/api/get-streamers");
+        const data = await res.json();
+        const list = document.getElementById("streamersList");
+        list.innerHTML = "";
+        data.forEach((streamer) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item";
+          li.innerHTML = `<span>${streamer}</span>
+              <button class="btn btn-sm btn-danger remove-streamer" data-name="${streamer}">Remove</button>`;
+          list.appendChild(li);
+        });
+        document.querySelectorAll(".remove-streamer").forEach((btn) => {
+          btn.addEventListener("click", () => removeStreamer(btn.dataset.name));
+        });
+      } catch (err) {
+        console.error(err);
+        showResponse("Error fetching streamers.", true);
+      }
+    };
+
+    const removeStreamer = async (name) => {
+      try {
+        const res = await fetch("/api/remove-streamer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selected: name })
+        });
+        const data = await res.json();
+        showResponse("Removed " + name + " from the list of streamers.", false);
+        populateStreamers();
+      } catch (err) {
+        console.error(err);
+        showResponse("Error removing streamer.", true);
+      }
+    };
+
+    /* ------------------ RECORDER SECTION ------------------ */
+    const sendCommand = async (command, name) => {
+      try {
+        const res = await fetch("/api/control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command, name })
+        });
+        const data = await res.json();
+        showResponse("Success!", false);
+
+      } catch (err) {
+        console.error(err);
+        showResponse(`Error executing command "${command}".`, true);
+      }
+    };
+
+    /* ------------------ FILE MANAGEMENT ------------------ */
+    const uploadFile = async () => {
+      const fileInput = document.getElementById("importFile");
+      const file = fileInput.files[0];
+      if (!file) {
+        showResponse("Please select a file to upload.", true);
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch("/api/import", {
+          method: "POST",
+          body: formData
+        });
+        console.log(res)
+        const data = await res.json();
+        showResponse("Success!", false);
+        //         showResponse("File uploaded: " + JSON.stringify(data));
+      } catch (err) {
+        console.error(err);
+        showResponse("Error uploading file.", true);
+      }
+    };
+
+    const downloadFile = () => {
+      window.location.href = "/api/export";
+    };
+
+    /* ------------------ MONITOR ------------------ */
+    const updateLogs = async () => {
+      try {
+        const res = await fetch("/api/logs");
+        const data = await res.json();
+        const logTerminal = document.getElementById("logTerminal");
+        logTerminal.innerText = data.join("\n");
+        logTerminal.scrollTop = logTerminal.scrollHeight;
+      } catch (err) {
+        console.error("Error fetching logs:", err);
+      }
+    };
+
+    const populateVideos = async () => {
+      try {
+        const res = await fetch("/api/get-videos");
+        const data = await res.json();
+        const folders = {};
+
+        // Organize videos into folders
+        data.forEach((obj) => {
+          const parts = obj.url.split("/");
+          const folder = parts.length > 2 ? parts[2] : "Uncategorized"; // Ignore "videos" (index 1)
+          if (!folders[folder]) {
+            folders[folder] = [];
+          }
+          folders[folder].push(obj);
+        });
+        videoFiles = folders;
+
+        renderVideos(folders);
+      } catch (err) {
+        console.error(err);
+        showResponse("Error fetching videos.", true);
+      }
+    };
+
+    const renderVideos = (folders) => {
+
+      const container = document.getElementById("videoFilesContainer");
+      container.innerHTML = "";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.id = "deleteSelectedBtn";
+      deleteBtn.className = "btn btn-danger mb-3";
+      deleteBtn.textContent = "Delete Selected Videos";
+      deleteBtn.addEventListener("click", deleteSelectedVideos);
+
+      container.prepend(deleteBtn); // Adds the button at the top
+
+      // Render folders and videos
+      Object.entries(folders).forEach(([folder, videos]) => {
+        const folderElement = document.createElement("div");
+        folderElement.className = "card mb-3 shadow-sm";
+
+        folderElement.innerHTML = `
+          <div class="card-header d-flex justify-content-between align-items-center" onclick="toggleFolder('${folder}')"
+            style="cursor: pointer; background: #f8f9fa; border-radius: 8px;">
+            <strong>${folder}</strong>
+            <span class="badge bg-primary">${videos.length} videos</span>
+          </div>
+          <div id="folder-${folder}" class="card-body folder-content" style="display: none; padding: 15px;"></div>
+        `;
+
+        container.appendChild(folderElement);
+
+        const folderContent = folderElement.querySelector(".folder-content");
+        // Set grid layout properties (but leave display as 'none' by default)
+        folderContent.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
+        folderContent.style.gap = "15px";
+
+        videos.forEach((obj) => {
+          const videoElement = document.createElement("div");
+          videoElement.className = "video-item card p-2 border";
+          videoElement.style.position = "relative";
+          videoElement.innerHTML = `
+            <!-- Checkbox for selecting video -->
+            <div class="form-check" style="position: absolute; top: 5px; right: 5px; z-index: 10;">
+              <input class="form-check-input video-checkbox" type="checkbox" value="${obj.url}" id="chk-${obj.url}">
+            </div>
+            <!-- Video title (truncated if too long) -->
+            <h6 class="mb-2 text-truncate" title="${obj.name}">${obj.name}</h6>
+            <!-- Smaller video preview -->
+            <video controls preload="metadata" width="100%" height="120" class="border rounded shadow-sm">
+              <source src="${obj.url}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          `;
+          folderContent.appendChild(videoElement);
+        });
+      });
+    };
+
+    const deleteSelectedVideos = async () => {
+      const selectedCheckboxes = document.querySelectorAll('.video-checkbox:checked');
+      if (selectedCheckboxes.length === 0) {
+        showResponse("No videos selected!");
+        return;
+      }
+      // Collect selected video URLs (or unique IDs if available)
+      const urls = Array.from(selectedCheckboxes).map((checkbox) => checkbox.value);
+      try {
+        const res = await fetch("/api/delete-videos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videos: urls }),
+        });
+
+        // Remove deleted videos from the list
+        const result = await res.json();
+        if (result.data.success) {
+          showResponse("Videos deleted!", false);
+          populateVideos(); // refresh list
+        }
+      } catch (err) {
+        console.error(err);
+        showResponse("Error deleting videos.", result.data.success);
+      }
+    };
+
+    // Toggle function to show/hide folder contents smoothly
+    function toggleFolder(folder) {
+      const folderContent = document.getElementById(`folder-${folder}`);
+      // Get the header element (assuming the structure remains constant)
+      const folderHeader = folderContent.previousElementSibling;
+
+      if (spinnerListRunning.includes(folder)) {
+        return;
+      }
+      spinnerListRunning.push(folder);
+      // If the folder is being expanded:
+      if (folderContent.style.display === "none") {
+        // Add a temporary active class for visual feedback (you can style this in CSS)
+        folderHeader.classList.add('active');
+
+        // Create and append a spinner element
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner-border spinner-border-sm ms-2'; // Using Bootstrap spinner classes
+        spinner.setAttribute('role', 'status');
+        spinner.setAttribute('aria-hidden', 'true');
+        folderHeader.appendChild(spinner);
+
+        // Simulate a delay for rendering (replace this with your actual rendering logic)
+        setTimeout(() => {
+          // Remove the spinner and active indication
+          spinner.remove();
+          folderHeader.classList.remove('active');
+
+          const folderContent = document.getElementById(`folder-${folder}`);
+          if (folderContent.style.display === "none" || folderContent.style.display === "") {
+            // Open folder: switch display to grid for a compact layout
+            folderContent.style.display = "grid";
+            folderContent.style.animation = "fadeIn 0.3s ease-in-out";
+          } else {
+            // Close folder with fade out animation
+            folderContent.style.animation = "fadeOut 0.3s ease-in-out";
+            setTimeout(() => { folderContent.style.display = "none"; }, 300);
+          }
+        }, 500); // Adjust the delay as needed
+      } else {
+        // If collapsing, simply hide the content
+        folderContent.style.display = "none";
+      }
+
+      spinnerListRunning = spinnerListRunning.filter((item) => item !== folder);
+    }
+
+    function checkSourceAvailability(streamer, provider) {
+      return fetch("/api/get-online-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ streamer: streamer, provider: provider }),
+      })
+
+        .then((res) => res.json())
+        .then((data) => {
+          return data.message === "true"; // Ensures it returns a boolean
+        })
+        .catch((err) => {
+          console.log(streamer, provider)
+          showResponse("Error checking online status: " + err, true);
+          return false; // Return false in case of an error
+        });
+    }
+    /* ------------------ STATUS INDICATOR ------------------ */
+    const updateStatus = async () => {
+      try {
+        const res = await fetch("/api/status");
+        const data = await res.json();
+        const statusIndicator = document.getElementById("statusIndicator");
+
+        // Ensure status always has a value
+        data.status = data.status || "Not recording";
+        // Ensure botStatus is always an array
+        recorder_processes = Array.isArray(data.botStatus) ? data.botStatus : [];
+
+        // Update status display
+        statusIndicator.textContent = "Status: " + data.status;
+        statusIndicator.style.backgroundColor = data.status === "Running" ? "#3dbb24af" : "#fab1a0";
+
+      } catch (err) {
+        console.error("Error fetching status:", err);
+      }
+    };
+
+    /* ------------------ RECORDER UPDATER ------------------ */
+    const updateRecorders = async () => {
+      const container = document.getElementById("recorderProcessesContainer");
+
+      // Fetch all possible streamers
+      const res = await fetch("/api/get-streamers");
+      const streamers = await res.json();
+
+      // Create a map of active processes using botStatus data
+      const activeMap = new Map(recorder_processes.map((p) => [p.website.username, p.is_recording]));
+
+      // Get existing elements in DOM for tracking duplicates
+      const existingElements = new Map();
+      container.querySelectorAll(".recorder-process").forEach((el) => {
+        const name = el.dataset.name;
+        if (name) existingElements.set(name, el);
+      });
+
+      for (const data of Object.values(streamers)) {
+        const name = data.name;
+        const provider = data.provider;
+        let isRecording = activeMap.get(name) || false;
+        let isRestarting = false;
+
+        recorder_processes.forEach((process) => {
+          if (name === process.website.username) {
+            isRecording = process.is_recording;
+            isRestarting = process.restarting;
+          }
+        });
+
+        const isAvailable = await checkSourceAvailability(name, provider);
+
+        if (existingElements.has(name)) {
+          // Update existing element
+          const processElement = existingElements.get(name);
+          processElement.querySelector(".status-text").innerHTML = isRecording
+            ? "Recording"
+            : "Not Recording";
+
+          processElement.querySelector(".status-text:nth-child(2)").innerHTML = `
+          ${name} - ${isAvailable ? "Online" : "Not Online"}`;
+
+          // Enable/Disable buttons accordingly
+          processElement.querySelector(".start-button").disabled = isRecording || !isAvailable;
+          processElement.querySelector(".stop-button").disabled = !isRecording;
+          processElement.querySelector(".restart-button").disabled = !isRecording;
+        } else {
+          // Create new element if not in DOM
+          const processElement = document.createElement("div");
+          processElement.className = "recorder-process";
+          processElement.dataset.name = name;
+          processElement.innerHTML = `
+  <div class="process-info" style="display: flex; align-items: center; justify-content: space-between; padding: 14px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; background-color: #fafafa;">
+    <div class="status-text" style="font-weight: bold; color: ${isRecording ? '#2ecc71' : '#e74c3c'};">
+    ${isRecording ? "Recording" : "Not Recording"}
+    </div>
+    <div class="status-text" style="font-weight: bold; color: ${isAvailable ? '#2ecc71' : '#e74c3c'};">
+      ${name} - ${isAvailable ? "Online" : "Not Online"}
+    </div>
+    <div>
+      <button class="start-button" style="padding: 8px 14px; background-color: #2ecc71; border: none; border-radius: 20px; color: #fff;" ${isRecording || !isAvailable ? "disabled" : ""}>Start</button>
+      <button class="stop-button" style="padding: 8px 14px; background-color: #e74c3c; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Stop</button>
+      <button class="restart-button" style="padding: 8px 14px; background-color: #f1c40f; border: none; border-radius: 20px; color: #fff; margin-left: 5px;" ${!isRecording ? "disabled" : ""}>Restart</button>
+    </div>
+  </div>`;
+
+          const startButton = processElement.querySelector(".start-button");
+          const stopButton = processElement.querySelector(".stop-button");
+          const restartButton = processElement.querySelector(".restart-button");
+
+          startButton.addEventListener("click", () => sendCommand("start", name));
+          stopButton.addEventListener("click", () => sendCommand("stop", name));
+          restartButton.addEventListener("click", () => sendCommand("restart", name));
+
+          container.appendChild(processElement);
+        }
+      }
+    };
+
+    /* ------------------ USER MANAGEMENT ------------------ */
+    const populateUsers = async () => {
+      try {
+        const res = await fetch("/api/get-users");
+        const users = await res.json();
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+        users.forEach((user) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item d-flex justify-content-between align-items-center";
+          li.innerHTML = `<span>${user.name}</span>
+              <div>
+                <button class="btn btn-sm btn-info edit-user" data-username="${user.name}">Edit</button>
+              </div>`;
+          list.appendChild(li);
+        });
+        document.querySelectorAll(".edit-user").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            selectedUser = btn.dataset.username;
+            document.getElementById("updateUserName").value = selectedUser;
+            document.getElementById("updateUserPassword").value = "";
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        showResponse("Error fetching users.", true);
+      }
+    };
+
+    const addUser = async () => {
+      const username = document.getElementById("addUserName").value.trim();
+      const password = document.getElementById("addUserPassword").value;
+      if (!username) {
+        showResponse("Username cannot be empty.", true);
+        return;
+      }
+      if (!password) {
+        showResponse("Password is required for new user.", true);
+        return;
+      }
+      try {
+        const res = await fetch("/api/add-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        showResponse("Add", false);
+        document.getElementById("addUserName").value = "";
+        document.getElementById("addUserPassword").value = "";
+        populateUsers();
+      } catch (err) {
+        console.error(err);
+        showResponse("Error adding user.", true);
+      }
+    };
+
+
+    const updateUser = async () => {
+      if (!selectedUser) {
+        showResponse("No user selected for update.", true);
+        return;
+      }
+      const newUsername = document.getElementById("updateUserName").value.trim();
+      const newPassword = document.getElementById("updateUserPassword").value;
+      if (!newUsername && !newPassword) {
+        showResponse("Please provide a new username and/or new password.", true);
+        return;
+      }
+      try {
+        const res = await fetch("/api/update-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldUsername: selectedUser, newUsername, newPassword })
+        });
+        const data = await res.json();
+        showResponse(data.message, false);
+        selectedUser = null;
+        document.getElementById("updateUserName").value = "";
+        document.getElementById("updateUserPassword").value = "";
+        populateUsers();
+      } catch (err) {
+        console.error(err);
+        showResponse("Error updating user.", true);
+      }
+    };
+
+    /* ------------------ LIVE STREAM ------------------ */
+    const populateLiveStream = () => {
+      try {
+        const container = document.getElementById("liveStreamCamera");
+        let iframe = container.querySelector("iframe");
+        if (iframe) {
+          iframe.src = liveStreamSrc;
+        } else {
+          iframe = document.createElement("iframe");
+          iframe.src = liveStreamSrc;
+          iframe.height = "523px";
+          iframe.width = "850px";
+          iframe.frameBorder = "0";
+          iframe.scrolling = "no";
+          container.appendChild(iframe);
+        }
+      } catch (err) {
+        console.error(err);
+        showResponse("Error loading livestream.", true);
+      }
+    };
+
+
+    /* ------------------ INITIALIZATION ------------------ */
+    document.addEventListener("DOMContentLoaded", () => {
+      // Streamers events  
+      document.getElementById("addStreamerButton1").addEventListener("click", () => {
+        addStreamer("streamerInputActive", "providerInputActive");
+      });
+
+      document.getElementById("addStreamerButton2").addEventListener("click", () => {
+        addStreamer("streamerInputSettings", "providerInputSettings");
+      });
+      // Recorder events
+      document.getElementById("startAllCommand").addEventListener("click", () => sendCommand("start", ""));
+      document.getElementById("stopAllCommand").addEventListener("click", () => sendCommand("stop", ""));
+      document.getElementById("restartAllCommand").addEventListener("click", () => sendCommand("restart", ""));
+      // File management events
+      document.getElementById("uploadFileButton").addEventListener("click", uploadFile);
+      document.getElementById("downloadFileButton").addEventListener("click", downloadFile);
+      // User management events
+      document.getElementById("addUserButton").addEventListener("click", addUser);
+      document.getElementById("updateUserButton").addEventListener("click", updateUser);
+      // Live stream form event
+      document.getElementById("api-management-tab").addEventListener("click", fetchApiKey);
+      document.getElementById("livestreamForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const selectedValue = document.querySelector('input[name="livestream-option"]:checked').value;
+        const streamer = document.getElementById("chatStreamer").value.trim();
+        if (!streamer) {
+          showResponse("Please enter a streamer name.", true);
+          return;
+        }
+        if (selectedValue === "chat") {
+          liveStreamSrc = `https://cbxyz.com/in/?tour=9oGW&campaign=Ln9WI&track=embed&room=${streamer}&disable_sound=1&embed_video_only=0&target=_parent&mobileRedirect=auto&`;
+        } else if (selectedValue === "live") {
+          liveStreamSrc = `https://cbxyz.com/in/?tour=9oGW&campaign=Ln9WI&track=embed&room=${streamer}&disable_sound=1&mobileRedirect=auto&embed_video_only=1`;
+        } else {
+          liveStreamSrc = `https://cbxyz.com/in/?tour=Limj&campaign=Ln9WI&track=embed&signup_notice=1&b=${streamer}&disable_sound=1&mobileRedirect=never`;
+        }
+        populateLiveStream();
+
+      });
+
+      updateRecorders();
+      populateStreamers();
+      populateUsers();
+      updateLogs();
+      setInterval(updateLogs, 3000);
+      setInterval(updateStatus, 5000);
+      setInterval(updateRecorders, 5000)
+      document.getElementById("video-tab").addEventListener("click", populateVideos);
+      document.getElementById("recorderStatus-tab").addEventListener("click", updateRecorders);
+    });
+
+  </script>
+</body>
+
+</html>
