@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-var onlineCheckIP = "192.168.10.173"
+var onlineCheckIP = "8.8.8.8"
 
 func Init() error {
 
@@ -41,33 +41,14 @@ func Init() error {
 	// -- Default init
 	if len(os.Args) < 2 {
 		// -- -- Network
-		if system.System.WaitForNetwork {
-			status.Status.IsOnline = utils.Ping(onlineCheckIP)
-		}
-		attempts := 0
-		max := 5
 		ticker := time.NewTicker(30 * time.Second)
-		// Defer the stop to ensure the ticker is cleaned up when the function exits
-		defer ticker.Stop()
-		for !status.Status.IsOnline && system.System.WaitForNetwork {
-			attempts++
-			select {
-			case <-system.System.Context.Done():
-				return nil
-			case <-ticker.C:
-				log.Println("No network connection..")
+		go func() {
+			status.Status.IsOnline = utils.Ping(onlineCheckIP)
+			for range ticker.C { 
 				status.Status.IsOnline = utils.Ping(onlineCheckIP)
 			}
-			if attempts == max {
-				if telegram.Bot.Enabled() {
-					fmt.Println(prettyprint.BoldRed("No network. Telegram disabled!"))
-					log.Println("No network. Telegram disabled!")
-					system.System.DB.Settings.Telegram.Enabled = false
-					telegram.Bot.Disable()
-				}
-				break
-			}
-		}
+		}()
+
 		cookies.Session = cookies.New(system.System.DB.Settings)
 		logger.Init(logger.Log_path)
 
