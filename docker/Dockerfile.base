@@ -1,12 +1,9 @@
-# Stage 1: Build Stage
 FROM ubuntu:22.04 AS builder
 
-# Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION
 
-# Install dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -15,6 +12,10 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     ca-certificates \
     git \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install Golang
@@ -26,18 +27,11 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/go"
 
 WORKDIR /app
-# Copy go.mod and go.sum first (for caching)
-COPY go.mod go.sum ./
 
-# Source code
-#- backend
-COPY main.go ./ 
-COPY internal/ internal/
-COPY vue/app/dist vue/app/dist
-COPY vue/login/dist vue/login/dist
-
-RUN go mod tidy && go mod download
-
-
-# Build
-RUN mkdir -p /compiled && CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-X 'GoStreamRecord/internal/system/version.Version=$VERSION' -X 'GoStreamRecord/internal/system/version.Shasum=$COMMMIT_HASH'" -a -installsuffix cgo -o /compiled/server main.go
+## Clone and build the source
+RUN git clone https://github.com/luna-nightbyte/GoStreamRecord && \
+    cd GoStreamRecord && \
+    make vue && \
+    make app VERSION=$VERSION && \
+    mv GoStreamRecord /compiled/server
+ 
