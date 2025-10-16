@@ -125,7 +125,7 @@ App uses port __8050__ by default internally.
 user@hostname:~$ docker run \
   -v ./settings:/app/settings \
   -v ./output:/app/videos \
-  -v ./app.log:/app/remoteCtrl.log \ # Use this to access the logfile outside of docker
+  -v ./app.log:/app/remoteCtrl.log \
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:latest
 ```
