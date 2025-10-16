@@ -1,15 +1,11 @@
 # GoStreamRecord
-<p align="center">
- <img src="https://github.com/user-attachments/assets/1eb7fd04-e421-47f6-bff0-fc75fdfd6f21" alt="Login page"/>
-</p>
-
  
 ## Core Features
 - Pre-built docker images. Base and minimal image. See the [docker section](https://github.com/luna-nightbyte/GoStreamRecord?tab=readme-ov-file#docker) for example startup command.
 ### Recorder:
 - Streamer status checks bypasses rate limits; recording rate limits still under testing.
 - Start, stop, and restart all recordings.
-- View active recorders in real-time (More data will be added)
+- View active recorders in real-time
 - Start, stop restart  individual recordings as needed.
 - Add or delete streamers dynamically (no need to restart the recorder).
 - Import/export streamer lists for easier management
@@ -17,66 +13,102 @@
 
 ### WebUI:
 - Secure login using cookies for each client (prevents unauthorized access).
-- Manage api secret keys.
-- Manage multiple user accounts.
-- Directly view logs and recorded videos through the WebUI.
+- ~~Manage api secret keys.~~
+- ~~Manage multiple user accounts.~~
+- Directly view ~~logs and~~ recorded videos through the WebUI.
 - Watch live streams directly from the WebUI.
 - Check streamer online status.
-### Setup & Deployment:
-- Docker configuration and service examples for straightforward deployment.
-- Install [Golang](https://go.dev/doc/install) to run the source or build binary.
+- 
 ## Usage
+**See the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) to find pre-built binaries**
 |Username|Password|
 |-|-|
 |`admin`|`password`|
 
-### Setup
-__important__: You will still need to have the `internal/app` folder and it's content in the same folder structure when running this app. That means that you'll have to copy that along with any binary you build.
+### Prerequisites (app only)
+This app depends on the following to be installed:
+- `ffmpeg` - `sudo apt install ffmpeg`
+- `ffprobe` - `sudo apt install ffprobe`
+- `yt-dlp` - `sudo apt install yt-dlp`
+- `curl` - `sudo apt install curl`
 
-- Download this repo and open a terminal in this folder. Ask ChatGPT how to find the folder path and how to move into it via cli if you dont know.
+### Prerequisites (building the source)
+This app depends on the following to be installed:
+- `node` - `sudo apt install nodejs`
+- `npm` - `sudo apt install npm`
+- `golang` - See the [official](https://go.dev/doc/install) installation instructions
+- `git` - `sudo apt install git`
+- `curl` - `sudo apt install curl`
 
-#### Optional config settings
-The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/Recordurbate-WebUI/blob/main/internal/app/db/settings/settings.json):
+_Windows / Mac users will have to google or ask ChatGPT how to install these on their system._
+
+__important__: You will still need to have the `settings` folder and it's content in the same folder structure when running this app. That means that you'll have to copy that along with any binary you build.
+
+Download this repo and open a terminal in this folder:
+```bash
+user@hostname:~$ git clone https://github.com/luna-nightbyte/GoStreamRecord
+user@hostname:~$ cd GoStreamRecord
+user@hostname:~/GoStreamRecord$ make app
+user@hostname:~/GoStreamRecord$ ./GoStreamRecord
+```
+
+#### Settings
+The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/GoStreamRecord/blob/main/settings/settings.json):
+
+__Notes__: 
+- Cookie value should be re-created for a production app. But locally it works just fine.
+- Google drive and Telegram haven't been fully tested.
+
 ```json
 {
   "app": {
-    "port": 8055,
-    "loop_interval_in_minutes": 2,
-    "video_output_folder": "videos",
+    "port": 8050,
+    "loop_interval_in_minutes": 0,
+    "output_folder": "videos",
     "rate_limit": {
-      "enable": true,
-      "time": 5
+      "enable": false,
+      "time": 0
     },
+    "cookie": " eqy\u0003!\ufffd\ufffd\ufffdW\ufffd{\u0014z\ufffdf\ufffdG\ufffd\u0012\ufffd\ufffd\ufffdb\u0011yDg.\ufffd\ufffd"
   },
-  "auto_reload_config": true
+  "google_drive": {
+    "enabled": false,
+    "path": ""
+  },
+  "telegram": {
+    "chatID": "",
+    "token": "",
+    "enabled": false
+  }
 }
 ```
-#### Reset password
-To change forgotten password, start the program with the `reset-pwd` argument. I.e:
-```
-./GoRecordurbate reset-pwd admin newpassword 
-```
-New login for the user `admin` would then be `newpassword`
-
 ### Docker
 
-There is two docker images available:
-- [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size > 1.5GB )
-- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 500MB )
+**Note:**
+The `output` folder path defined in the configuration file applies **only inside the Docker container**.
+To ensure recorded files are saved correctly, the Docker volume path **must match** the folder specified in the configuration file.  
+  Example: 
+  - `settings.json`:
+    ```json
+    "output_folder": "MyCustomFolder"
+    ```
+  - `docker-compose-yml`:
+    ```docker-compose.yml
+    volumes:
+      - ./output:/app/MyCustomFolder`
+    ```
+
+There are two docker images available:
+- [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) (Full source code Ubuntu based image. Image size < 1GB )
+- [run](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run) (Minimalistic image. Image size < 100MB )
 
 #### Building images
-Use the Makefile to build images to ensure proper tagging.
+Use the `docker-compose.yml` file to build images.
 ```bash
-make build # Builds all
-# or 
-make build-base # Only base
-# or 
-make build-app # Only app
+docker compose build base
+docker compose build GoRecord
 ```
-
-#### docker-compose.yml
-
-##### Usage
+##### Startup
 
 ```bash
 docker compose up GoRecord -d
@@ -84,71 +116,46 @@ docker compose up GoRecord -d
 docker compose up dev -d
 ```
 
+
 ##### Logs
 
-Docker logs can be found using `docker logs --tail 200 -f CONTAINER_NAME`. 
+Docker logs can be found using `docker logs --tail 200 -f GoRecord`. 
 
 #### APP (Minimalistic image)
-Files / folders needed to save app settings is (only need env file to just test the container):
-- [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/internal/app/settings) save login, api and streamer lists.
+- [`settings`](https://github.com/luna-nightbyte/GoRecord-WebUI/tree/main/settings) save login, api and streamer lists.
 - `output` folder for saving output videos.
 
-App uses port __80__ by default internally.
+App uses port __8050__ by default internally.
 ```bash
 user@hostname:~$ docker run \
-  -v ./internal/db:/app/internal/db \
-  -p 8050:80 \
+  -v ./settings:/app/settings \
+  -v ./output:/app/videos \
+  -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:latest
-```
-
-#### Ubuntu based image
-
-
-```bash
-user@hostname:~$ docker run \
-  -v ./:/app  \
-  -p 8050:80 \
-  docker.io/lunanightbyte/gorecord-base:latest
 ```
 
 
 ### Source
 #### Build and run
-Building the code wil create a binary for your os system. Golang is [cross-compatible](https://go.dev/wiki/GccgoCrossCompilation) for windows, linux and mac.
+Building the code wil create a binary for your os system. Although golang is [cross-compatible](https://go.dev/wiki/GccgoCrossCompilation) for windows, linux and mac, this app might not be fully compatible because of the difference in system patch and command execution. I haven't really tested it on anything else than Linux (armv6, armv7, x86_64)
 
-##### Make: 
+##### Build binary: 
 ```bash
 make app
+
+# Run the newly compiled binary:
+./GoStreamRecord
 ```
 
-##### Go:
+##### Build & start :
 ```bash
-go mod init GoStreamRecord # Only run this line once
-go mod tidy
-go build
-./GoStreamRecord #windows will have 'GoStreamRecord.exe'
-```
-#### Source
-##### Go:
-```bash
-go mod init GoStreamRecord # Only run this line once
-go mod tidy
-go run main.go
-```
+make vue # Only needed if frontend has been modified
+make run
+``` 
 
-
-
-## Make command list
-
-__Note:__ This is intended to be used together with the source files.
-
-- `make reset-pwd USERNAME=admin PASSWORD=MySecretPassword` - Resets password for the __admin__ user.
-- `make app` - Builds and starts the app within the output folder
-- `make build-and-push` - Builds all docker images and pushes them
-- `make build-base` - Builds [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) image
-- `make build-app` - Builds [app](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run)  image
-- `make push-base` - Pushes [base](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.base) image
-- `make push-app` - Pushes [app](https://github.com/luna-nightbyte/GoRecord-WebUI/blob/main/docker/Dockerfile.run)  image
+## Additional startup arguments
+- `./GoStreamRecord reset-pwd admin MySecretPassword` - Resets password for the __admin__ user.
+- `/GoStreamRecord add-user newUser newPassword` - Creates a new user and saves it to [users.json](https://github.com/luna-nightbyte/GoStreamRecord/blob/main/settings/users.json) 
 
 ## Other
 
@@ -157,8 +164,8 @@ __Note:__ This is intended to be used together with the source files.
 - ~~Select and delete videos~~
 - Option for max video length (and size?)
 - ~~headless mode without webui~~ (Abandoned because i will not create all the logic for handling the various arguments myself. Others can create a PR if they want to.)
-- Move frontend to Vue
-  - Btter for organizing components being re-used
+- ~~Move frontend to Vue~~
+  - ~~Better for organizing components being re-used~~
 - ~~Build a default docker image~~
 - Individual recorders in UI
   - ~~Start/Restart individual recorders (in progress)~~
@@ -173,20 +180,7 @@ __Note:__ This is intended to be used together with the source files.
 - Add option to try and use a custom url.
 ### Disclaimer 
 Unauthorized resale, redistribution, or sharing of recorded content that you do not own or have explicit permission to distribute is strictly prohibited. Users are solely responsible for ensuring compliance with all applicable copyright and privacy laws. The creator of this recorder assumes no liability for any misuse or legal consequences arising from user actions.
-## WebUI (v0.1.x)
-
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/edf30517-de6a-4f91-9ab4-89f9c91d7779" alt="Login page"/>
-  <img src="https://github.com/user-attachments/assets/5d939bc0-778b-42c8-a453-eb30c13e95e2" alt="Video tab"/>
-  <img src="https://github.com/user-attachments/assets/0ce5b2c1-e7f3-47bb-96e9-1532915dd5e4" alt="individual tab"/>
-  <img src="https://github.com/user-attachments/assets/7736fac5-5ce8-4634-8179-6ea2cf03969b" alt="User settings tab"/>
   
-  <img src="https://github.com/user-attachments/assets/ced11119-8e74-4c15-8aff-6c31242f8fe5" alt="Streamers tab"/>
-  <img src="https://github.com/user-attachments/assets/edc136e5-0238-463e-b8f3-d4b1b7e74687" alt="Livestream tab"/>
-</p>
-
-_Online status with a small bug at the time of uploading this.._
 ## Thanks
 
 Special thanks to [oliverjrose99](https://github.com/oliverjrose99) for the initial inspiration and their work on [Recordurbate](https://github.com/oliverjrose99/Recordurbate). Initial code of this project was directly inspired by their project.
