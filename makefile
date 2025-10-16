@@ -1,4 +1,4 @@
-.PHONY: all re clean build re sync full_build_go_pi pi
+.PHONY: vue build_go pi app run golang
 
 # Check if programs are installed and if not set it as a dependency. 
 ifneq ($(shell command -v node npm 1>/dev/null 2>&1; echo $$?), 0)
@@ -22,16 +22,14 @@ VERSION=0.3.1
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
-all: clean build_go version
 pi:
 	GOOS=linux GOARCH=arm64 go build \
 	-ldflags=" \
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
 		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
-	-o PiStream
-		
-full_build_go_pi: pi
- 
+	-o GoStreamRecord_Rpi
+
+app: vue build_go
 
 build_go: 
 	go build \
@@ -40,33 +38,15 @@ build_go:
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
 		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)' \
 		-X 'remoteCtrl/internal/system.enableDebug=true'" \
-	-o PcStream
- 
-clean:
-	rm -f ./PcStream 
-	rm -f ./PcStream 
-	rm -f output/PcStream 
-	rm -f output/PcStream 
-	 
-	
+	-o GoStreamRecord
+  
 run: build_go
 	mkdir -p output/settings
 	mkdir -p output/videos
 	cp -r --update settings/* output/settings
-	cp ./PcStream output/PcStream
+	cp ./GoStreamRecord output/GoStreamRecord
 	cd output && \
-	sudo ./PcStream
- 
- 
-
-version:
-	rm -rf /tmp/workspace 
-	mkdir -p /tmp/workspace
-	rsync -av --exclude 'rcam' --exclude 'output' --exclude 'versions' --exclude '*.log' . /tmp/workspace
-	rm -rf /tmp/workspace/versions 
-	rm -rf /tmp/workspace/*.log 
-	bash bkp.sh /tmp/workspace ./versions
-	rm -rf /tmp/workspace
+	sudo ./GoStreamRecord
 
 # Install go
 .PHONY: golang
@@ -82,3 +62,11 @@ golang:
 	sudo rm -f /tmp/go1.21.3.linux-amd64.tar.gz
 	GOPATH=$(shell go env GOPATH)
  
+.PHONY: vue
+vue:
+	cd vue/app && \
+	npm install && \
+	npm run build
+	cd vue/login && \
+	npm install && \
+	npm run build
