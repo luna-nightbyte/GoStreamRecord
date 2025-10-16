@@ -5,6 +5,7 @@ x-defaults: &default-opts
     - "8050:80"
   volumes:
     - ./settings:/app/settings
+    - ./app.log:/app/app.log  
     - ./output:/app/videos
 services:
 
