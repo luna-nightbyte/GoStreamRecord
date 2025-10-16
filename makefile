@@ -1,4 +1,4 @@
-.PHONY: all re clean build copy_frontend re sync full_build_go_pi pi
+.PHONY: all re clean build re sync full_build_go_pi pi
 
 # Check if programs are installed and if not set it as a dependency. 
 ifneq ($(shell command -v node npm 1>/dev/null 2>&1; echo $$?), 0)
@@ -18,7 +18,7 @@ ifneq ($(shell command -v wget 1>/dev/null 2>&1; echo $$?), 0)
 endif
 
  
-VERSION=0.3.0
+VERSION=0.3.0-dev
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
@@ -30,17 +30,10 @@ pi:
 		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
 	-o PiStream
 		
-full_build_go_pi: copy_frontend pi
+full_build_go_pi: pi
+ 
 
-copy_frontend:
-	rm -rf internal/embedded/app/dist
-	rm -rf internal/embedded/login/dist
-	mkdir -p internal/embedded/app
-	mkdir -p internal/embedded/login
-	cp -r vue/app/dist internal/embedded/app/dist
-	cp -r vue/login/dist internal/embedded/login/dist
-
-build_go: copy_frontend 
+build_go: 
 	go build \
 	-buildvcs=false \
 	-ldflags=" \
