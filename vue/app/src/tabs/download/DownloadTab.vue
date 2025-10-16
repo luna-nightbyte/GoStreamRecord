@@ -65,6 +65,9 @@
 import AnimatedButton from '../../components/AnimatedButton.vue';
 import axios from 'axios';
 
+import { notify } from "@/composables/useNotifications";
+
+const { showResponse } = notify();
 export default {
   components: { AnimatedButton },
   data() {
@@ -111,8 +114,11 @@ export default {
       try {
         await axios.post('/api/download', this.formData);
         this.fetchProgress(); // Start polling for progress after submitting
+        showResponse("Sucess! Starting video download")
       }
-      catch (err) { console.error('Error submitting download:', err); }
+      catch (err) { 
+
+        showResponse("Error submitting download:", err) }
     },
   },
   created() { this.fetchProgress(); }

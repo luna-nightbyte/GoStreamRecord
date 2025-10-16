@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { notify } from "@/composables/useNotifications";
+
+const { showResponse } = notify();
 
 // Refs
 const statusText = ref('Not recording');
@@ -9,23 +12,7 @@ const videoFiles = ref({});
 const logTerminal = ref(null);
 // const selectedVideos = ref(new Set()); // Stores video URLs
 const activeProcesses = ref([]);
-
-// Helper: show messages
-const showResponse = (message, isError = false) => {
-  const responseArea = document.getElementById("responseArea");
-  if (!responseArea) return;
-  
-  // Keep the response area from getting too cluttered
-  while (responseArea.childNodes.length > 5) {
-      responseArea.removeChild(responseArea.firstChild);
-  }
-
-  const alertDiv = document.createElement("div");
-  alertDiv.className = `alert ${isError ? "alert-danger" : "alert-info"}`;
-  alertDiv.innerText = message;
-  responseArea.appendChild(alertDiv);
-  setTimeout(() => alertDiv.remove(), 5000);
-};
+ 
 
 // API commands
 const sendCommand = async (command, name = '') => {
@@ -149,46 +136,7 @@ const populateVideos = async () => {
     videoFiles.value = folders;
   } catch (err) { showResponse(err, true); }
 };
-
-// const toggleFolder = (folderId) => {
-//   const folder = document.getElementById(folderId);
-//   if (!folder) return;
-//   folder.style.display = folder.style.display === 'none' ? 'grid' : 'none';
-// };
-
-// const handleVideoSelection = (event, videoUrl) => {
-//   if (event.target.checked) {
-//     selectedVideos.value.add(videoUrl);
-//   } else {
-//     selectedVideos.value.delete(videoUrl);
-//   }
-// };
-
-// const deleteSelectedVideos = async () => {
-//   if (!selectedVideos.value.size) return showResponse("No videos selected!", true);
-//   const videosToDelete = Array.from(selectedVideos.value);
-
-//   if (!confirm(`Are you sure you want to delete ${videosToDelete.length} video(s)?`)) {
-//     return;
-//   }
-
-//   try {
-//     const res = await fetch("/api/delete-videos", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ videos: videosToDelete })
-//     });
-//     const result = await res.json();
-//     if (result.data.success) {
-//       showResponse("Videos deleted!");
-//       populateVideos();
-//       selectedVideos.value.clear();
-//     } else {
-//       showResponse("Failed to delete all videos.", true);
-//     }
-//   } catch { showResponse("Error deleting videos.", true); }
-// };
-
+ 
 // Lifecycle: onMounted now just calls the initial data load functions once.
 onMounted(() => {
   refreshAllData();
@@ -200,7 +148,7 @@ onMounted(() => {
 
 <template>
   <div class="recorder-container">
-    <div class="card_rec mb-6 bg-white rounded-lg shadow-sm">
+    <div class="card_rec mb-6 bg-white rounded-lg shadow-sm"> 
       <div class="card-header p-4 border-b">Control Panel</div>
       <div class="card-body p-4 flex flex-wrap justify-center gap-4">
         <button @click="sendCommand('start', '')"
@@ -239,54 +187,9 @@ onMounted(() => {
     <div class="card_rec bg-white rounded-lg shadow-sm">
       <div class="card-header p-4 border-b">Details</div>
       <div class="card-body p-4">
-        <div class="flex space-x-2 mb-4">
-          <!-- <button class="buttonclass nav-link flex-1 py-3 px-4 text-center" id="video-tab" data-bs-toggle="tab"
-            data-bs-target="#videoFilesSection" type="button" role="tab" @click="populateVideos">Video Files
-          </button> -->
-          <!-- <button class="buttonclass nav-link flex-1 py-3 px-4 text-center" id="recorderStatus-tab" data-bs-toggle="tab"
-            data-bs-target="#activeRecordersSection" type="button" role="tab" @click="updateRecorders">Individual bots
-          </button> -->
+        <div class="flex space-x-2 mb-4"> 
         </div>
-        <div class="tab-content">
-          <!-- Video Files Section -->
-          <div class="tab-pane fade" id="videoFilesSection" role="tabpanel">
-            <div id="videoFilesContainer">
-              <!-- <button @click="deleteSelectedVideos"
-                class="buttonclass bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full mb-4">
-                Delete Selected Videos ({{ selectedVideos.size }})</button> -->
-
-              <!-- <div v-for="(videos, folder) in videoFiles" :key="folder"
-                class="card_rec mb-4 shadow-sm rounded-lg overflow-hidden">
-                <div class="card-header p-3 bg-gray-100 flex justify-between items-center cursor-pointer"
-                  @click="toggleFolder(`folder-${folder}`)">
-                  <strong class="text-gray-700">{{ folder }}</strong>
-                  <span class="badge bg-blue-500 text-white px-2 py-1 rounded-full"> ({{ videos.length
-                    }} files)</span>
-                </div>
-
-                <div :id="`folder-${folder}`" class="card-body p-4" style="display: none;">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div v-for="video in videos" :key="video.url"
-                      class="video-item card p-2 border rounded-lg shadow-sm relative bg-white">
-                      <div class="form-check absolute top-2 right-2">
-                        <input class="form-check-input video-checkbox w-5 h-5" type="checkbox" :value="video.url"
-                          :checked="selectedVideos.has(video.url)" @change="handleVideoSelection($event, video.url)">
-                      </div>
-                      <h6 class="mt-4 mb-2 text-sm font-semibold truncate" :title="video.name">{{
-                        video.name }}</h6>
-                      <video controls preload="metadata" width="100%" class="rounded-lg object-cover h-32">
-                        <source :src="video.url" type="video/mp4">
-                        Your browser does not support the video tag.
-                      </video>
-                      <a :href="video.url" target="_blank" class="text-xs text-blue-500 hover:underline mt-1 block">Open
-                        File</a>
-                    </div>
-                  </div>
-                </div>
-              </div> -->
-            </div>
-          </div>
-
+        <div class="tab-content"> 
           <!-- Active Recorders Section -->
           <div class="tab-pane fade" id="activeRecordersSection" role="tabpanel">
             <div id="recorderProcessesContainer" class="space-y-4">
@@ -322,7 +225,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-    </div>
-    <div id="responseArea" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    </div> 
   </div>
 </template>

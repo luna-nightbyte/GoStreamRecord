@@ -38,7 +38,9 @@
 
 <script>
 import axios from 'axios';
+import { notify } from "@/composables/useNotifications";
 
+const { showResponse } = notify();
 export default {
   data() {
     return {
@@ -57,9 +59,9 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ command, name }),
         });
-        this.showResponse("Success!");
+        showResponse("Success!");
       } catch (err) {
-        this.showResponse(`Error: ${err}`, true);
+        showResponse(`Error: ${err}`, true);
       }
     },
 
