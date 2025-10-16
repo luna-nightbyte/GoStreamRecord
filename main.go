@@ -3,6 +3,8 @@ package main
 import (
 	"bytes" // Added: Required for bytes.NewReader (implements io.ReadSeeker)
 	"context"
+	"embed"
+	_ "embed"
 	"fmt"
 	"io"
 	"io/fs"
@@ -27,6 +29,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
+
+//go:embed vue/login/dist/*
+var VueLoginFiles embed.FS
+
+//go:embed vue/app/dist/*
+var VueDistFiles embed.FS
 
 func init() {
 

@@ -4,8 +4,8 @@ x-defaults: &default-opts
   ports:
     - "8050:80"
   volumes:
-    - ./internal/app/db:/app/internal/db
-    - ./output:/app/output #Safest to alway have output files in this folder.
+    - ./settings:/app/settings
+    - ./output:/app/videos
 services:
 
 # App

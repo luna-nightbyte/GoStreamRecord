@@ -9,7 +9,7 @@ import (
 )
 
 var Version string = "dev"
-var Shasum string = "hello"
+var Shasum string = ""
 
 func CheckFileSHA256(filePath, shaKey string) (bool, error) {
 	// Open the file for reading.
@@ -29,7 +29,7 @@ func CheckFileSHA256(filePath, shaKey string) (bool, error) {
 	}
 
 	// Get the final hash sum and encode it as a hex string.
-	calculatedKey := hex.EncodeToString(hash.Sum(nil)) 
+	calculatedKey := hex.EncodeToString(hash.Sum(nil))
 	// Compare the calculated hash with the provided SHA key.
 	return calculatedKey == shaKey, nil
 }

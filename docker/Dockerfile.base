@@ -11,23 +11,19 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     ffmpeg \
-    python3 \
-    python3-pip \
+    yt-dlp \
     build-essential \
     ca-certificates \
     git \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install Golang
-RUN wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz && \
-    rm go1.24.0.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.24.5.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.24.5.linux-amd64.tar.gz && \
+    rm go1.24.5.linux-amd64.tar.gz
 
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/go"
-
-# Install yt-dlp via pip
-RUN pip3 install --upgrade yt-dlp
 
 WORKDIR /app
 # Copy go.mod and go.sum first (for caching)
@@ -35,11 +31,13 @@ COPY go.mod go.sum ./
 
 # Source code
 #- backend
-COPY main.go ./
+COPY main.go ./ 
 COPY internal/ internal/
+COPY vue/app/dist vue/app/dist
+COPY vue/login/dist vue/login/dist
 
 RUN go mod tidy && go mod download
 
 
 # Build
-RUN mkdir -p /compiled && CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-X 'GoStreamRecord/internal/db.Version=$VERSION'" -a -installsuffix cgo -o /compiled/server main.go
+RUN mkdir -p /compiled && CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-X 'GoStreamRecord/internal/system/version.Version=$VERSION' -X 'GoStreamRecord/internal/system/version.Shasum=$COMMMIT_HASH'" -a -installsuffix cgo -o /compiled/server main.go
