@@ -11,7 +11,7 @@ import (
 
 var (
 	logFile  *os.File
-	Log_path string = "./remoteCtrl.log"
+	Log_path string = "./app.log"
 )
 
 type logWriter struct{}

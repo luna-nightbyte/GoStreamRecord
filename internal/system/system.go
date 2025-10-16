@@ -38,8 +38,8 @@ func StartupError() {
 
 func init() {
 	// Register available commands.
-	command.CMD.Startup.Add("reset-pwd", "./remoteCtrl reset-pwd <username> <new-password>", ResetWebUIPassword)
-	command.CMD.Startup.Add("add-user", "./remoteCtrl add-user <username> <password>", AddNewUser)
+	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
+	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
 }
 
 func PrintUsage() {
