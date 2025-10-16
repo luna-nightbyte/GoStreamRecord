@@ -18,3 +18,8 @@ output
 
 
 .env
+
+
+# Binaries
+GoStreamRecord_Rpi
+GoStreamRecord
