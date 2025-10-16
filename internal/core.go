@@ -13,6 +13,7 @@ import (
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/system/settings"
 	"remoteCtrl/internal/utils"
+	"remoteCtrl/internal/web/handlers/status"
 	"remoteCtrl/internal/web/telegram"
 	"strconv"
 	"syscall"
@@ -20,7 +21,6 @@ import (
 )
 
 var onlineCheckIP = "192.168.10.173"
-var connected bool
 
 func Init() error {
 
@@ -40,15 +40,24 @@ func Init() error {
 
 	// -- Default init
 	if len(os.Args) < 2 {
-		isLive := false
 		// -- -- Network
 		if system.System.WaitForNetwork {
-			isLive = utils.Ping(onlineCheckIP)
+			status.Status.IsOnline = utils.Ping(onlineCheckIP)
 		}
 		attempts := 0
 		max := 5
-		for !isLive && system.System.WaitForNetwork {
+		ticker := time.NewTicker(30 * time.Second)
+		// Defer the stop to ensure the ticker is cleaned up when the function exits
+		defer ticker.Stop()
+		for !status.Status.IsOnline && system.System.WaitForNetwork {
 			attempts++
+			select {
+			case <-system.System.Context.Done():
+				return nil
+			case <-ticker.C:
+				log.Println("No network connection..")
+				status.Status.IsOnline = utils.Ping(onlineCheckIP)
+			}
 			if attempts == max {
 				if telegram.Bot.Enabled() {
 					fmt.Println(prettyprint.BoldRed("No network. Telegram disabled!"))
@@ -58,9 +67,6 @@ func Init() error {
 				}
 				break
 			}
-			log.Println("No network connection..")
-			time.Sleep(30 * time.Second)
-			isLive = utils.Ping(onlineCheckIP)
 		}
 		cookies.Session = cookies.New(system.System.DB.Settings)
 		logger.Init(logger.Log_path)
