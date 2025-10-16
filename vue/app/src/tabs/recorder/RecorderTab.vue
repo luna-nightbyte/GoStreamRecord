@@ -8,7 +8,7 @@ const { showResponse } = notify();
 const statusText = ref('Not recording');
 const statusColor = ref('#fab1a0');
 const recorderProcesses = ref([]);
-const videoFiles = ref({});
+// const videoFiles = ref({});
 const logTerminal = ref(null); 
 const activeProcesses = ref([]);
  
@@ -109,31 +109,30 @@ const updateRecorders = async () => {
   } catch (err) { showResponse(err, true); }
 };
 
-// Videos
-const populateVideos = async () => {
-  const section = document.getElementById("activeRecordersSection");
-  if(section) section.hidden = true;
-  const nowsection = document.getElementById("videoFilesSection");
-  if (nowsection) nowsection.hidden = false;
+// // Videos
+// const populateVideos = async () => {
+//   const section = document.getElementById("activeRecordersSection");
+//   if(section) section.hidden = true;
+//   const nowsection = document.getElementById("videoFilesSection");
+//   if (nowsection) nowsection.hidden = false;
   
-  try {
-    const res = await fetch("/api/get-videos");
-    const data = await res.json();
-    const folders = {};
-    data.forEach(video => {
-      const urlParts = video.url.split("/");
-      const folder = urlParts[urlParts.length - 2] || "Uncategorized";
+//   try {
+//     const res = await fetch("/api/get-videos");
+//     const data = await res.json();
+//     const folders = {};
+//     data.forEach(video => {
+//       const urlParts = video.url.split("/");
+//       const folder = urlParts[urlParts.length - 2] || "Uncategorized";
 
-      folders[folder] = folders[folder] || [];
-      folders[folder].push(video);
-    });
-    videoFiles.value = folders;
-  } catch (err) { showResponse(err, true); }
-};
+//       folders[folder] = folders[folder] || [];
+//       folders[folder].push(video);
+//     });
+//     videoFiles.value = folders;
+//   } catch (err) { showResponse(err, true); }
+// };
   
 onMounted(() => {
-  refreshAllData();
-  populateVideos();
+  refreshAllData(); 
   updateRecorders();
 });
 </script>
