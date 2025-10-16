@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"remoteCtrl/internal/db"
-	"remoteCtrl/internal/media/stream_recorder"
-	"remoteCtrl/internal/media/stream_recorder/recorder"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/settings"
@@ -13,10 +11,20 @@ import (
 
 // Response is a generic response structure for our API endpoints.
 type Response struct {
-	Status    string              `json:"status"`
-	Message   string              `json:"message,omitempty"`
-	Data      interface{}         `json:"data,omitempty"`
-	BotStatus []recorder.Recorder `json:"botStatus"`
+	Status  status      `json:"status"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
+	// BotStatus []recorder.Recorder `json:"botStatus,omitempty"`
+}
+
+var Status status
+
+type status struct {
+	Ok              bool `json:"ok"`
+	IsOnline        bool `json:"is_online"`
+	Is_Recording    bool `json:"is_recording"`
+	Is_Downloading  bool `json:"is_downloading"`
+	Is_Fixing_Codec bool `json:"is_fixing_codec"`
 }
 
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,43 +40,23 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	// Reload streamer list from config file
 	db.Write(settings.CONFIG_STREAMERS_PATH, &system.System.DB.Streamers)
 
-	stream_recorder.Streamer.StopRunningEmpty()
-	// Fetch current recording status
-	recorderStatus := stream_recorder.Streamer.ListRecorders()
-	isRecording := false
-	for _, s := range recorderStatus {
-		if s.IsRecording {
-			isRecording = true
-			break
-		}
+	response := Response{
+		Status: Status,
 	}
-	var recorders []recorder.Recorder
-	for _, recorder := range recorderStatus {
-		recorders = append(recorders, *recorder)
-	}
-	// Prepare response
-	recorder := Response{
-		BotStatus: recorders,
-		Status:    "Stopped",
-	}
-
-	if isRecording {
-		recorder.Status = "Running"
-	}
-
 	// Send JSON response
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(recorder); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
 
-func ResponseHandler(w http.ResponseWriter, r *http.Request, message string, data interface{}) {
+func ResponseHandler(w http.ResponseWriter, r *http.Request, message string, ok bool, data interface{}) {
 	resp := Response{
-		Status:  "success",
 		Message: message,
 		Data:    data,
 	}
+	resp.Status = Status
+	resp.Status.Ok = ok
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }

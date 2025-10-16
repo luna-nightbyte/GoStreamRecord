@@ -8,6 +8,7 @@ import (
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/settings"
 	"remoteCtrl/internal/utils"
+	"remoteCtrl/internal/web/handlers/status"
 	"strings"
 	"sync"
 	"time"
@@ -49,9 +50,12 @@ func (b *Controller) Execute(command string, name string) {
 	}
 	switch strings.ToLower(command) {
 	case "repair":
+
+		status.Status.Is_Fixing_Codec = true
 		log.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
 		utils.VideoVerify.RunCodecVerification()
-		log.Println("Done!")
+		
+		status.Status.Is_Fixing_Codec = false
 	case "start":
 		// If the bot was previously stopped, reinitialize the context.
 		if b.ctx.Err() != nil {
@@ -63,6 +67,7 @@ func (b *Controller) Execute(command string, name string) {
 				log.Println("Alredy recording video from '%s'", name)
 			}
 			log.Println("Starting bot")
+			status.Status.Is_Recording = true
 			b.bots[name].Start()
 
 			go b.bots[name].StartRecordTicker(b.ctx)
@@ -111,6 +116,9 @@ func (b *Controller) Execute(command string, name string) {
 		}
 		b.bots[name].StopTicker()
 		b.checkProcesses()
+		if len(b.ListRecorders()) == 0 {
+			status.Status.Is_Recording = false
+		}
 	case "restart":
 		log.Println("Restarting bot")
 		// b.ctx, b.cancel = context.WithCancel(context.Background())

@@ -48,6 +48,7 @@ func (vd *VideoDownloader) InitTemp(uid string) {
 	vd.Tmp.CreateTempDirs()
 
 }
+
 func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 	site := F.Option
 	pwd := ""
@@ -66,6 +67,7 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 		//vd.Data.Init(false, vd.Data.Total, vd.Data.Progress, vd.Data.Current, vd.Data.QueueText, vd.Data.Text)
 		web, err := GetMasterPlaylistURL(F.URL, site)
 		if err != nil {
+			return "", ""
 		}
 
 		// PornOne, Spankbang

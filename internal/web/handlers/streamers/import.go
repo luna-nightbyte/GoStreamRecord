@@ -25,7 +25,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Limit the size of the incoming request to 10MB
-	if err := r.ParseMultipartForm(10 << 20); err != nil { 
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
@@ -33,7 +33,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve file from posted form-data
 	file, handler, err := r.FormFile("file")
 
-	if err != nil { 
+	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
 		return
 	}
@@ -45,7 +45,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// For demonstration, we'll read the file's contents (but not store it)
 	fileContent, err := io.ReadAll(file)
-	if err != nil { 
+	if err != nil {
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
 		return
 	}
@@ -56,11 +56,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	var import_list []settings.Streamer
 	err = json.Unmarshal(fileContent, &import_list)
 	if err != nil {
-
 		resp = status.Response{
-			Status:  "failed",
+			Status:  status.Status,
 			Message: fmt.Sprintf("Failed to import new streamers!"),
-		} 
+		}
+		resp.Status.Ok = false
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
 		return
 	}
@@ -73,9 +73,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp = status.Response{
-		Status:  "success",
+		Status:  status.Status,
 		Message: fmt.Sprintf("Imported %d new streamers!", counter),
 	}
+	resp.Status.Ok = true
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }

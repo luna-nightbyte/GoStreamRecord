@@ -60,7 +60,7 @@ func (rq Request) IsUDPPortInUse(port int) bool {
 }
 
 func Ping(ipAddr string) bool {
-
+fmt.Println("ping",ipAddr)
 	currentUser, err := user.Current()
 	if currentUser.Uid != "0" {
 		log.Println("Cannot ping without root privileges!")

@@ -116,7 +116,7 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	if reqData.Streamer == "" {
 		log.Println("Streamer name is required")
-		status.ResponseHandler(w, r, "Streamer name is required", nil)
+		status.ResponseHandler(w, r, "Streamer name is required", false, nil)
 		return
 	}
 
@@ -136,7 +136,7 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	is_online := fmt.Sprintf("%v", re.Website.Interface.IsOnline(reqData.Streamer))
-	status.ResponseHandler(w, r, is_online, nil)
+	status.ResponseHandler(w, r, is_online, true, nil)
 }
 
 type RequestData struct {
@@ -162,9 +162,9 @@ func StopProcess(w http.ResponseWriter, r *http.Request) {
 		rd.mu.Lock()
 		s := rd.Streamer
 		rd.mu.Unlock()
-		status.ResponseHandler(w, r, "Stopping process for "+s, nil)
+		// status.ResponseHandler(w, r, "Stopping process for "+s,true, nil)
 		stream_recorder.Streamer.StopProcessByName(rd.Streamer)
-		status.ResponseHandler(w, r, "Stopped process for"+s, nil)
+		status.ResponseHandler(w, r, "Stopped process for"+s, true, nil)
 		rd.wg.Done()
 
 	}(&stopData)

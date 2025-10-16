@@ -174,7 +174,7 @@ func checkFFmpegDependencies() {
 
 type VideoIntegrity struct {
 	mu    sync.Mutex
-	queue []string // queue of videos that needs to be checked.
+	Queue []string // queue of videos that needs to be checked.
 }
 
 var VideoVerify VideoIntegrity
@@ -182,7 +182,7 @@ var VideoVerify VideoIntegrity
 func (vi *VideoIntegrity) Contains(videoPath string) bool {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
-	for _, video := range vi.queue {
+	for _, video := range vi.Queue {
 		if video == videoPath {
 			return true
 		}
@@ -195,13 +195,13 @@ func (vi *VideoIntegrity) Add(videoPath string) {
 	}
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
-	vi.queue = append(vi.queue, videoPath)
+	vi.Queue = append(vi.Queue, videoPath)
 }
 func (vi *VideoIntegrity) RunCodecVerification() {
 	vi.mu.Lock()
-	queueCopy := make([]string, len(vi.queue))
-	copy(queueCopy, vi.queue)
-	vi.queue = nil
+	queueCopy := make([]string, len(vi.Queue))
+	copy(queueCopy, vi.Queue)
+	vi.Queue = nil
 	vi.mu.Unlock()
 	for _, video := range queueCopy {
 		VerifyCodec(video)

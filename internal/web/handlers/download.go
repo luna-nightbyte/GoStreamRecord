@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"remoteCtrl/internal/media/video_download"
+	"remoteCtrl/internal/web/handlers/status"
 	"strings"
 	"time"
 )
@@ -24,7 +25,8 @@ type req struct {
 }
 
 var request req
-var VideoFormData video_download.DownloadForm
+
+var ActiveDownloaders int = 0
 
 func init() {
 	request.Timestamp = time.Now()
@@ -34,6 +36,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasTimePassed(request.Timestamp, 1*time.Second) {
 		return
 	}
+	var VideoFormData video_download.DownloadForm
 	request.I++
 	request.Timestamp = time.Now()
 	http.Redirect(w, r, "/download", http.StatusFound) // 302 Found
@@ -75,10 +78,17 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if VideoFormData.Option == "onlyfans" {
 		// go onlyfans.Download(FormData.Search, "img")
 	} else {
-		go dw.Download(VideoFormData)
+		status.Status.Is_Downloading = true
+		ActiveDownloaders++
+		dw.Download(VideoFormData)
+		ActiveDownloaders--
+		if ActiveDownloaders == 0 {
+			status.Status.Is_Downloading = false
+		}
 	}
 
 }
+
 func getNextDefaultFileName(filename string) string {
 	_, err := os.ReadFile(filename)
 	if !os.IsNotExist(err) {

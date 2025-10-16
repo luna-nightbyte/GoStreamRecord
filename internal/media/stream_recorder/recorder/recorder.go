@@ -10,7 +10,6 @@ import (
 	"remoteCtrl/internal/media/stream_recorder/recorder/provider"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/settings"
-	"sync"
 	"time"
 
 	"github.com/Eyevinn/mp4ff/mp4"
@@ -19,7 +18,6 @@ import (
 
 type Recorder struct {
 	Cmd          *exec.Cmd         `json:"-"`
-	mu           sync.Mutex        `json:"-"`
 	stopSignal   bool              `json:"-"` // Stops the recording, but ticker can still run
 	exitSignal   chan bool         `json:"-"` // Completely stop the bot ticker.
 	Website      provider.Provider `json:"website"`
@@ -88,8 +86,6 @@ func (b *Recorder) start() {
 
 	b.StartRecording(b.Website.Username)
 
-	b.mu.Lock()
 	b.IsRecording = false
 	b.Stop()
-	b.mu.Unlock()
 }
