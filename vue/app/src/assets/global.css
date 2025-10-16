@@ -371,8 +371,37 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-/* Focus state for keyboard users */
+/* Focus state for keyboard users */  
 .checkbox-container input[type="checkbox"]:focus + label::before {
   /* Use a visible outline around the custom box */
   box-shadow: 0 0 0 3px #007410a5;
 }
+
+
+/* Status */
+.status {
+  position: fixed;  
+  right: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .6rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: .85rem;
+  border: 1px solid #3a3a3a;
+  background: #242424;
+}
+.status__dot {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 9999px;
+  display: inline-block;
+  background: #909090;
+}
+.status--ok { background: color-mix(in oklab, var(--primary) 16%, #242424 84%); border-color: color-mix(in oklab, var(--primary) 60%, #2a2a2a); }
+.status--ok .status__dot { background: var(--primary-light); }
+.status--warn { background: color-mix(in oklab, var(--accent) 20%, #242424 80%); border-color: color-mix(in oklab, var(--accent) 55%, #2a2a2a); color: #111; }
+.status--warn .status__dot { background: var(--accent); }
+.status--down { background: color-mix(in oklab, var(--danger) 18%, #242424 82%); border-color: color-mix(in oklab, var(--danger) 55%, #2a2a2a); }
+.status--down .status__dot { background: var(--danger); }

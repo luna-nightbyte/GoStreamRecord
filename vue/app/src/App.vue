@@ -3,9 +3,10 @@
   <div id="app">
 
     <header class="header_class">
-      <h1 class="header-text">Stream CTRL</h1>
+      <h1 class="header-text">Stream CTRL
+      <StatusIndicator/></h1>
     </header>
- 
+    
 
     <ResponseArea />
     <div class="main-layout-container">
@@ -43,8 +44,8 @@
   </div>
 </template>
 
-<script setup>
-/* Keep it simple: one script block, correct component tags, auto-registered via <script setup> */
+<script setup> 
+import StatusIndicator from './components/StatusIndicator.vue';
 import ResponseArea from './components/ResponseArea.vue';
 import TabButton from './components/TabButton.vue';
 </script>
