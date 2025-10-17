@@ -1,14 +1,17 @@
 FROM alpine:latest AS final
 
 # Install yt-dlp and Python dependencies
-RUN apk add --no-cache yt-dlp python3
+RUN apk add --no-cache yt-dlp python3 libc6-compat
+
+ 
+RUN mkdir -p /app/settings_orig
+RUN mkdir -p /app/settings
+COPY --from=lunanightbyte/gorecord-base:latest /compiled/server /app/server
+RUN chmod +x /app/server
+COPY --from=lunanightbyte/gorecord-base:latest /compiled/settings/* /app/settings_orig/
 
 WORKDIR /app
-
-COPY --from=lunanightbyte/gorecord-base:latest /compiled/server ./server
- 
-COPY ./settings /app/settings
 # Expose the port the server listens on
-EXPOSE 80
+EXPOSE 8050
 
-CMD ["./server"]
+CMD ["/bin/sh", "-c", "cp -r settings_orig/* settings/ && ls && ./server"]

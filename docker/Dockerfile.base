@@ -2,8 +2,6 @@ FROM ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG VERSION
-
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -28,10 +26,13 @@ ENV GOPATH="/go"
 
 WORKDIR /app
 
+RUN mkdir -p /compiled
+
 ## Clone and build the source
 RUN git clone https://github.com/luna-nightbyte/GoStreamRecord && \
     cd GoStreamRecord && \
     make vue && \
-    make app VERSION=$VERSION && \
-    mv GoStreamRecord /compiled/server
- 
+    make app  && \ 
+    mv GoStreamRecord /compiled/server && \
+    cp -r settings /compiled/settings
+  

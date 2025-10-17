@@ -16,9 +16,9 @@ endif
 ifneq ($(shell command -v wget 1>/dev/null 2>&1; echo $$?), 0)
 	WGET := wget
 endif
-
+git describe --tags --abbrev=0
  
-VERSION=0.3.1
+VERSION=$(shell git describe --tags --abbrev=0)
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
@@ -36,8 +36,7 @@ build_go:
 	-buildvcs=false \
 	-ldflags=" \
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
-		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)' \
-		-X 'remoteCtrl/internal/system.enableDebug=true'" \
+		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" && \
 	-o GoStreamRecord
   
 run: build_go
