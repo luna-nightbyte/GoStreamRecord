@@ -15,8 +15,7 @@ ifneq ($(shell command -v curl 1>/dev/null 2>&1; echo $$?), 0)
 endif
 ifneq ($(shell command -v wget 1>/dev/null 2>&1; echo $$?), 0)
 	WGET := wget
-endif
-git describe --tags --abbrev=0
+endif 
  
 VERSION=$(shell git describe --tags --abbrev=0)
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
