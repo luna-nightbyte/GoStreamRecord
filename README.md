@@ -32,12 +32,10 @@ This app depends on the following to be installed:
 - `curl` - `sudo apt install curl`
 
 ### Prerequisites (building the source)
-This app depends on the following to be installed:
 - `node` - `sudo apt install nodejs`
 - `npm` - `sudo apt install npm`
 - `golang` - See the [official](https://go.dev/doc/install) installation instructions
-- `git` - `sudo apt install git`
-- `curl` - `sudo apt install curl`
+- `git` - `sudo apt install git` 
 
 _Windows / Mac users will have to google or ask ChatGPT how to install these on their system._
 
@@ -127,7 +125,7 @@ App uses port __8050__ by default internally.
 user@hostname:~$ docker run \
   -v ./settings:/app/settings \
   -v ./output:/app/videos \
-  -v ./app.log:/app/remoteCtrl.log \ # Use this to access the logfile outside of docker
+  -v ./app.log:/app/remoteCtrl.log \
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:latest
 ```
@@ -159,9 +157,13 @@ Check the `app.log` to read any logs.
 - `/GoStreamRecord add-user newUser newPassword` - Creates a new user and saves it to [users.json](https://github.com/luna-nightbyte/GoStreamRecord/blob/main/settings/users.json) 
 
 ## Other
+### Screenshots
+<img width="2559" height="1026" alt="gallery_2" src="https://github.com/user-attachments/assets/2b8abcf5-8b26-4112-83d7-2905f35e8b3d" />
+<img width="1383" height="733" alt="Download_2" src="https://github.com/user-attachments/assets/2cdfc58d-0fd9-40d5-a5ff-2a75a4734796" />
+<img width="1550" height="734" alt="Livestream_2" src="https://github.com/user-attachments/assets/0d30a846-d6b8-425d-9c03-ad7e67d678b5" />
+<img width="2152" height="734" alt="Recorder_2" src="https://github.com/user-attachments/assets/0536de95-049c-4c5f-a178-b641d4b3f1fe" />
 
 ### Todo
-
 - ~~Select and delete videos~~
 - Option for max video length (and size?)
 - ~~headless mode without webui~~ (Abandoned because i will not create all the logic for handling the various arguments myself. Others can create a PR if they want to.)
@@ -183,5 +185,4 @@ Check the `app.log` to read any logs.
 Unauthorized resale, redistribution, or sharing of recorded content that you do not own or have explicit permission to distribute is strictly prohibited. Users are solely responsible for ensuring compliance with all applicable copyright and privacy laws. The creator of this recorder assumes no liability for any misuse or legal consequences arising from user actions.
   
 ## Thanks
-
 Special thanks to [oliverjrose99](https://github.com/oliverjrose99) for the initial inspiration and their work on [Recordurbate](https://github.com/oliverjrose99/Recordurbate). Initial code of this project was directly inspired by their project.
