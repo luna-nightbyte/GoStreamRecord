@@ -21,7 +21,7 @@ VERSION=$(shell git describe --tags --abbrev=0)
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
-pi:
+pi: vue
 	GOOS=linux GOARCH=arm64 go build \
 	-ldflags=" \
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
@@ -35,7 +35,7 @@ build_go:
 	-buildvcs=false \
 	-ldflags=" \
 		-X 'remoteCtrl/internal/system/version.Version=$(VERSION)' \
-		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" && \
+		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
 	-o GoStreamRecord
   
 run: build_go
