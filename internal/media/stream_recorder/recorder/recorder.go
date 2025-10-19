@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/media/stream_recorder/recorder/provider"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/settings"
@@ -78,7 +78,7 @@ func (b *Recorder) StartRecordTicker(ctx context.Context) {
 
 }
 func (b *Recorder) start() {
-	db.LoadConfig(settings.CONFIG_SETTINGS_PATH, &system.System.DB.Settings)
+	jsondb.Load(settings.CONFIG_SETTINGS_PATH, &system.System.DB.Settings)
 	if !b.Website.Interface.IsOnline(b.Website.Username) {
 		return
 	}

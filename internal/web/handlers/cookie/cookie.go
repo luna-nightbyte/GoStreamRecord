@@ -72,9 +72,10 @@ func ClearLogin(w http.ResponseWriter, key string) {
 func ValidateSession(r *http.Request) (string, bool) {
 	c, err := r.Cookie(SessionCookieName)
 	if err != nil {
+		fmt.Println(err)
 		return "", false
 	}
-
+	fmt.Println("Session", c.Name)
 	mu.Lock()
 	defer mu.Unlock()
 	sess, ok := UserSessions[c.Value]

@@ -117,7 +117,6 @@ func Ping(ipAddr string) bool {
 	// Wait for the response.
 	n, _, err := conn.ReadFrom(reply)
 	if err != nil {
-		log.Println("Ping failed:", err)
 		return false
 	}
 

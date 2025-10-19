@@ -2,7 +2,7 @@ package settings
 
 import (
 	"fmt"
-	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/system/prettyprint"
 )
 
@@ -11,7 +11,7 @@ type app struct {
 	Loop_interval int        `json:"loop_interval_in_minutes"`
 	Files_folder  string     `json:"output_folder"`
 	RateLimit     rate_limit `json:"rate_limit"`
-	Cookie        string     `json:"cookie,omit_empty"`
+	//Cookie        string     `json:"cookie,omit_empty"`
 }
 type rate_limit struct {
 	Enable bool `json:"enable"`
@@ -34,8 +34,8 @@ type Streamer struct {
 }
 
 type DB struct {
-	APIKeys   API_secrets
-	Users     Logins
+	APIKeys API_secrets
+	//Users     Logins
 	Settings  Settings
 	Streamers StreamList
 }
@@ -50,17 +50,17 @@ const (
 
 func Init() DB {
 	var sys DB
-	db.LoadConfig(CONFIG_SETTINGS_PATH, &sys.Settings)
-	db.LoadConfig(CONFIG_USERS_PATH, &sys.Users)
+	jsondb.Load(CONFIG_SETTINGS_PATH, &sys.Settings)
+	//db.LoadConfig(CONFIG_USERS_PATH, &sys.Users)
 	//load(CONFIG_USERS_PATH, &sys.Users)
-	db.LoadConfig(CONFIG_API_PATH, &sys.APIKeys)
-	db.LoadConfig(CONFIG_STREAMERS_PATH, &sys.Streamers)
+	jsondb.Load(CONFIG_API_PATH, &sys.APIKeys)
+	jsondb.Load(CONFIG_STREAMERS_PATH, &sys.Streamers)
 	return sys
 }
 func load(path string, data any) {
-	err := db.LoadConfig(path, &data)
+	err := jsondb.Load(path, &data)
 	if err != nil {
 		fmt.Println(prettyprint.Yellow("Example settings file generated for:"), path)
-		db.GenerateDefault(path, data)
+		jsondb.GenerateDefault(path, data)
 	}
 }

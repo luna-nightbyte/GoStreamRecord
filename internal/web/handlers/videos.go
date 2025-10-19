@@ -7,7 +7,10 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/utils"
+	"remoteCtrl/internal/web/handlers/cookie"
 	"remoteCtrl/internal/web/handlers/login"
 	"strings"
 
@@ -23,31 +26,39 @@ type Video struct {
 func getVideos(baseDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var videos []Video
+		c, err := r.Cookie(cookie.SessionCookieName)
+		if err != nil {
+			return
+		}
+		username := cookie.UserSessions[c.Value]
 
-		err := filepath.WalkDir(baseDir, func(fp string, d os.DirEntry, err error) error {
+		err = filepath.WalkDir(baseDir, func(fp string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
 			if d.IsDir() {
 				return nil
 			}
+			hasAccess, _ := db.DataBase.UserHasAccessToVideo(system.System.Context, username.Name, filepath.Base(fp))
+			isAdmin, _ := db.DataBase.IsAdmin(username.Name)
+			if hasAccess || isAdmin {
+				rel, err := filepath.Rel(baseDir, fp)
+				if err != nil {
+					return nil
+				}
+				rel = filepath.ToSlash(rel)
+				utils.VideoVerify.Add(filepath.Join(baseDir, rel))
 
-			rel, err := filepath.Rel(baseDir, fp)
-			if err != nil {
-				return nil
+				segs := strings.Split(rel, "/")
+				for i, s := range segs {
+					segs[i] = url.PathEscape(s)
+				}
+				encoded := strings.Join(segs, "/")
+				videos = append(videos, Video{
+					URL:  "/videos/" + encoded,
+					Name: rel,
+				})
 			}
-			rel = filepath.ToSlash(rel)
-			utils.VideoVerify.Add(filepath.Join(baseDir, rel))
-
-			segs := strings.Split(rel, "/")
-			for i, s := range segs {
-				segs[i] = url.PathEscape(s)
-			}
-			encoded := strings.Join(segs, "/")
-			videos = append(videos, Video{
-				URL:  "/videos/" + encoded,
-				Name: rel,
-			})
 			return nil
 		})
 		if err != nil {

@@ -67,11 +67,11 @@ func ResetWebUIPassword(args []string) {
 
 	userFound := false
 
+	usrs, _ := db.DataBase.ListUsers()
 	// Loop over the users in the database to find a matching username.
-	for i, u := range System.DB.Users.Users {
-		fmt.Println(username, u.Name)
-		if u.Name == username {
-			System.DB.Users.Users[i].Key = string(cookies.HashedPassword(newPassword))
+	for _, u := range usrs {
+		if u.Username == username {
+			db.DataBase.UpdateUser(u.ID, u.Username, string(cookies.HashedPassword(newPassword)))
 			userFound = true
 			break
 		}
@@ -83,15 +83,16 @@ func ResetWebUIPassword(args []string) {
 		return
 	}
 
-	// Save updated user configuration.
-	db.Update(settings.CONFIG_USERS_PATH, &System.DB.Users)
 	log.Println("Password updated for", username)
 	fmt.Println(prettyprint.Green("Password updated for "), prettyprint.BoldWhite(username))
 }
 
 func AddNewUser(args []string) {
-	if len(args) < 2 {
+	if len(args) < 3 {
 		// Provide clear feedback on what is missing.
+		if len(args) < 2 {
+			fmt.Println(prettyprint.BoldRed("No role provided."))
+		}
 		if len(args) < 1 {
 			fmt.Println(prettyprint.BoldRed("No username provided."))
 		} else {
@@ -104,20 +105,15 @@ func AddNewUser(args []string) {
 	username := args[0]
 	newPassword := args[1]
 
-	db.LoadConfig(settings.CONFIG_USERS_PATH, &System.DB.Users)
-	// Loop over the users in the database to check if the user exists
-	for _, u := range System.DB.Users.Users {
-		fmt.Println(username, u.Name)
-		if u.Name == username {
-			log.Println("User already exists!")
-			fmt.Println(prettyprint.BoldRed("User already exists!"))
-			return
-		}
+	role := args[2]
+
+	err := db.DataBase.AddUser(username, string(cookies.HashedPassword(newPassword)), role)
+
+	if err != nil {
+		log.Println(err)
+		return
 	}
 
-	System.DB.Users.Users = append(System.DB.Users.Users, settings.Login{Name: username, Key: string(cookies.HashedPassword(newPassword))})
-	// Save updated user configuration.
-	db.Update(settings.CONFIG_USERS_PATH, &System.DB.Users)
 	log.Println("Added new user", username)
 	fmt.Println(prettyprint.Green("Added new user "), prettyprint.BoldWhite(username))
 }

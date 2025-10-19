@@ -86,7 +86,7 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		if _, ok := cookie.ValidateSession(r); !ok {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
-		} 
+		}
 		next(w, r)
 	}
 }
@@ -112,7 +112,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var u User
-		err := db.DataBase.Sql.QueryRow(`SELECT id, username, password_hash FROM users WHERE username = ?`, user).
+		err := db.DataBase.SQL.QueryRow(`SELECT id, username, password_hash FROM users WHERE username = ?`, user).
 			Scan(&u.ID, &u.Username, &u.PassHash)
 		if err != nil || cookie.CheckHash(u.PassHash, pass) != nil {
 			http.Redirect(w, r, "/login", http.StatusBadRequest)

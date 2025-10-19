@@ -3,7 +3,7 @@ package cookies
 import (
 	"log"
 	"net/http"
-	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/system/settings"
 	"sync"
 
@@ -21,15 +21,10 @@ type session struct {
 	apiKeys    []string
 }
 
-func New(s settings.Settings) *session {
-	if s.App.Cookie == "" {
-		s.App.Cookie = string(securecookie.GenerateRandomKey(32))
-
-		db.Write(settings.CONFIG_SETTINGS_PATH, s)
-	}
+func New(s settings.Settings) *session { 
 	session := session{
 		subs_mutex: &sync.Mutex{},
-		cookies:    sessions.NewCookieStore([]byte(s.App.Cookie)),
+		cookies:    sessions.NewCookieStore(securecookie.GenerateRandomKey(32)),
 	}
 	session.cookies.Options = &sessions.Options{
 		Path:     "/",
@@ -83,7 +78,7 @@ func (s *session) IsLoggedIn(apiKeys settings.API_secrets, w http.ResponseWriter
 func (s *session) isValidAPIKey(apiKeys settings.API_secrets, providedKey string) bool {
 	if len(s.apiKeys) == 0 {
 
-		err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
+		err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
 		if err != nil {
 			log.Println("Error getting existing keys..", err)
 			return false

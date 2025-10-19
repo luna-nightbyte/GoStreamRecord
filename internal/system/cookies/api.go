@@ -1,7 +1,7 @@
 package cookies
 
 import (
-	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/system/settings"
 
 	"encoding/json"
@@ -21,7 +21,7 @@ func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *ht
 	// 	return
 	// }
 
-	err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
+	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
 	if err != nil {
 		log.Println("Error getting existing keys..", err)
 		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
@@ -57,7 +57,7 @@ func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *ht
 
 	new_api_config.Key = hashedKey
 	apiKeys.Keys = append(apiKeys.Keys, new_api_config)
-	err = db.Write(settings.CONFIG_API_PATH, apiKeys)
+	err = jsondb.Write(settings.CONFIG_API_PATH, apiKeys)
 	if err != nil {
 		http.Error(w, "error saving new key..", http.StatusBadRequest)
 		return
@@ -73,7 +73,7 @@ func GetAPIkeys(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Req
 	// 	return
 	// }
 
-	err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
+	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
 	if err != nil {
 		log.Println("Error getting existing keys..", err)
 		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
@@ -115,7 +115,7 @@ func DeleteAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r 
 		return
 	}
 
-	err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
+	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
 	if err != nil {
 		log.Println("Error getting existing keys..", err)
 		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
@@ -139,7 +139,7 @@ func DeleteAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r 
 	}
 
 	apiKeys.Keys = tmp_secrets.Keys
-	err = db.Write(settings.CONFIG_API_PATH, apiKeys)
+	err = jsondb.Write(settings.CONFIG_API_PATH, apiKeys)
 	if err != nil {
 		log.Println("Error saving new key..", err)
 		http.Error(w, "error saving new key..", http.StatusBadRequest)

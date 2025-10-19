@@ -3,7 +3,7 @@ package status
 import (
 	"encoding/json"
 	"net/http"
-	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/settings"
 )
@@ -37,7 +37,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reload streamer list from config file
-	db.Write(settings.CONFIG_STREAMERS_PATH, &system.System.DB.Streamers)
+	jsondb.Write(settings.CONFIG_STREAMERS_PATH, &system.System.DB.Streamers)
 
 	response := Response{
 		Status: Status,

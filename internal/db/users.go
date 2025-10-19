@@ -1,82 +1,71 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
-// User represents a user account in the database.
-type User struct {
-	ID           int
-	Username     string
-	PasswordHash []byte
-	Role         string
-	UpdatedAt    string // formatted string for display
-}
+// ErrUserNotFound is returned when a user is not found in the database.
+var ErrUserNotFound = errors.New("user not found")
 
 // AddUser hashes the password and inserts a new user record.
-func (db *DB) AddUser(ctx context.Context, username string, password string, role string) error {
+func (db *DB) AddUser(username, password string, group string) error {
 	if username == "" || password == "" {
 		return errors.New("username and password cannot be empty")
 	}
 
-	hash, err := HashPassword(password)
+	hash, err := hashPassword(password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	now := time.Now().Format(time.RFC3339)
 
-	// Insert the new user
-	_, err = db.Sql.ExecContext(ctx,
-		"INSERT INTO users (username, password_hash, role, updated_at) VALUES (?, ?, ?, ?)",
-		username, hash, role, now)
-
+	_, err = db.SQL.ExecContext(db.ctx, add_user, username, hash, now)
 	if err != nil {
-		// A database error (potentially unique constraint violation) occurred
 		log.Printf("DB error adding user %s: %v", username, err)
-		return errors.New("username already exists or database error occurred")
+		return errors.New("username already exists or a database error occurred")
+	}
+
+	usrs, _ := db.ListUsers()
+
+	_, err = db.SQL.ExecContext(db.ctx, admin_add_user, usrs[username].ID, group, now)
+	if err != nil {
+		log.Printf("DB error adding user %s: %v", username, err)
+		return errors.New("username already exists or a database error occurred")
 	}
 
 	return nil
 }
 
-// UpdateUser updates an existing user's password and role.
-// The password update is optional; if 'newPassword' is empty, only the role is updated.
-func (db *DB) UpdateUser(ctx context.Context, userID int, newUsername, newPassword, newRole string) error {
-	if newUsername == "" || newRole == "" {
-		return errors.New("username and role cannot be empty")
-	}
-
-	now := time.Now().Format(time.RFC3339)
-	var hash []byte
-	var err error
-
-	// If a new password is provided, generate a new hash.
-	if newPassword != "" {
-		hash, err = HashPassword(newPassword)
-		if err != nil {
-			return fmt.Errorf("failed to hash new password: %w", err)
-		}
+// UpdateUser updates an existing user's details.
+// If newPassword is an empty string, the password is not updated.
+func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) error {
+	if newUsername == "" {
+		return errors.New("username cannot be empty")
 	}
 
 	var result sql.Result
+	var err error
 	if newPassword != "" {
-		// Update username, password_hash, role, and updated_at
-		result, err = db.Sql.ExecContext(ctx,
-			"UPDATE users SET username=?, password_hash=?, role=?, updated_at=? WHERE id=?",
-			newUsername, hash, newRole, now, userID)
+		hash, err := hashPassword(newPassword)
+		if err != nil {
+			return fmt.Errorf("failed to hash new password: %w", err)
+		}
+		result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, hash, userID)
 	} else {
-		// Update username, role, and updated_at (keep old password hash)
-		result, err = db.Sql.ExecContext(ctx,
-			"UPDATE users SET username=?, role=?, updated_at=? WHERE id=?",
-			newUsername, newRole, now, userID)
+		usrs, _ := db.ListUsers()
+		for _, urs := range usrs {
+			if urs.ID == userID {
+				result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, urs.PasswordHash, userID)
+
+			}
+		}
+		//query := "UPDATE users SET usernamename=?, group_ids=?, updated_at=? WHERE id=?"
 	}
 
 	if err != nil {
@@ -86,15 +75,15 @@ func (db *DB) UpdateUser(ctx context.Context, userID int, newUsername, newPasswo
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("user not found")
+		return ErrUserNotFound
 	}
 
 	return nil
 }
 
 // DeleteUser removes a user record by ID.
-func (db *DB) DeleteUser(ctx context.Context, userID int) error {
-	result, err := db.Sql.ExecContext(ctx, "DELETE FROM users WHERE id = ?", userID)
+func (db *DB) DeleteUser(userID int) error {
+	result, err := db.SQL.ExecContext(db.ctx, admin_del_user, userID)
 	if err != nil {
 		log.Printf("DB error deleting user %d: %v", userID, err)
 		return fmt.Errorf("database error during deletion: %w", err)
@@ -102,78 +91,84 @@ func (db *DB) DeleteUser(ctx context.Context, userID int) error {
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("user not found")
+		return ErrUserNotFound
 	}
 
 	return nil
 }
 
 // ListUsers fetches all users from the database.
-// NOTE: The `currentUsername` parameter is not used here but is preserved
-// to maintain the signature expected by HandleNewUser.
-func (db *DB) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := db.Sql.QueryContext(ctx, "SELECT id, username, password_hash, role, updated_at FROM users")
+func (db *DB) ListUsers() (map[string]User, error) {
+	//query := "SELECT id, username, password_hash,  created_at FROM users"
+	rows, err := db.SQL.QueryContext(db.ctx, listUsers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
 	defer rows.Close()
 
-	var users []User
+	userMap := make(map[string]User)
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("failed to scan user: %w", err)
+		var updatedAt string
+		if err := rows.Scan(&u.ID, &u.Username, &updatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
-		users = append(users, u)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during row iteration: %w", err)
-	}
-
-	return users, nil
-}
-
-// GetUserByID retrieves a single user by their ID.
-func (db *DB) GetUserByID(ctx context.Context, userID int) (*User, error) {
-	row := db.Sql.QueryRowContext(ctx, "SELECT id, username, password_hash, role, updated_at FROM users WHERE id = ?", userID)
-
-	var u User
-	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.UpdatedAt)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil // User not found
+		if u.CreatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
+			return nil, fmt.Errorf("failed to parse timestamp for user %s: %w", u.Username, err)
 		}
-		return nil, fmt.Errorf("failed to query user by ID: %w", err)
+		userMap[u.Username] = u
 	}
-	return &u, nil
+
+	return userMap, rows.Err()
 }
 
 // GetUserByUsername retrieves a single user by their username.
-func (db *DB) GetUserByUsername(ctx context.Context, username string) (*User, error) {
-	row := db.Sql.QueryRowContext(ctx, "SELECT id, username, password_hash, role, updated_at FROM users WHERE username = ?", username)
+func (db *DB) GetUserByUsername(username string) (*User, error) {
+	row := db.SQL.QueryRowContext(db.ctx, getUserRoleInGroup, username)
 
 	var u User
-	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.UpdatedAt)
-
+	var updatedAt string
+	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &updatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil // User not found
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to query user by username: %w", err)
+	}
+
+	if u.CreatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
+		return nil, fmt.Errorf("failed to parse timestamp for user %s: %w", u.Username, err)
 	}
 	return &u, nil
 }
 
-// HashPassword generates a bcrypt hash of the password.
-func HashPassword(password string) ([]byte, error) {
-	// Use a cost factor suitable for your environment. 10 is standard.
-	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+// Authenticate checks a user's credentials against the database.
+func (db *DB) Authenticate(username, password string) (bool, error) {
+	user, err := db.GetUserByUsername(username)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return false, errors.New("invalid username or password")
+		}
+		return false, err
+	}
+
+	if checkPasswordHash(password, user.PasswordHash) {
+		return true, nil
+	}
+
+	return false, errors.New("invalid username or password")
 }
 
-// CheckPasswordHash compares a password with its hash.
-func CheckPasswordHash(password string, hash []byte) bool {
-	err := bcrypt.CompareHashAndPassword(hash, []byte(password))
-	return err == nil
+// IsAdmin checks if a user has admin privileges.
+func (db *DB) IsAdmin(username string) (bool, error) {
+	user, err := db.GetUserByUsername(username)
+	if err != nil {
+		return false, err
+	}
+
+	_, role, err := db.GetGroupForUser(strconv.Itoa(user.ID))
+	if role == RoleAdmin {
+		return true, nil
+	}
+	return false, err
 }

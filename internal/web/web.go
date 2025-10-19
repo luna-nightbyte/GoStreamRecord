@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/prettyprint"
@@ -79,8 +80,9 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	// Auth logic
 	if cookies.UserStore == nil {
 		cookies.UserStore = make(map[string]string)
-		for _, u := range system.System.DB.Users.Users {
-			cookies.UserStore[u.Name] = u.Key
+		users, _ := db.DataBase.ListUsers()
+		for _, u := range users {
+			cookies.UserStore[u.Username] = string(u.PasswordHash)
 		}
 	}
 
