@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/settings"
 )
 
@@ -28,10 +27,10 @@ type status struct {
 }
 
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	if r.Method != http.MethodGet {
 		http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
 		return

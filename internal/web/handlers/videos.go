@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"remoteCtrl/internal/utils"
+	"remoteCtrl/internal/web/handlers/login"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -66,5 +67,5 @@ func getVideos(baseDir string) http.HandlerFunc {
 }
 
 func VideoMux(api string, r *mux.Router, baseDir string) {
-	r.HandleFunc(api, getVideos(baseDir))
+	r.HandleFunc(api, login.RequireAuth(getVideos(baseDir)))
 }

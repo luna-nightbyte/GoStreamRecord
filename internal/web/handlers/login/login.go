@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system/cookies"
+	"remoteCtrl/internal/web/handlers/cookie"
+	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -40,10 +44,10 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	session.Values["user"] = username
 	if err := session.Save(r, w); err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode("Could not save session") 
+		json.NewEncoder(w).Encode("Could not save session")
 		//http.Error(w, "Could not save session", http.StatusInternalServerError)
 		return
-	} 
+	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -74,4 +78,71 @@ func IsNotValid(reqData RequestData, w http.ResponseWriter) (outErr error) {
 		outErr = fmt.Errorf("Username can only contain letters, numbers, and underscores!")
 	}
 	return outErr
+}
+
+// RequireAuth wraps a handler and redirects to /login if not logged in
+func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := cookie.ValidateSession(r); !ok {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		} 
+		next(w, r)
+	}
+}
+
+type User struct {
+	ID       int64
+	Username string
+	Role     string
+	PassHash []byte
+}
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// a.renderLogin(w, r, map[string]any{"Error": ""})
+	case http.MethodPost:
+		user := strings.TrimSpace(r.FormValue("username"))
+		pass := r.FormValue("password")
+		if user == "" || pass == "" {
+
+			http.Redirect(w, r, "/login", http.StatusBadRequest)
+			//  a.renderLogin(w, r, map[string]any{"Error": "Missing credentials"})
+			return
+		}
+		var u User
+		err := db.DataBase.Sql.QueryRow(`SELECT id, username, password_hash FROM users WHERE username = ?`, user).
+			Scan(&u.ID, &u.Username, &u.PassHash)
+		if err != nil || cookie.CheckHash(u.PassHash, pass) != nil {
+			http.Redirect(w, r, "/login", http.StatusBadRequest)
+			return
+		}
+		exp := time.Now().Add(8 * time.Hour).Unix()
+
+		if err := cookie.SetSession(w, cookie.SessionData{UID: u.ID, Name: u.Username, Exp: exp}); err != nil {
+			http.Error(w, "session error", http.StatusInternalServerError)
+			return
+		}
+		fmt.Printf("'%s' logged in", user)
+		http.Redirect(w, r, "/", http.StatusFound)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	c, err := r.Cookie(cookie.SessionCookieName)
+	if err != nil {
+		return
+	}
+	cookie.ClearLogin(w, c.Value)
+	http.SetCookie(w, &http.Cookie{Name: cookie.SessionCookieName, Path: "/", HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode, MaxAge: -1})
+	http.SetCookie(w, &http.Cookie{Name: cookie.CsrfCookieName, Path: "/", HttpOnly: false, Secure: true, SameSite: http.SameSiteLaxMode, MaxAge: -1})
+
+	http.Redirect(w, r, "/login", http.StatusFound)
 }

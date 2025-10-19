@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"strconv"
 	"strings"
 )
@@ -20,10 +19,10 @@ type Video struct {
 }
 
 func GetFiles(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	files := []Video{}
 
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
@@ -96,10 +95,10 @@ type DeleteFilesResponse struct {
 
 // DeleteFilesHandler handles requests to delete files.
 func DeleteFiles(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	// Only allow POST requests.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)

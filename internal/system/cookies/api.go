@@ -16,10 +16,10 @@ type api_response struct {
 }
 
 func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Request) {
-	if !Session.IsLoggedIn(apiKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !Session.IsLoggedIn(apiKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 
 	err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
 	if err != nil {
@@ -68,10 +68,10 @@ func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *ht
 }
 
 func GetAPIkeys(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Request) {
-	if !Session.IsLoggedIn(apiKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !Session.IsLoggedIn(apiKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 
 	err := db.LoadConfig(settings.CONFIG_API_PATH, &apiKeys)
 	if err != nil {
@@ -94,10 +94,10 @@ func GetAPIkeys(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Req
 }
 
 func DeleteAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Request) {
-	if !Session.IsLoggedIn(apiKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !Session.IsLoggedIn(apiKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 
 	var tmp_secrets settings.API_secrets
 

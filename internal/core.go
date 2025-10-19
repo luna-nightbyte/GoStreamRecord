@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"remoteCtrl/internal/command"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/logger"
@@ -28,6 +29,8 @@ func Init() error {
 	// Context for shutdown
 	system.System.Context, system.System.Cancel = context.WithCancel(context.Background())
 
+	db.Init(system.System.Context, "")
+	// db.AEAKEY:= getSecret(secretKey)
 	// COS sig
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -44,7 +47,7 @@ func Init() error {
 		ticker := time.NewTicker(30 * time.Second)
 		go func() {
 			status.Status.IsOnline = utils.Ping(onlineCheckIP)
-			for range ticker.C { 
+			for range ticker.C {
 				status.Status.IsOnline = utils.Ping(onlineCheckIP)
 			}
 		}()

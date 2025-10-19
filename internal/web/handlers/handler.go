@@ -3,8 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -33,10 +31,10 @@ func HasTimePassed(startTime time.Time, duration time.Duration) bool {
 
 // HealthCheckHandler is the HTTP handler for the health check endpoint.
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	response := HealthResponse{
 		Status:  "ok",
 		Message: "Service is up and running",
@@ -51,9 +49,9 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RedirectHome(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	http.Redirect(w, r, "/", http.StatusFound) // 302 Found
 }

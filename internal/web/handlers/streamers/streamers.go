@@ -8,7 +8,6 @@ import (
 	"remoteCtrl/internal/media/stream_recorder"
 	"remoteCtrl/internal/media/stream_recorder/recorder"
 	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/web/handlers/status"
 	"sync"
 )
@@ -16,10 +15,10 @@ import (
 // Handles POST /api/add-streamer.
 // It decodes a JSON payload with a "data" field and returns a dummy response.
 func AddStreamer(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	//if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	//	http.Redirect(w, r, "/login", http.StatusFound)
+	//	return
+	//}
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
@@ -46,10 +45,10 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 // Handles POST /api/remove-streamer.
 // It decodes a JSON payload with the selected option and returns a dummy response.
 func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
@@ -75,10 +74,10 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 
 // Handles GET /api/get-streamers.
 func GetStreamers(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	if r.Method != http.MethodGet {
 		http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
 		return
@@ -96,10 +95,10 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return

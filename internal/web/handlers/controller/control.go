@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"remoteCtrl/internal/media/stream_recorder"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/status"
 )
@@ -14,10 +12,10 @@ import (
 // dcodes a JSON payload with a "command" field (start, stop, or restart)
 // and returns a dummy response.
 func ControlHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// 	http.Redirect(w, r, "/login", http.StatusFound)
+	// 	return
+	// }
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
