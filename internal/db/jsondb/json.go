@@ -1,4 +1,4 @@
-package db
+package jsondb
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func LoadConfig(filePath string, target any) error {
+func Load(filePath string, target any) error {
 	err := read(filePath, &target)
 	if err != nil {
 		return fmt.Errorf("Error reading file %s: %v", filePath, err)
@@ -16,7 +16,7 @@ func LoadConfig(filePath string, target any) error {
 
 	return nil
 }
-func ForceLoadConfig(filePath string, target any) error {
+func ForceLoad(filePath string, target any) error {
 
 	err := read(filePath, &target)
 	if err != nil {
@@ -60,7 +60,7 @@ func read(filePath string, v interface{}) error {
 	defer f.Close()
 
 	decoder := json.NewDecoder(f)
-	if err := decoder.Decode(v); err != nil { 
+	if err := decoder.Decode(v); err != nil {
 		return fmt.Errorf("failed to decode JSON: %w", err)
 	}
 	return nil
