@@ -27,8 +27,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	var response resp = resp{
 		IsAdmin: is_admin,
 		Tabs:    avalable_tabs,
-	}
-	fmt.Println("Tabs:", avalable_tabs)
+	} 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 

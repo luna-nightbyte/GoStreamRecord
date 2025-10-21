@@ -9,7 +9,6 @@ import (
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/localfolder"
 	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/web/handlers/cookie"
 	"remoteCtrl/internal/web/handlers/login"
 	"sort"
 	"strconv"
@@ -65,15 +64,12 @@ func getVideos2() http.HandlerFunc {
 		if err != nil || pageSize <= 0 {
 			pageSize = 10
 		}
-		name, _ := cookie.ValidateSession(r)
-		fmt.Println("Getting videos for", name)
 
 		videos, err := db.DataBase.ListVisibleVideosForUser(system.System.Context, db.GetUserID(r))
 		if err != nil {
 			http.Error(w, "Failed to retrieve videos from database.", http.StatusInternalServerError)
 			return
 		}
-		fmt.Println("videos", len(videos))
 		sort.Slice(videos, func(i, j int) bool {
 			return videos[i].ID < videos[j].ID
 		})
