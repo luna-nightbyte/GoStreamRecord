@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
+//  GROUPS ----------------------------------------------------------------------------------------
+
 // AddGroup inserts a new group with a given set of permissions.
-func (db *DB) AddGroup(groupName string, description string) error {
+func (db *Group) New(groupName string, description string) error {
 	if groupName == "" {
 		return errors.New("group name cannot be empty")
 	}
@@ -16,7 +19,7 @@ func (db *DB) AddGroup(groupName string, description string) error {
 	now := time.Now().Format(time.RFC3339)
 
 	//query := "INSERT INTO groups (name, permissions, updated_at) VALUES (?, ?, ?)"
-	_, err := db.SQL.ExecContext(db.ctx, createGroup, groupName, description, now)
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createGroup, groupName, description, now)
 	if err != nil {
 		log.Printf("DB error adding group %s: %v", groupName, err)
 		return errors.New("group name already exists or a database error occurred")
@@ -25,10 +28,24 @@ func (db *DB) AddGroup(groupName string, description string) error {
 	return nil
 }
 
+// AddGroup inserts a new group with a given set of permissions.
+func (db *Group) AddUser(userID, groupID int, role string) error {
+
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, addUserToGroup, userID, groupID, role)
+	if err != nil {
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("Username exists")
+		}
+		return err
+	}
+
+	return nil
+}
+
 // ListGroups fetches all groups from the database.
-func (db *DB) ListGroups() (map[string]Group, error) {
+func (db *Group) List() (map[string]Group, error) {
 	// query := "SELECT id, name, permissions, updated_at FROM groups"
-	rows, err := db.SQL.QueryContext(db.ctx, getGroupByGroupID)
+	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, getAllGroups)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query groups: %w", err)
 	}
@@ -51,8 +68,8 @@ func (db *DB) ListGroups() (map[string]Group, error) {
 	return groupMap, rows.Err()
 }
 
-func (db *DB) GetGroupForUser(user_id string) (map[string]Group, string, error) {
-	rows, err := db.SQL.QueryContext(db.ctx, getGroupsForUser, user_id)
+func (db *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error) {
+	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, getGroupsForUser, user_id)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to query groups: %w", err)
 	}
@@ -71,3 +88,19 @@ func (db *DB) GetGroupForUser(user_id string) (map[string]Group, string, error) 
 
 	return groupMap, role, rows.Err()
 }
+
+// GetUserByUsername retrieves a single user by their username.
+func (db *User) GetGroupByName(username string) (*User, error) {
+	err := db.queryUserSql(getGroupByName, username)
+	return db, err
+}
+
+// GetUserByUsername retrieves a single user by their username.
+func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error) {
+	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
+}
+
+// // GetUserByUsername retrieves a single user by their username.
+// func (db *User) GetAllUserGroupRelations() (user_group_relations, error) {
+// 	return db.queryUserGroupRelationsSql(getUserGroupRelations)
+// }

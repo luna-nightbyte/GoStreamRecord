@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/web/handlers/cookie"
 	"strconv"
 	"strings"
 )
@@ -18,11 +20,15 @@ type Video struct {
 	NoFiles string `json:"error"`
 }
 
-func GetFiles(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-	// 	http.Redirect(w, r, "/login", http.StatusFound)
-	// 	return
-	// }
+func GetFiles(w http.ResponseWriter, r *http.Request) { 
+	c, err := r.Cookie(cookie.SessionCookieName)
+	if err != nil {
+		return
+	}
+	user_id := db.DataBase.Users.NameToID(cookie.UserSessions[c.Value].Name)
+
+	videos, _ := db.DataBase.ListVisibleVideosForUser(system.System.Context, user_id)
+	fmt.Println("Videos for user: ", videos)
 	files := []Video{}
 
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
@@ -35,6 +41,11 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
 		os.MkdirAll(system.System.DB.Settings.App.Files_folder, 0755)
+	}
+
+	for _, video := range videos {
+		files = append(files, Video{URL: "/files/" + filepath.Join(filepath.Base(filepath.Dir(video.Filepath)), video.Name), Name: video.Name})
+
 	}
 	err = filepath.Walk(system.System.DB.Settings.App.Files_folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -94,12 +105,7 @@ type DeleteFilesResponse struct {
 }
 
 // DeleteFilesHandler handles requests to delete files.
-func DeleteFiles(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-	// 	http.Redirect(w, r, "/login", http.StatusFound)
-	// 	return
-	// }
-	// Only allow POST requests.
+func DeleteFiles(w http.ResponseWriter, r *http.Request) { 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return

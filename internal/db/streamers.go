@@ -5,57 +5,37 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"remoteCtrl/internal/utils"
-	"strconv"
 	"time"
 )
 
 // AddVideo inserts a new video record.
-func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy string) error {
-	if downloadedBy == "" || videoFilepath == "" {
-		return errors.New("video filepath and downloader username cannot be empty")
+func (db *DB) AddStreamer(ctx context.Context, streamerName string, downloadedBy string) error {
+	if downloadedBy == "" || streamerName == "" {
+		return errors.New("streamerName and downloader username cannot be empty")
 	}
 
 	now := time.Now().Format(time.RFC3339)
-	videoName := filepath.Base(videoFilepath)
+	videoName := filepath.Base(streamerName)
 	// Default to an empty list of groups, can be updated later.
+	groups, err := marshalIntSlice([]int{})
+	if err != nil {
+		return fmt.Errorf("failed to marshal default groups for video: %w", err)
+	}
 
-	sha256, _ := utils.FileSHA256(videoFilepath)
-	_, err := db.SQL.ExecContext(ctx, createVideo, videoFilepath, videoName, sha256, db.Users.NameToID(downloadedBy), now)
+	query := "INSERT INTO streamers (filepath, name, downloaded_by, groups, updated_at) VALUES (?, ?, ?, ?, ?)"
+	_, err = db.SQL.ExecContext(ctx, query, streamerName, videoName, downloadedBy, groups, now)
 
 	if err != nil {
-		return err
+		return errors.New("video file already exists or a database error occurred")
 	}
 
 	return nil
 }
 
-// AddVideo inserts a new video record.
-func (db *DB) ShareVideo(videoID, groupID int) error {
-
-	_, err := db.SQL.ExecContext(db.ctx, shareVideoWithGroup, videoID, groupID)
-	return err
-}
-func (u *User) NameToID(name string) int {
-	r, _ := u.List()
-	return r[name].ID
-
-}
-func (g *Group) NameToID(name string) int {
-	r, _ := g.List()
-	return r[name].ID
-
-}
-func (db *DB) VideoNameToID(name string) int {
-	r, _ := db.ListAllVideoss(db.ctx)
-	return r[name].ID
-
-}
-
 // ListAllVideos retrieves all videos from the database.
-func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error) {
-	usr_id := strconv.Itoa(db.Users.NameToID(InternalUser))
-	rows, err := db.SQL.QueryContext(ctx, getVisibleVideosForUser, usr_id, usr_id)
+func (db *DB) ListAllVideoss(ctx context.Context) (map[string]Video, error) {
+
+	rows, err := db.SQL.QueryContext(ctx, select_shared_videos)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query videos: %w", err)
 	}
@@ -64,14 +44,15 @@ func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error) {
 	videoMap := make(map[string]Video)
 	for rows.Next() {
 		var v Video
+		var groupsJSON string
 		var updatedAt string
-		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.Sha256, &v.UploaderUserID, &updatedAt); err != nil {
+		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.UploaderUserID, &groupsJSON, &updatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan video row: %w", err)
 		}
 		if v.CreatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
 			return nil, fmt.Errorf("failed to parse timestamp for video %s: %w", v.Name, err)
 		}
-		videoMap[v.Filepath] = v
+		videoMap[v.Name] = v
 	}
 
 	return videoMap, rows.Err()
@@ -79,11 +60,10 @@ func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error) {
 
 // In db/video.go
 
-func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video, error) {
+func (db *DB) ListVisibleVideossForUser(ctx context.Context, userID int) ([]Video, error) {
 
-	rows, err := db.SQL.QueryContext(ctx, getVisibleVideosForUser, userID, userID)
+	rows, err := db.SQL.QueryContext(ctx, select_shared_videos, userID, userID)
 	if err != nil {
-		fmt.Println(err)
 		return nil, fmt.Errorf("failed to query visible videos: %w", err)
 	}
 	defer rows.Close()
@@ -93,8 +73,7 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 	for rows.Next() {
 		var v Video
 		var createdAt string
-		if err := rows.Scan(&v.ID, &v.Name, &v.Filepath, &v.Sha256, &v.UploaderUserID, &createdAt); err != nil {
-			fmt.Println(err)
+		if err := rows.Scan(&v.ID, &v.Name, &v.Filepath, &v.UploaderUserID, &createdAt); err != nil {
 			return nil, fmt.Errorf("failed to scan video row: %w", err)
 		}
 		v.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
@@ -113,7 +92,7 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 // UserHasAccessToVideo checks if a user has access to a specific video.
 // This is a simplified check based on who downloaded it.
 // A more robust implementation would check against user groups.
-func (db *DB) UserHasAccessToVideo_(ctx context.Context, username string, videoName string) (bool, error) {
+func (db *DB) UserHasAccessToVisdeo(ctx context.Context, username string, videoName string) (bool, error) {
 	query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
 	var count int
 	err := db.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)

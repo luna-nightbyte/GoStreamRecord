@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"remoteCtrl/internal"
+	"remoteCtrl/internal/media/localfolder"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/system/version"
@@ -46,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	go localfolder.ContiniousRead(system.System.DB.Settings.App.Files_folder)
 	go web.ServeHTTP(system.System.Context, VueLoginFiles, VueDistFiles)
 
 	<-system.System.Context.Done()

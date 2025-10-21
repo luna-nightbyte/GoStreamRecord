@@ -83,6 +83,7 @@ func IsNotValid(reqData RequestData, w http.ResponseWriter) (outErr error) {
 // RequireAuth wraps a handler and redirects to /login if not logged in
 func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		if _, ok := cookie.ValidateSession(r); !ok {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -106,25 +107,26 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		user := strings.TrimSpace(r.FormValue("username"))
 		pass := r.FormValue("password")
 		if user == "" || pass == "" {
-
+			fmt.Println("Username or password empty")
 			http.Redirect(w, r, "/login", http.StatusBadRequest)
 			//  a.renderLogin(w, r, map[string]any{"Error": "Missing credentials"})
 			return
 		}
 		var u User
+
 		err := db.DataBase.SQL.QueryRow(`SELECT id, username, password_hash FROM users WHERE username = ?`, user).
 			Scan(&u.ID, &u.Username, &u.PassHash)
 		if err != nil || cookie.CheckHash(u.PassHash, pass) != nil {
-			http.Redirect(w, r, "/login", http.StatusBadRequest)
+			http.Redirect(w, r, "/login", http.StatusInternalServerError)
 			return
 		}
 		exp := time.Now().Add(8 * time.Hour).Unix()
+		c := cookie.SessionData{UID: u.ID, Name: u.Username, Exp: exp}
 
-		if err := cookie.SetSession(w, cookie.SessionData{UID: u.ID, Name: u.Username, Exp: exp}); err != nil {
+		if err := cookie.SetSession(w, c); err != nil {
 			http.Error(w, "session error", http.StatusInternalServerError)
 			return
 		}
-		fmt.Printf("'%s' logged in", user)
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

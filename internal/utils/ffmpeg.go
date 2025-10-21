@@ -124,6 +124,7 @@ func CheckVideoFormat(filePath string) (VideoCheckResult, error) {
 
 // FixMpegTsToMp4 performs a fast, lossless container re-mux for MPEG-TS issues.
 func FixMpegTsToMp4(inputPath, outputPath string) error {
+	log.Println("Fixing codec of", inputPath)
 	fmt.Printf("--- Fix: Lossless Re-muxing %s (MPEG-TS -> MP4)\n", inputPath)
 
 	cmd := exec.Command("ffmpeg",
@@ -137,13 +138,11 @@ func FixMpegTsToMp4(inputPath, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("ffmpeg re-muxing failed for %s: %w\nOutput: %s", inputPath, err, string(output))
 	}
-
-	fmt.Printf("--- Successfully re-muxed to %s\n", outputPath)
 	return nil
 }
 
 func FixHevcToAvc(inputPath, outputPath string) error {
-
+	log.Println("Fixing codec of", inputPath)
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
 		"-c:v", "libx264", // Force H.264 codec
@@ -158,8 +157,6 @@ func FixHevcToAvc(inputPath, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("ffmpeg re-encoding failed for %s: %w\nOutput: %s", inputPath, err, string(output))
 	}
-
-	fmt.Printf("--- Successfully re-encoded to web-compatible H.264 MP4 at %s\n", outputPath)
 	return nil
 }
 

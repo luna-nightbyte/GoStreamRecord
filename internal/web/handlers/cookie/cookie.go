@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gorilla/sessions"
 )
 
 type Session struct {
 	Name      string
 	ExpiresAt time.Time
+	cookies   *sessions.CookieStore
 }
 
 var (
@@ -20,7 +23,7 @@ var (
 )
 
 const (
-	SessionCookieName = "session"
+	SessionCookieName = "session_cookie"
 	CsrfCookieName    = "session_csrf"
 )
 
@@ -67,15 +70,28 @@ func ClearLogin(w http.ResponseWriter, key string) {
 		Secure:   false,
 	})
 }
+func CurrentUser(r *http.Request) string {
+	c, err := r.Cookie(SessionCookieName)
+	if err != nil {
+		return ""
+	}
+	return UserSessions[c.Value].Name
+}
 
 // ValidateSession returns the username if the session is valid
 func ValidateSession(r *http.Request) (string, bool) {
 	c, err := r.Cookie(SessionCookieName)
 	if err != nil {
 		fmt.Println(err)
+
+		var s Session
+		session, err := s.cookies.Get(r, "session")
+		if auth, ok := session.Values["authenticated"].(bool); ok && auth {
+			fmt.Println("Ok")
+		}
+		fmt.Println(err)
 		return "", false
 	}
-	fmt.Println("Session", c.Name)
 	mu.Lock()
 	defer mu.Unlock()
 	sess, ok := UserSessions[c.Value]
@@ -110,7 +126,6 @@ func SetSession(w http.ResponseWriter, session SessionData) error {
 
 	encoded, err := Sc.Encode(SessionCookieName, session)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 

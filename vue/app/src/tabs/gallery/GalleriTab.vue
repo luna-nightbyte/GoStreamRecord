@@ -6,6 +6,11 @@
       Run video codec repair </button>
     <div class="card-header p-4 border-b">Gallery</div>
 
+      <div class="pagination"> 
+        <button  @click="prevPage" :disabled="page === 1">Previous</button>
+        <span>Page {{ page }}</span>
+        <button @click="nextPage">Next</button>
+      </div>
     <section class="media-list card_rec" id="localFilesID">
       <div v-if="localMedia.length === 0">
         No videos available
@@ -25,13 +30,13 @@
           </div>
         </figure>
 
-      </div>
-      <div class="pagination">
-
-        <button @click="prevPage" :disabled="page === 1">Previous</button>
+      <div class="pagination"> 
+        <button  @click="prevPage" :disabled="page === 1">Previous</button>
         <span>Page {{ page }}</span>
-        <button @click="nextPage" :disabled="localMedia.length < pageSize">Next</button>
+        <button @click="nextPage" >Next</button>
       </div>
+      </div>
+      
     </section>
   </div>
 </template>
@@ -45,8 +50,8 @@ export default {
   data() {
     return {
       localMedia: [],
-      page: 1,
-      pageSize: 10,
+      page: 1, 
+      pageSize: 6,
       searchTerm: '',
       fullScreenMedia: null,
     };
@@ -54,7 +59,7 @@ export default {
   methods: {
     async sendCommand(command, name = '') {
       try {
-        // 1. Await the fetch call to get the Response object
+        // Await the fetch call to get the Response object
         const response = await fetch("/api/control", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -97,7 +102,8 @@ export default {
     },
 
     fetchVideos() {
-      axios.get(`/api/videos?page=${this.page}`)
+      // 2. Pass the pageSize to the backend API in the request
+      axios.get(`/api/videos?page=${this.page}&pageSize=${this.pageSize}`)
         .then(response => {
           this.localMedia = response.data;
         })
@@ -127,6 +133,7 @@ export default {
     },
 
     searchMedia() {
+      // This function is empty, you could implement search logic here in the future
     }
   },
   mounted() {

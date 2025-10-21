@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -58,4 +60,23 @@ func CopyFile(src, dst string) error {
 	}
 
 	return nil
+}
+
+func FileSHA256(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", fmt.Errorf("failed to copy file contents to hasher: %w", err)
+	}
+	hashInBytes := hasher.Sum(nil)
+
+	// 6. Convert the byte slice to a hexadecimal string.
+	hashString := fmt.Sprintf("%x", hashInBytes)
+
+	return hashString, nil
 }

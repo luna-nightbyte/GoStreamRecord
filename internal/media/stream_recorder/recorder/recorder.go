@@ -51,6 +51,9 @@ func getFileSize(filePath string) int64 {
 	return info.Size()
 }
 
+
+// StartRecordTicker Starts a new ticker where the bots will wait for the model to be online. 
+// Once online it starts a new recording for that bot until either exit sognal is recieved, or theselected bot should be fully stopped.
 func (b *Recorder) StartRecordTicker(ctx context.Context) {
 
 	ticker := time.NewTicker(time.Second)

@@ -56,7 +56,7 @@ func ResetWebUIPassword(args []string) {
 		if len(args) < 1 {
 			fmt.Println(prettyprint.BoldRed("No username provided."))
 		} else {
-			fmt.Println(prettyprint.BoldRed("No new password provided."))
+			fmt.Println(prettyprint.BoldRed("No new password provided.", args))
 		}
 		fmt.Println(prettyprint.BoldRed("Error. See usage."))
 		return
@@ -67,11 +67,11 @@ func ResetWebUIPassword(args []string) {
 
 	userFound := false
 
-	usrs, _ := db.DataBase.ListUsers()
+	usrs, _ := db.DataBase.Users.List()
 	// Loop over the users in the database to find a matching username.
 	for _, u := range usrs {
 		if u.Username == username {
-			db.DataBase.UpdateUser(u.ID, u.Username, string(cookies.HashedPassword(newPassword)))
+			db.DataBase.Users.Update(u.ID, u.Username, string(cookies.HashedPassword(newPassword)))
 			userFound = true
 			break
 		}
@@ -88,15 +88,18 @@ func ResetWebUIPassword(args []string) {
 }
 
 func AddNewUser(args []string) {
+
+	fmt.Println("num of args:", len(args))
+
+	fmt.Println("args:", (args))
 	if len(args) < 3 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 2 {
 			fmt.Println(prettyprint.BoldRed("No role provided."))
-		}
-		if len(args) < 1 {
+		} else if len(args) < 1 {
 			fmt.Println(prettyprint.BoldRed("No username provided."))
 		} else {
-			fmt.Println(prettyprint.BoldRed("No new password provided."))
+			fmt.Println(prettyprint.BoldRed("No new password provided.", args))
 		}
 		fmt.Println(prettyprint.BoldRed("Error! See usage."))
 		return
@@ -106,11 +109,20 @@ func AddNewUser(args []string) {
 	newPassword := args[1]
 
 	role := args[2]
+	group := args[3]
 
-	err := db.DataBase.AddUser(username, string(cookies.HashedPassword(newPassword)), role)
-
+	err := db.DataBase.Users.New(username, newPassword)
 	if err != nil {
 		log.Println(err)
+		fmt.Println(prettyprint.BoldRed(err))
+		return
+	}
+
+	user_id := db.DataBase.Users.NameToID(username)
+	group_id := db.DataBase.Groups.NameToID(group)
+	err = db.DataBase.Groups.AddUser(user_id, group_id, role)
+	if err != nil {
+		fmt.Println(prettyprint.BoldRed(err))
 		return
 	}
 

@@ -21,7 +21,7 @@ type session struct {
 	apiKeys    []string
 }
 
-func New(s settings.Settings) *session { 
+func New(s settings.Settings) *session {
 	session := session{
 		subs_mutex: &sync.Mutex{},
 		cookies:    sessions.NewCookieStore(securecookie.GenerateRandomKey(32)),

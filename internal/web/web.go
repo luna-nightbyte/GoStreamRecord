@@ -80,7 +80,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	// Auth logic
 	if cookies.UserStore == nil {
 		cookies.UserStore = make(map[string]string)
-		users, _ := db.DataBase.ListUsers()
+		users, _ := db.DataBase.Users.List()
 		for _, u := range users {
 			cookies.UserStore[u.Username] = string(u.PasswordHash)
 		}
@@ -136,7 +136,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.PathPrefix("/videos/").
 		Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(baseDir))))
 
-	handlers.VideoMux("/api/videos", app.Router, baseDir)
+	VideoMux("/api/videos", app.Router, baseDir)
 
 	app.Router.PathPrefix("/").Handler(http.HandlerFunc(login.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {

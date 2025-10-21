@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	"golang.org/x/crypto/bcrypt"
 )
 

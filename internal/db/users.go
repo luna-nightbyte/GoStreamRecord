@@ -4,39 +4,35 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
-	"strconv"
+	"net/http"
+	"remoteCtrl/internal/web/handlers/cookie"
+	"strings"
 	"time"
 )
 
 // ErrUserNotFound is returned when a user is not found in the database.
 var ErrUserNotFound = errors.New("user not found")
 
+const ErrIsExist = "UNIQUE constraint failed"
+
+// SQL QUERIES ---------------------------------------------------------------------
+
 // AddUser hashes the password and inserts a new user record.
-func (db *DB) AddUser(username, password string, group string) error {
-	if username == "" || password == "" {
+func (db *User) New(username, raw_password string) error {
+	if username == "" || raw_password == "" {
 		return errors.New("username and password cannot be empty")
 	}
-
-	hash, err := hashPassword(password)
+	hash, err := hashPassword(raw_password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-
 	now := time.Now().Format(time.RFC3339)
-
-	_, err = db.SQL.ExecContext(db.ctx, add_user, username, hash, now)
+	_, err = DataBase.SQL.ExecContext(DataBase.ctx, createUser, username, hash, now)
 	if err != nil {
-		log.Printf("DB error adding user %s: %v", username, err)
-		return errors.New("username already exists or a database error occurred")
-	}
-
-	usrs, _ := db.ListUsers()
-
-	_, err = db.SQL.ExecContext(db.ctx, admin_add_user, usrs[username].ID, group, now)
-	if err != nil {
-		log.Printf("DB error adding user %s: %v", username, err)
-		return errors.New("username already exists or a database error occurred")
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("Username already exists")
+		}
+		return err
 	}
 
 	return nil
@@ -44,7 +40,7 @@ func (db *DB) AddUser(username, password string, group string) error {
 
 // UpdateUser updates an existing user's details.
 // If newPassword is an empty string, the password is not updated.
-func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) error {
+func (db *User) Update(userID int, newUsername string, newPassword string) error {
 	if newUsername == "" {
 		return errors.New("username cannot be empty")
 	}
@@ -56,12 +52,12 @@ func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) err
 		if err != nil {
 			return fmt.Errorf("failed to hash new password: %w", err)
 		}
-		result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, hash, userID)
+		result, err = DataBase.SQL.ExecContext(DataBase.ctx, updateUser, newUsername, hash, userID)
 	} else {
-		usrs, _ := db.ListUsers()
+		usrs, _ := DataBase.Users.List()
 		for _, urs := range usrs {
 			if urs.ID == userID {
-				result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, urs.PasswordHash, userID)
+				result, err = DataBase.SQL.ExecContext(DataBase.ctx, updateUser, newUsername, urs.PasswordHash, userID)
 
 			}
 		}
@@ -69,7 +65,6 @@ func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) err
 	}
 
 	if err != nil {
-		log.Printf("DB error updating user %d: %v", userID, err)
 		return errors.New("failed to update user (username may already exist)")
 	}
 
@@ -82,10 +77,9 @@ func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) err
 }
 
 // DeleteUser removes a user record by ID.
-func (db *DB) DeleteUser(userID int) error {
-	result, err := db.SQL.ExecContext(db.ctx, admin_del_user, userID)
+func (db *User) DeleteUser(userID int) error {
+	result, err := DataBase.SQL.ExecContext(DataBase.ctx, admin_del_user, userID)
 	if err != nil {
-		log.Printf("DB error deleting user %d: %v", userID, err)
 		return fmt.Errorf("database error during deletion: %w", err)
 	}
 
@@ -98,9 +92,9 @@ func (db *DB) DeleteUser(userID int) error {
 }
 
 // ListUsers fetches all users from the database.
-func (db *DB) ListUsers() (map[string]User, error) {
+func (db *User) List() (map[string]User, error) {
 	//query := "SELECT id, username, password_hash,  created_at FROM users"
-	rows, err := db.SQL.QueryContext(db.ctx, listUsers)
+	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, listUsers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
@@ -122,29 +116,51 @@ func (db *DB) ListUsers() (map[string]User, error) {
 	return userMap, rows.Err()
 }
 
-// GetUserByUsername retrieves a single user by their username.
-func (db *DB) GetUserByUsername(username string) (*User, error) {
-	row := db.SQL.QueryRowContext(db.ctx, getUserRoleInGroup, username)
+func (db *User) GetUserByName(username string) (*User, error) {
+	err := db.queryUserSql(getUserByUsername, username)
+	return db, err
+}
+func (db *User) GetUserByID(id int) (*User, error) {
+	err := db.queryUserSql(getUserByID, id)
+	return db, err
+}
 
-	var u User
-	var updatedAt string
-	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &updatedAt)
+// HELPERS ------------------------------------------------------------------------------------
+func (u *User) queryUserSql(query string, args ...any) error {
+	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+
+	var createdAt string
+	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrUserNotFound
+			return ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to query user by username: %w", err)
+		return err
 	}
 
-	if u.CreatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
-		return nil, fmt.Errorf("failed to parse timestamp for user %s: %w", u.Username, err)
+	if u.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return err
 	}
-	return &u, nil
+	return nil
+}
+
+func (u *User) queryUserGroupRelationsSql(query string, args ...any) (user_group_relations, error) {
+	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+	var usrGrp user_group_relations
+	err := row.Scan(&usrGrp.UserID, &usrGrp.GroupID, &usrGrp.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return usrGrp, ErrUserNotFound
+		}
+		return usrGrp, err
+	}
+
+	return usrGrp, nil
 }
 
 // Authenticate checks a user's credentials against the database.
-func (db *DB) Authenticate(username, password string) (bool, error) {
-	user, err := db.GetUserByUsername(username)
+func (db *User) Authenticate(username, password string) (bool, error) {
+	user, err := db.GetUserByName(username)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			return false, errors.New("invalid username or password")
@@ -160,15 +176,21 @@ func (db *DB) Authenticate(username, password string) (bool, error) {
 }
 
 // IsAdmin checks if a user has admin privileges.
-func (db *DB) IsAdmin(username string) (bool, error) {
-	user, err := db.GetUserByUsername(username)
+func (db *User) IsAdmin(username string) (bool, error) {
+	user, err := db.GetUserByName(username)
 	if err != nil {
 		return false, err
 	}
-
-	_, role, err := db.GetGroupForUser(strconv.Itoa(user.ID))
+	_, role, err := DataBase.Groups.ListGroupsByUserID(user.ID)
 	if role == RoleAdmin {
 		return true, nil
 	}
 	return false, err
+}
+
+func GetUserID(r *http.Request) int {
+	name, _ := cookie.ValidateSession(r)
+	return DataBase.Users.NameToID(name)
+	// usrs, _ := db.ListUsers()
+	// grps, _ := db.ListGroups()
 }

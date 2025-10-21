@@ -16,6 +16,7 @@ import (
 	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/status"
 	"remoteCtrl/internal/web/telegram"
+
 	"strconv"
 	"syscall"
 	"time"
@@ -68,14 +69,16 @@ func Init() error {
 	//
 
 	cmdName := os.Args[1]
+	fmt.Println("Command name:", cmdName)
 	statup_command, exists := command.CMD.Startup.Map[cmdName]
+	fmt.Println("statup_command:", statup_command)
+	fmt.Println("Args:",os.Args[2:])
 	if !exists {
 		system.StartupError()
 		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
 		log.Println("Unknown command:", cmdName)
 		return fmt.Errorf("unknown command")
-	}
-
+	} 
 	statup_command.Run(os.Args[2:])
 
 	system.System.Cancel()

@@ -70,10 +70,10 @@ func (b *Controller) Execute(command string, name string) {
 			status.Status.Is_Recording = true
 			b.bots[name].Start()
 
+
 			go b.bots[name].StartRecordTicker(b.ctx)
 
-		} else {
-			//fmt.Println("Starting bot for", name)
+		} else { 
 			if err := b.writeYoutubeDLdb(); err != nil {
 				log.Println("Error writing youtube-dl db:", err)
 				return

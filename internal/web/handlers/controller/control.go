@@ -9,13 +9,9 @@ import (
 	"remoteCtrl/internal/web/handlers/status"
 )
 
-// dcodes a JSON payload with a "command" field (start, stop, or restart)
+// dcodes a JSON payload with a "command" field (start, stop, or restart, fix-codec)
 // and returns a dummy response.
 func ControlHandler(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
-	// 	http.Redirect(w, r, "/login", http.StatusFound)
-	// 	return
-	// }
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
@@ -35,6 +31,8 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		Message: fmt.Sprintf("Executed command '%s'", reqData.Command),
 	}
 	if reqData.Name == "" { // All was selected or Video codec fix
+
+		// List all active bots/recorders
 		recorders := stream_recorder.Streamer.ListRecorders()
 		for _, recorder := range recorders {
 			go stream_recorder.Streamer.Execute(reqData.Command, recorder.Website.Username)
