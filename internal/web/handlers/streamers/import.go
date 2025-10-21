@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
-	"remoteCtrl/internal/system/settings"
 	"remoteCtrl/internal/web/handlers/status"
 )
 
@@ -53,7 +53,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := status.Response{}
 
-	var import_list []settings.Streamer
+	var import_list []db.Streamer
 	err = json.Unmarshal(fileContent, &import_list)
 	if err != nil {
 		resp = status.Response{
@@ -64,12 +64,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
 		return
 	}
-	for _, streamer := range import_list {
-		if system.System.Config.Streamers.Exist(streamer.Name) {
-			continue
-		}
+
+	for _, streamer := range import_list { 
+		db.DataBase.NewStreamer(streamer.Name, streamer.Provider, db.GetUserID(r))
 		counter++
-		system.System.Config.AddStreamer(streamer.Name, streamer.Provider)
 	}
 
 	resp = status.Response{

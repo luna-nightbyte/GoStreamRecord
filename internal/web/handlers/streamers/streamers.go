@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/stream_recorder"
 	"remoteCtrl/internal/media/stream_recorder/recorder"
-	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/web/handlers/status"
 	"sync"
 )
@@ -33,8 +33,9 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db.DataBase.NewStreamer(reqData.Data, r.URL.Query().Get("provider"), db.GetUserID(r))
 	resp := status.Response{
-		Message: system.System.Config.AddStreamer(reqData.Data, r.URL.Query().Get("provider")),
+		Message: "success",
 		Data:    reqData.Data,
 	}
 
@@ -63,8 +64,10 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	streamers, _ := db.DataBase.Streamers.List()
+	_, err := db.DataBase.Streamers.DeleteForUser(db.GetUserID(r), streamers[reqData.Selected].ID)
 	resp := status.Response{
-		Message: system.System.Config.RemoveStreamer(reqData.Selected),
+		Message: err.Error(),
 		Data:    reqData.Selected,
 	}
 
@@ -85,8 +88,9 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	streamers, _ := db.DataBase.Streamers.List()
 	list := []string{}
-	for _, s := range system.System.Config.Streamers.List {
+	for _, s := range streamers {
 		//list[s.Name] = s.Provider
 		list = append(list, s.Name)
 	}
@@ -120,7 +124,9 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if reqData.Provider == "" {
-		for _, streamer := range system.System.Config.Streamers.List {
+
+		streamers, _ := db.DataBase.Streamers.List()
+		for _, streamer := range streamers {
 			if streamer.Name == reqData.Streamer {
 				reqData.Provider = streamer.Provider
 				break

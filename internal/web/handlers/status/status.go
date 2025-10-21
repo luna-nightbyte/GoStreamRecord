@@ -3,9 +3,6 @@ package status
 import (
 	"encoding/json"
 	"net/http"
-	"remoteCtrl/internal/db/jsondb"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/settings"
 )
 
 // Response is a generic response structure for our API endpoints.
@@ -35,9 +32,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	// Reload streamer list from config file
-	jsondb.Write(settings.CONFIG_STREAMERS_PATH, &system.System.Config.Streamers)
 
 	response := Response{
 		Status: Status,

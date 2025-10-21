@@ -10,11 +10,11 @@ import (
 // SQL QUERIES ---------------------------------------------------------------------
 
 // AddUser hashes the password and inserts a new user record.
-func (db *Streamer) New(tabName, provider string) error {
-	if tabName == "" {
+func (db *Streamer) New(streamerName, provider string) error {
+	if streamerName == "" {
 		return errors.New("tabName cannot be empty")
 	}
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createStreamer, tabName, provider)
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createStreamer, streamerName, provider)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("tab already exists")
@@ -70,8 +70,8 @@ func (db *Streamer) GetAvailableForUser(userID int) (map[string]Streamer, error)
 
 	return tabsMap, nil
 }
-func (db *Streamer) DeleteForUser(user_id, tab_id int) (*Streamer, error) {
-	err := db.queryTabSql(unshareStreamerFromGroup, user_id, tab_id)
+func (db *Streamer) DeleteForUser(user_id, streamer_id int) (*Streamer, error) {
+	err := db.queryTabSql(unshareStreamerFromGroup, user_id, streamer_id)
 	return db, err
 }
 

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/stream_recorder/recorder"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/settings"
 	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/status"
 	"strings"
@@ -54,7 +53,7 @@ func (b *Controller) Execute(command string, name string) {
 		status.Status.Is_Fixing_Codec = true
 		log.Println("Starting video codec verification. This might take some time depending on how many videos you have and their lenght/quality.")
 		utils.VideoVerify.RunCodecVerification()
-		
+
 		status.Status.Is_Fixing_Codec = false
 	case "start":
 		// If the bot was previously stopped, reinitialize the context.
@@ -70,17 +69,17 @@ func (b *Controller) Execute(command string, name string) {
 			status.Status.Is_Recording = true
 			b.bots[name].Start()
 
-
 			go b.bots[name].StartRecordTicker(b.ctx)
 
-		} else { 
+		} else {
 			if err := b.writeYoutubeDLdb(); err != nil {
 				log.Println("Error writing youtube-dl db:", err)
 				return
 			}
-			var streamer settings.Streamer
+			var streamer db.Streamer
 			found := false
-			for _, streamConf := range system.System.Config.Streamers.List {
+			stramers, _ := db.DataBase.Streamers.List()
+			for _, streamConf := range stramers {
 				if streamConf.Name == name {
 					streamer = streamConf
 					found = true

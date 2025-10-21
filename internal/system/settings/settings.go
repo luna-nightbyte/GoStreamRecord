@@ -20,14 +20,14 @@ type Settings struct {
 	Telegram      telegram   `json:"telegram"`
 }
 
-type StreamList struct {
-	List []Streamer `json:"streamers"`
-}
+// type StreamList struct {
+// 	List []Streamer `json:"streamers"`
+// }
 
-type Streamer struct {
-	Name     string `json:"name"`
-	Provider string `json:"provider"`
-}
+// type Streamer struct {
+// 	Name     string `json:"name"`
+// 	Provider string `json:"provider"`
+// }
 
 type DB struct {
 	APIKeys API_secrets

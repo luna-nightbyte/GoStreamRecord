@@ -173,12 +173,11 @@ func Init(ctx context.Context, path string) {
 		if err != nil {
 			fmt.Println("Fatal: Could not create tab: %v", err)
 		}
-		DataBase.NewStreamer("test-streamer", "chaturbate", exampleAdmin)
+		DataBase.NewStreamer("test-streamer", "chaturbate", DataBase.Users.NameToID(exampleAdmin))
 	}
 }
 
-func (s *DB) NewStreamer(streamer_name, provider, username string) {
-	user_id := DataBase.Users.NameToID(username)
+func (s *DB) NewStreamer(streamer_name, provider string, user_id int) {
 	groups, _, _ := DataBase.Groups.ListGroupsByUserID(user_id)
 	DataBase.Streamers.New(streamer_name, provider)
 	streamers, _ := DataBase.Streamers.List()

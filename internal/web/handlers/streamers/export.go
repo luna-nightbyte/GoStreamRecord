@@ -3,7 +3,7 @@ package streamers
 import (
 	"encoding/json"
 	"net/http"
-	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/db"
 )
 
 // Handles GET /api/download.
@@ -24,8 +24,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	fileContent, _ := json.Marshal(system.System.Config.Streamers.List)
+	streamers, _ := db.DataBase.Streamers.List()
+	fileContent, _ := json.Marshal(streamers)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", "attachment; filename=export.json")
 	w.Write([]byte(fileContent))
