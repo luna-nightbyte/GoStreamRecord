@@ -1,103 +1,117 @@
 package db
 
 import (
-	"context"
+	"database/sql"
 	"errors"
 	"fmt"
-	"path/filepath"
-	"time"
+	"strings"
 )
 
-// AddVideo inserts a new video record.
-func (db *DB) AddStreamer(ctx context.Context, streamerName string, downloadedBy string) error {
-	if downloadedBy == "" || streamerName == "" {
-		return errors.New("streamerName and downloader username cannot be empty")
+// SQL QUERIES ---------------------------------------------------------------------
+
+// AddUser hashes the password and inserts a new user record.
+func (db *Streamer) New(tabName, provider string) error {
+	if tabName == "" {
+		return errors.New("tabName cannot be empty")
 	}
-
-	now := time.Now().Format(time.RFC3339)
-	videoName := filepath.Base(streamerName)
-	// Default to an empty list of groups, can be updated later.
-	groups, err := marshalIntSlice([]int{})
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createStreamer, tabName, provider)
 	if err != nil {
-		return fmt.Errorf("failed to marshal default groups for video: %w", err)
-	}
-
-	query := "INSERT INTO streamers (filepath, name, downloaded_by, groups, updated_at) VALUES (?, ?, ?, ?, ?)"
-	_, err = db.SQL.ExecContext(ctx, query, streamerName, videoName, downloadedBy, groups, now)
-
-	if err != nil {
-		return errors.New("video file already exists or a database error occurred")
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("tab already exists")
+		}
+		return err
 	}
 
 	return nil
 }
 
-// ListAllVideos retrieves all videos from the database.
-func (db *DB) ListAllVideoss(ctx context.Context) (map[string]Video, error) {
-
-	rows, err := db.SQL.QueryContext(ctx, select_shared_videos)
+// ListUsers fetches all users from the database.
+func (db *Streamer) List() (map[string]Streamer, error) {
+	//query := "SELECT id, username, password_hash,  created_at FROM users"
+	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, listStreamer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query videos: %w", err)
+		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
 	defer rows.Close()
 
-	videoMap := make(map[string]Video)
+	tabMap := make(map[string]Streamer)
 	for rows.Next() {
-		var v Video
-		var groupsJSON string
-		var updatedAt string
-		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.UploaderUserID, &groupsJSON, &updatedAt); err != nil {
-			return nil, fmt.Errorf("failed to scan video row: %w", err)
+		var u Streamer
+		if err := rows.Scan(&u.ID, &u.Name, &u.Provider); err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
-		if v.CreatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
-			return nil, fmt.Errorf("failed to parse timestamp for video %s: %w", v.Name, err)
-		}
-		videoMap[v.Name] = v
+		tabMap[u.Name] = u
 	}
 
-	return videoMap, rows.Err()
+	return tabMap, rows.Err()
 }
 
-// In db/video.go
-
-func (db *DB) ListVisibleVideossForUser(ctx context.Context, userID int) ([]Video, error) {
-
-	rows, err := db.SQL.QueryContext(ctx, select_shared_videos, userID, userID)
+// GetAvailableTabsForUser retrieves all tabs a user has access to.
+// It takes a database connection pointer and InternalUsera user ID.
+// This function replaces your original `GetAvalable` method.
+func (db *Streamer) GetAvailableForUser(userID int) (map[string]Streamer, error) {
+	rows, err := DataBase.SQL.Query(getVisibleStreamerForUser, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query visible videos: %w", err)
+		return nil, fmt.Errorf("failed to execute getVisibleTabsForUser query: %w", err)
 	}
 	defer rows.Close()
-
-	// Using a map to handle potential duplicates from the UNION
-	videoMap := make(map[int]Video)
+	tabsMap := make(map[string]Streamer)
 	for rows.Next() {
-		var v Video
-		var createdAt string
-		if err := rows.Scan(&v.ID, &v.Name, &v.Filepath, &v.UploaderUserID, &createdAt); err != nil {
-			return nil, fmt.Errorf("failed to scan video row: %w", err)
+		var t Streamer
+		if err := rows.Scan(&t.ID, &t.Name, &t.Provider); err != nil {
+			return nil, fmt.Errorf("failed to scan tab row: %w", err)
 		}
-		v.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
-		videoMap[v.ID] = v
+		tabsMap[t.Name] = t
 	}
 
-	// Convert map to slice
-	videos := make([]Video, 0, len(videoMap))
-	for _, video := range videoMap {
-		videos = append(videos, video)
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during tab row iteration: %w", err)
 	}
 
-	return videos, rows.Err()
+	return tabsMap, nil
+}
+func (db *Streamer) DeleteForUser(user_id, tab_id int) (*Streamer, error) {
+	err := db.queryTabSql(unshareStreamerFromGroup, user_id, tab_id)
+	return db, err
 }
 
-// UserHasAccessToVideo checks if a user has access to a specific video.
-// This is a simplified check based on who downloaded it.
-// A more robust implementation would check against user groups.
-func (db *DB) UserHasAccessToVisdeo(ctx context.Context, username string, videoName string) (bool, error) {
-	query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
-	var count int
-	err := db.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)
+// HELPERS ------------------------------------------------------------------------------------
+func (u *Streamer) queryTabSql(query string, args ...any) error {
+	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+	err := row.Scan(&u.ID, &u.Name, &u.Provider)
 	if err != nil {
-		return false, fmt.Errorf("failed to query video access: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrUserNotFound
+		}
+		return err
 	}
-	return count > 0, nil
+
+	return nil
+}
+
+func (u *Streamer) queryTabrGroupRelationsSql(query string, args ...any) (streamer_group_relations, error) {
+	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+	var usrGrp streamer_group_relations
+	err := row.Scan(&usrGrp.StreamerID, &usrGrp.GroupID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return usrGrp, ErrUserNotFound
+		}
+		return usrGrp, err
+	}
+
+	return usrGrp, nil
+}
+
+// AddGroup inserts a new group with a given set of permissions.
+func (db *Streamer) Share(streamerID, groupID int) error {
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareStreamerbWithGroup, streamerID, groupID)
+	if err != nil {
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("Username exists")
+		}
+		return err
+	}
+
+	return nil
 }

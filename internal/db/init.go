@@ -12,12 +12,13 @@ import (
 
 // DB wraps the sql.DB connection pool.
 type DB struct {
-	ctx    context.Context
-	SQL    *sql.DB
-	Users  User
-	Groups Group
-	Videos Video
-	Tabs   Tab
+	ctx       context.Context
+	SQL       *sql.DB
+	Users     User
+	Groups    Group
+	Streamers Streamer
+	Videos    Video
+	Tabs      Tab
 }
 
 // Global variable to hold the database instance.
@@ -33,7 +34,7 @@ var randPass, _ = hashPassword(utils.RandString(15))
 
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
-	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s",
+	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
 		q_create_users,
 		q_create_goups,
 		q_create_tabs,
@@ -41,6 +42,8 @@ func createSchema(ctx context.Context, db *sql.DB) error {
 		q_create_videos,
 		q_create_video_groups,
 		q_create_tab_groups,
+		q_create_streamers,
+		q_create_streamer_groups,
 	)
 
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
@@ -170,6 +173,17 @@ func Init(ctx context.Context, path string) {
 		if err != nil {
 			fmt.Println("Fatal: Could not create tab: %v", err)
 		}
+		DataBase.NewStreamer("test-streamer", "chaturbate", exampleAdmin)
+	}
+}
+
+func (s *DB) NewStreamer(streamer_name, provider, username string) {
+	user_id := DataBase.Users.NameToID(username)
+	groups, _, _ := DataBase.Groups.ListGroupsByUserID(user_id)
+	DataBase.Streamers.New(streamer_name, provider)
+	streamers, _ := DataBase.Streamers.List()
+	for _, group := range groups {
+		DataBase.Streamers.Share(streamers[streamer_name].ID, group.ID)
 
 	}
 }

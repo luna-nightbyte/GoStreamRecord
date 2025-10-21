@@ -23,6 +23,11 @@ type Tab struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+type Streamer struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Provider string `json:"provider"`
+}
 
 type user_group_relations struct {
 	UserID  int    `json:"user_id"`
@@ -33,6 +38,11 @@ type user_group_relations struct {
 type tab_group_relations struct {
 	TabID   int    `json:"tab_id"`
 	GroupID string `json:"group_id"`
+}
+
+type streamer_group_relations struct {
+	StreamerID int    `json:"streamer_id"`
+	GroupID    string `json:"group_id"`
 }
 
 type Video struct {
@@ -78,6 +88,18 @@ const (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     description TEXT
+);`
+	q_create_streamers string = `CREATE TABLE streamers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    provider TEXT
+);`
+	q_create_streamer_groups string = `CREATE TABLE streamer_group_relations (
+    streamer_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    PRIMARY KEY (streamer_id, group_id),
+    FOREIGN KEY (streamer_id) REFERENCES streamers (id),
+    FOREIGN KEY (streamer_id) REFERENCES groups (id)
 );`
 	q_create_videos string = `CREATE TABLE videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -156,11 +178,6 @@ const (
 
 	// deleteUser removes a user. Cascading deletes will handle their relationships.
 	deleteUser = `DELETE FROM users WHERE id = ?`
-
-	// --- Tabs Queries ---
-
-	// createTab inserts a new user record.
-	createTab = `INSERT INTO tabs (name, description) VALUES (?, ?)`
 
 	// --- Group Queries (groups table) ---
 
@@ -243,6 +260,11 @@ const (
 
 	// --- Complex Access Control Query ---
 
+	// --- Tabs Queries ---
+
+	// createTab inserts a new user record.
+	createTab = `INSERT INTO tabs (name, description) VALUES (?, ?)`
+
 	// addTabToGroup = `INSERT OR REPLACE INTO user_group_roles (user_id, tab_id) VALUES (?, ?)`
 	// listUsers retrieves all users without their password hashes for general listings.
 	listTabs = `SELECT id, name, description FROM tabs ORDER BY id`
@@ -272,4 +294,27 @@ const (
         JOIN user_group_roles ugr ON tg.group_id = ugr.group_id
         WHERE ugr.user_id = ?
         ORDER BY t.id`
+
+	// --- Streamers Queries ---
+
+	// createTab inserts a new user record.
+	createStreamer = `INSERT INTO streamers (name, provider) VALUES (?, ?)`
+
+	// addTabToGroup = `INSERT OR REPLACE INTO user_group_roles (user_id, tab_id) VALUES (?, ?)`
+	// listUsers retrieves all users without their password hashes for general listings.
+	listStreamer = `SELECT id, name, provider FROM streamers ORDER BY id`
+
+	// 'INSERT OR IGNORE' prevents errors if the share link already exists.
+	shareStreamerbWithGroup = `INSERT OR IGNORE INTO streamer_group_relations (streamer_id, group_id) VALUES (?, ?)`
+
+	// unshareVideoFromGroup revokes a group's access to a video.
+	unshareStreamerFromGroup = `DELETE FROM streamer_group_relations WHERE streamer_id = ? AND group_id = ?`
+
+	getVisibleStreamerForUser = `
+        SELECT DISTINCT s.id, s.name, s.provider
+        FROM streamers s
+        JOIN streamer_group_relations sg ON s.id = sg.tab_id
+        JOIN user_group_roles ugr ON sg.group_id = ugr.group_id
+        WHERE ugr.user_id = ?
+        ORDER BY s.id`
 )

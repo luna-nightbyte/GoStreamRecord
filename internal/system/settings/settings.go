@@ -32,8 +32,8 @@ type Streamer struct {
 type DB struct {
 	APIKeys API_secrets
 	//Users     Logins
-	Settings  Settings
-	Streamers StreamList
+	Settings Settings
+	//Streamers StreamList
 }
 
 const (
@@ -50,7 +50,7 @@ func Init() DB {
 	//db.LoadConfig(CONFIG_USERS_PATH, &sys.Users)
 	//load(CONFIG_USERS_PATH, &sys.Users)
 	jsondb.Load(CONFIG_API_PATH, &sys.APIKeys)
-	jsondb.Load(CONFIG_STREAMERS_PATH, &sys.Streamers)
+	// jsondb.Load(CONFIG_STREAMERS_PATH, &sys.Streamers)
 	return sys
 }
 func load(path string, data any) {

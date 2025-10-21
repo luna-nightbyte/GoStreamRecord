@@ -47,7 +47,7 @@ func (g *Group) NameToID(name string) int {
 
 }
 func (db *DB) VideoNameToID(name string) int {
-	r, _ := db.ListAllVideoss(db.ctx)
+	r, _ := db.ListAllVideos(db.ctx)
 	return r[name].ID
 
 }
