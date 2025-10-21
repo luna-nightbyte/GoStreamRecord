@@ -64,7 +64,9 @@ func ContiniousRead(baseDir string) {
 
 				latestVideosMap, err := db.DataBase.ListAllVideos(system.System.Context)
 
-				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupDefault))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupViewerOnly))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupDownloadAndView))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupAdmins))
 				if err != nil {
 					fmt.Println(err)
 				}

@@ -64,15 +64,15 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.HandleFunc("/api/delete-videos", login.RequireAuth(webController.DeleteFiles))
 
 	app.Router.PathPrefix("/api/generate-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.GenAPIKeyHandler(system.System.DB.APIKeys, w, r)
+		cookies.GenAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/delete-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.DeleteAPIKeyHandler(system.System.DB.APIKeys, w, r)
+		cookies.DeleteAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/keys").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.GetAPIkeys(system.System.DB.APIKeys, w, r)
+		cookies.GetAPIkeys(system.System.Config.APIKeys, w, r)
 	})))
-	app.Router.HandleFunc("/api/get-users", login.RequireAuth(users.GetUsers))
+	app.Router.HandleFunc("/api/user_info", login.RequireAuth(users.GetUsers))
 	app.Router.HandleFunc("/api/add-user", login.RequireAuth(users.AddUser))
 	app.Router.HandleFunc("/api/update-user", login.RequireAuth(users.UpdateUsers))
 	app.Router.HandleFunc("/api/health", login.RequireAuth(handlers.HealthCheckHandler))
@@ -120,6 +120,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 
 			http.ServeContent(w, r, filePath, time.Time{}, contentReader)
 			return
+		} else {
 		}
 	})
 
@@ -132,14 +133,14 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.HandleFunc("/login", LoginHandler).Methods("GET")
 	// End SPA Setup
 
-	baseDir := system.System.DB.Settings.App.Files_folder
+	baseDir := system.System.Config.Settings.Files_folder
 	app.Router.PathPrefix("/videos/").
 		Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(baseDir))))
 
-	VideoMux("/api/videos", app.Router, baseDir)
+	VideoMux("/api/videos", app.Router)
 
 	app.Router.PathPrefix("/").Handler(http.HandlerFunc(login.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
-		// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+		// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 		// 	http.Redirect(w, r, "/login", http.StatusFound)
 		// 	return
 		// }
@@ -163,7 +164,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 
 	// CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:" + fmt.Sprint(system.System.DB.Settings.App.Port), fmt.Sprintf("http://%s:%d", "localhost", system.System.DB.Settings.App.Port), "http://localhost:*"},
+		AllowedOrigins:   []string{"http://localhost:" + fmt.Sprint(system.System.Config.Settings.Port), fmt.Sprintf("http://%s:%d", "localhost", system.System.Config.Settings.Port), "http://localhost:*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		AllowCredentials: true,
 		Debug:            false,
@@ -171,12 +172,12 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 
 	srv := &http.Server{
 		Handler:      c.Handler(app.Router),
-		Addr:         ":" + fmt.Sprint(system.System.DB.Settings.App.Port),
+		Addr:         ":" + fmt.Sprint(system.System.Config.Settings.Port),
 		WriteTimeout: 1 * time.Hour,
 		ReadTimeout:  60 * time.Second,
 	}
 
-	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.DB.Settings.App.Port)))
+	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.Config.Settings.Port)))
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)

@@ -2,12 +2,36 @@ package users
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/web/handlers/cookie"
 	"remoteCtrl/internal/web/handlers/login"
 	"remoteCtrl/internal/web/handlers/status"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
+	username := cookie.CurrentUser(r)
+	user_id := db.DataBase.Users.NameToID(username)
+	is_admin, _ := db.DataBase.Users.IsAdmin(username)
+
+	db.DataBase.Users.GetUserByID(user_id)
+	avalable_tabs, err := db.DataBase.Tabs.GetAvailableTabsForUser(user_id)
+	if err != nil {
+		fmt.Println(err)
+	}
+	type resp struct {
+		IsAdmin bool              `json:"is_admin"`
+		Tabs    map[string]db.Tab `json:"tabs"`
+	}
+	var response resp = resp{
+		IsAdmin: is_admin,
+		Tabs:    avalable_tabs,
+	}
+	fmt.Println("Tabs:", avalable_tabs)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+
 	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
@@ -16,10 +40,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
 	// 	return
 	// }
-
-	// w.Header().Set("Content-Type", "application/json")
-
-	// json.NewEncoder(w).Encode(system.System.DB.Users.Users)
 }
 
 func UpdateUsers(w http.ResponseWriter, r *http.Request) {

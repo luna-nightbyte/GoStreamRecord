@@ -35,7 +35,7 @@ type bot struct {
 
 func newMsg() map[string]interface{} {
 	return map[string]interface{}{
-		"chat_id":    system.System.DB.Settings.Telegram.ChatID,
+		"chat_id":    system.System.Config.Settings.Telegram.ChatID,
 		"parse_mode": "Markdown",
 	}
 }
@@ -73,7 +73,7 @@ func (b bot) SendMsg(msg string) {
 
 func createApiRequest(ctx context.Context, payload map[string]interface{}, endpoint string) *http.Request {
 
-	url := fmt.Sprintf("%s%s/%s", api_root, system.System.DB.Settings.Telegram.Token, endpoint)
+	url := fmt.Sprintf("%s%s/%s", api_root, system.System.Config.Settings.Telegram.Token, endpoint)
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {

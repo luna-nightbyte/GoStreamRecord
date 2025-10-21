@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/utils"
 )
 
@@ -15,7 +16,8 @@ type DB struct {
 	SQL    *sql.DB
 	Users  User
 	Groups Group
-	V      Video
+	Videos Video
+	Tabs   Tab
 }
 
 // Global variable to hold the database instance.
@@ -24,14 +26,21 @@ var DataBase *DB
 // Internal server user
 const InternalUser string = "_internal"
 
+var exampleAdmin, defaultPass string = "admin", "password"
+var exampleViewer string = "viewer"
+var exampleMod string = "mod"
+var randPass, _ = hashPassword(utils.RandString(15))
+
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
-	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s",
+	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s",
 		q_create_users,
 		q_create_goups,
+		q_create_tabs,
 		q_create_user_group_roles,
 		q_create_videos,
 		q_create_video_groups,
+		q_create_tab_groups,
 	)
 
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
@@ -71,32 +80,97 @@ func Init(ctx context.Context, path string) {
 		}
 		// Groups
 
-		if err := DataBase.Groups.New(GroupDefault, "admins with full control"); err != nil {
+		if err := DataBase.Groups.New(GroupAdmins, "admins with full control"); err != nil {
+			log.Fatalf("Fatal: Could not create default group: %v", err)
+		}
+
+		if err := DataBase.Groups.New(GroupViewerOnly, "only viewing content"); err != nil {
+			log.Fatalf("Fatal: Could not create default group: %v", err)
+		}
+		if err := DataBase.Groups.New(GroupDownloadAndView, "downloading and viewing content"); err != nil {
 			log.Fatalf("Fatal: Could not create default group: %v", err)
 		}
 		// Users
-		var defaultUser, defaultPass string = "user", "password"
-		if err := DataBase.Users.New(defaultUser, defaultPass); err != nil {
+		if err := DataBase.Users.New(exampleAdmin, defaultPass); err != nil {
+			log.Fatalf("Fatal: Could not add default admin user: %v", err)
+		}
+		if err := DataBase.Users.New(exampleViewer, defaultPass); err != nil {
+			log.Fatalf("Fatal: Could not add default admin user: %v", err)
+		}
+		if err := DataBase.Users.New(exampleMod, defaultPass); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
 		// Add to group
-		user_id := DataBase.Users.NameToID(defaultUser)
-		admin_group_id := DataBase.Groups.NameToID(GroupDefault)
 
-		DataBase.Groups.AddUser(user_id, admin_group_id, RoleAdmin)
+		// -- main user
+		viewer_id := DataBase.Users.NameToID(exampleViewer)
+		viewer_group_id := DataBase.Groups.NameToID(GroupViewerOnly)
+		DataBase.Groups.AddUser(viewer_id, viewer_group_id, RoleUsers)
 
-		if err := DataBase.Groups.AddUser(user_id, admin_group_id, RoleAdmin); err != nil {
-			log.Fatalf("Fatal: Could not add default admin user: %v", err)
+		// -- example moderator user
+		mod_id := DataBase.Users.NameToID(exampleMod)
+		mod_group_id := DataBase.Groups.NameToID(GroupDownloadAndView)
+		DataBase.Groups.AddUser(mod_id, mod_group_id, RoleUsers)
+
+		// -- example viewer user
+		admin_id := DataBase.Users.NameToID(exampleAdmin)
+		admin_group_id := DataBase.Groups.NameToID(GroupAdmins)
+		DataBase.Groups.AddUser(admin_id, admin_group_id, RoleAdmin)
+
+		// -- internal server user
+		internal_id := DataBase.Users.NameToID(exampleAdmin)
+		DataBase.Users.New(InternalUser, string(randPass))
+		DataBase.Groups.AddUser(internal_id, admin_group_id, RoleAdmin)
+
+		fmt.Println(prettyprint.Yellow("New database created."))
+		fmt.Println(prettyprint.BoldWhite("Default users:"))
+		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleAdmin))
+		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleMod))
+		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleViewer))
+		fmt.Println(prettyprint.BoldGrey("	password:"), prettyprint.Green(defaultPass))
+		// TABS --------------------------------------------
+
+		err := DataBase.Tabs.New(TabDownload, "Download videos directly from websites")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+		err = DataBase.Tabs.New(TabGallery, "View downloaded videos and recordings")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+		err = DataBase.Tabs.New(TabLiveStream, "Watch models live")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+		err = DataBase.Tabs.New(TabRecorder, "Record videos from livestreams")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+		tabs, err := DataBase.Tabs.List()
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
 
-		randPass, _ := hashPassword(utils.RandString(15))
-		DataBase.Users.New(InternalUser, string(randPass))
+		// Share all with admins and mods
+		for _, tab := range tabs {
+			err = DataBase.Tabs.ShareTab(tab.ID, admin_group_id)
+			if err != nil {
+				fmt.Println("Fatal: Could not create tab: %v", err)
+			}
+			err = DataBase.Tabs.ShareTab(tab.ID, mod_group_id)
+			if err != nil {
+				fmt.Println("Fatal: Could not create tab: %v", err)
+			}
+		}
+		err = DataBase.Tabs.ShareTab(tabs[TabGallery].ID, viewer_group_id)
+		if err != nil {
+			fmt.Println("Fatal: Could not create tab: %v", err)
+		}
+		err = DataBase.Tabs.ShareTab(tabs[TabLiveStream].ID, viewer_group_id)
+		if err != nil {
+			fmt.Println("Fatal: Could not create tab: %v", err)
+		}
 
-		user_id = DataBase.Users.NameToID(InternalUser)
-
-		DataBase.Groups.AddUser(user_id, admin_group_id, RoleAdmin)
-
-		fmt.Println("New database created. Creating default admin user 'user' with password 'password'")
 	}
 }
 

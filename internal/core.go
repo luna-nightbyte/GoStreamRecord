@@ -26,7 +26,7 @@ var onlineCheckIP = "8.8.8.8"
 
 func Init() error {
 
-	system.System.DB = settings.Init()
+	system.System.Config = settings.Init()
 	// Context for shutdown
 	system.System.Context, system.System.Cancel = context.WithCancel(context.Background())
 
@@ -53,13 +53,13 @@ func Init() error {
 			}
 		}()
 
-		cookies.Session = cookies.New(system.System.DB.Settings)
+		cookies.Session = cookies.New(system.System.Config.Settings)
 		logger.Init(logger.Log_path)
 
 		// -- -- Telegram
-		if system.System.DB.Settings.Telegram.Enabled {
+		if system.System.Config.Settings.Telegram.Enabled {
 			telegram.Bot.Init()
-			telegram.Bot.SendStartup(strconv.Itoa(system.System.DB.Settings.App.Port))
+			telegram.Bot.SendStartup(strconv.Itoa(system.System.Config.Settings.Port))
 		}
 		return nil
 
@@ -72,13 +72,13 @@ func Init() error {
 	fmt.Println("Command name:", cmdName)
 	statup_command, exists := command.CMD.Startup.Map[cmdName]
 	fmt.Println("statup_command:", statup_command)
-	fmt.Println("Args:",os.Args[2:])
+	fmt.Println("Args:", os.Args[2:])
 	if !exists {
 		system.StartupError()
 		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
 		log.Println("Unknown command:", cmdName)
 		return fmt.Errorf("unknown command")
-	} 
+	}
 	statup_command.Run(os.Args[2:])
 
 	system.System.Cancel()

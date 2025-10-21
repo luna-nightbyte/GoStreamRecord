@@ -18,10 +18,21 @@ type Group struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type Tab struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type user_group_relations struct {
 	UserID  int    `json:"user_id"`
 	GroupID string `json:"group_id"`
 	Role    string `json:"role"`
+}
+
+type tab_group_relations struct {
+	TabID   int    `json:"tab_id"`
+	GroupID string `json:"group_id"`
 }
 
 type Video struct {
@@ -35,10 +46,18 @@ type Video struct {
 
 // Roles define broad levels of access.
 const (
-	GroupDefault string = "default"
-	//	GroupUsers string = "user"
-	RoleAdmin string = "admin"
-	RoleUsers string = "user"
+	GroupAdmins          string = "admins"
+	GroupViewerOnly      string = "viewer"
+	GroupDownloadAndView string = "mod"
+	RoleAdmin            string = "admin"
+	RoleUsers            string = "user"
+)
+
+const (
+	TabGallery    string = "gallery_tab"
+	TabDownload   string = "download_tab"
+	TabLiveStream string = "live_tab"
+	TabRecorder   string = "recorder_tab"
 )
 
 // initial queries
@@ -54,6 +73,11 @@ const (
     name TEXT NOT NULL UNIQUE,
     description TEXT,
     created_at TEXT NOT NULL
+);`
+	q_create_tabs string = `CREATE TABLE tabs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT
 );`
 	q_create_videos string = `CREATE TABLE videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,6 +101,13 @@ const (
     group_id INTEGER NOT NULL,
     PRIMARY KEY (video_id, group_id),
     FOREIGN KEY (video_id) REFERENCES videos (id),
+    FOREIGN KEY (group_id) REFERENCES groups (id)
+);`
+	q_create_tab_groups string = `CREATE TABLE tab_group_relations (
+    tab_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    PRIMARY KEY (tab_id, group_id),
+    FOREIGN KEY (tab_id) REFERENCES tabs (id),
     FOREIGN KEY (group_id) REFERENCES groups (id)
 );`
 )
@@ -125,6 +156,11 @@ const (
 
 	// deleteUser removes a user. Cascading deletes will handle their relationships.
 	deleteUser = `DELETE FROM users WHERE id = ?`
+
+	// --- Tabs Queries ---
+
+	// createTab inserts a new user record.
+	createTab = `INSERT INTO tabs (name, description) VALUES (?, ?)`
 
 	// --- Group Queries (groups table) ---
 
@@ -207,6 +243,10 @@ const (
 
 	// --- Complex Access Control Query ---
 
+	// addTabToGroup = `INSERT OR REPLACE INTO user_group_roles (user_id, tab_id) VALUES (?, ?)`
+	// listUsers retrieves all users without their password hashes for general listings.
+	listTabs = `SELECT id, name, description FROM tabs ORDER BY id`
+
 	// getVisibleVideosForUser is the main query for a logged-in user. It retrieves all videos they can see:
 	// 1. Videos they personally uploaded.
 	// 2. Videos shared with any group of which they are a member.
@@ -217,5 +257,19 @@ const (
 		LEFT JOIN video_groups vg ON v.id = vg.video_id
 		LEFT JOIN user_group_roles ugr ON vg.group_id = ugr.group_id
 		WHERE v.uploader_user_id = ? OR ugr.user_id = ?
-		ORDER BY v.name DESC`
+		ORDER BY v.id DESC`
+
+	// 'INSERT OR IGNORE' prevents errors if the share link already exists.
+	shareTabWithGroup = `INSERT OR IGNORE INTO tab_group_relations (tab_id, group_id) VALUES (?, ?)`
+
+	// unshareVideoFromGroup revokes a group's access to a video.
+	unshareTabFromGroup = `DELETE FROM tab_group_relations WHERE tab_id = ? AND group_id = ?`
+
+	getVisibleTabsForUser = `
+        SELECT DISTINCT t.id, t.name, t.description
+        FROM tabs t
+        JOIN tab_group_relations tg ON t.id = tg.tab_id
+        JOIN user_group_roles ugr ON tg.group_id = ugr.group_id
+        WHERE ugr.user_id = ?
+        ORDER BY t.id`
 )

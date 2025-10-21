@@ -2,20 +2,23 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/localfolder"
 	"remoteCtrl/internal/system"
+	"remoteCtrl/internal/web/handlers/cookie"
 	"remoteCtrl/internal/web/handlers/login"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
 )
 
-func getVideos(api, baseDir string) http.HandlerFunc {
+func getVideos(api, basbaseDireDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pageNum, _ := strconv.Atoi(r.FormValue("page"))
 		pageSize, _ := strconv.Atoi(r.FormValue("pageSize"))
@@ -38,6 +41,7 @@ func getVideos(api, baseDir string) http.HandlerFunc {
 				segs[i] = url.PathEscape(s)
 			}
 			encoded := strings.Join(segs, "/")
+			fmt.Println("add", encoded)
 			outVideos = append(outVideos, localfolder.Video{
 				URL:  "/videos/" + encoded,
 				Name: rel,
@@ -50,7 +54,62 @@ func getVideos(api, baseDir string) http.HandlerFunc {
 	}
 }
 
-func VideoMux(api string, r *mux.Router, baseDir string) {
+func getVideos2() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pageNum, err := strconv.Atoi(r.FormValue("page"))
+		if err != nil || pageNum < 1 {
+			pageNum = 1
+		}
 
-	r.HandleFunc(api, login.RequireAuth(getVideos(api, baseDir)))
+		pageSize, err := strconv.Atoi(r.FormValue("pageSize"))
+		if err != nil || pageSize <= 0 {
+			pageSize = 10
+		}
+		name, _ := cookie.ValidateSession(r)
+		fmt.Println("Getting videos for", name)
+
+		videos, err := db.DataBase.ListVisibleVideosForUser(system.System.Context, db.GetUserID(r))
+		if err != nil {
+			http.Error(w, "Failed to retrieve videos from database.", http.StatusInternalServerError)
+			return
+		}
+		fmt.Println("videos", len(videos))
+		sort.Slice(videos, func(i, j int) bool {
+			return videos[i].ID < videos[j].ID
+		})
+
+		startIndex := (pageNum - 1) * pageSize
+		endIndex := startIndex + pageSize
+
+		if startIndex >= len(videos) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(localfolder.Video{})
+			return
+		}
+
+		// If the end index goes beyond the list, adjust it to the end of the list.
+		if endIndex > len(videos) {
+			endIndex = len(videos)
+		}
+
+		pagedVideos := videos[startIndex:endIndex]
+
+		outVideos := make([]localfolder.Video, 0, len(pagedVideos))
+		for _, video := range pagedVideos {
+			rel := filepath.Base(video.Filepath)
+			encoded := url.PathEscape(rel)
+			outVideos = append(outVideos, localfolder.Video{
+				URL:  "/videos/" + encoded,
+				Name: rel,
+			})
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(outVideos)
+	}
+}
+
+func VideoMux(api string, r *mux.Router) {
+
+	r.HandleFunc(api, login.RequireAuth(getVideos2()))
 }
