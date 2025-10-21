@@ -1,7 +1,8 @@
 <template>
   <div class="videoD-container">
 
-    <button @click="sendCommand('repair', 'null')"
+    
+    <button v-if="is_admin===true" @click="sendCommand('repair', 'null')"
       class="buttonclass bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300">
       Run video codec repair </button>
     <div class="card-header p-4 border-b">Gallery</div>
@@ -52,11 +53,25 @@ export default {
       localMedia: [],
       page: 1, 
       pageSize: 6,
+      is_admin: null,
       searchTerm: '',
       fullScreenMedia: null,
     };
   },
   methods: {
+ async check_user() {
+  try {
+    const res = await fetch("/api/user_info");
+    const resp = await res.json();
+    this.is_admin = resp.is_admin 
+    console.log(this.is_admin); 
+    console.log(resp.is_admin ); 
+  } catch (err) {
+    console.error("Error fetching status:", err); 
+    this.is_admin=false;
+  }
+},
+
     async sendCommand(command, name = '') {
       try {
         // Await the fetch call to get the Response object
@@ -136,7 +151,9 @@ export default {
       // This function is empty, you could implement search logic here in the future
     }
   },
+  
   mounted() {
+    this.check_user();
     this.fetchVideos();
   },
 };
