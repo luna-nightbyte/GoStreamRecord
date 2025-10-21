@@ -61,15 +61,13 @@ add-user: build_go
 # Install go
 .PHONY: golang
 golang:
-	curl -Lo /tmp/go1.21.3.linux-amd64.tar.gz \
-		https://golang.org/dl/go1.21.3.linux-amd64.tar.gz
-	echo "1241381b2843fae5a9707eec1f8fb2ef94d827990582c7c7c32f5bdfbfd420c8 /tmp/go1.21.3.linux-amd64.tar.gz" \
-		| sha256sum --check
+	curl -Lo /tmp/go1.24.5.linux-amd64.tar.gz \
+		https://golang.org/dl/go1.24.5.linux-amd64.tar.gz
 	sudo rm -rf /usr/local/go
-	sudo tar -C /usr/local -xvzf /tmp/go1.21.3.linux-amd64.tar.gz
+	sudo tar -C /usr/local -xvzf /tmp/go1.24.5.linux-amd64.tar.gz
 	sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
 	sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-	sudo rm -f /tmp/go1.21.3.linux-amd64.tar.gz
+	sudo rm -f /tmp/go1.24.5.linux-amd64.tar.gz
 	GOPATH=$(shell go env GOPATH)
  
 .PHONY: vue
