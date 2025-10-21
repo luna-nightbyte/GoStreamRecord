@@ -6,22 +6,18 @@ import (
 	"remoteCtrl/internal/system/prettyprint"
 )
 
-type app struct {
-	Port          int        `json:"port"`
-	Loop_interval int        `json:"loop_interval_in_minutes"`
-	Files_folder  string     `json:"output_folder"`
-	RateLimit     rate_limit `json:"rate_limit"`
-	//Cookie        string     `json:"cookie,omit_empty"`
-}
 type rate_limit struct {
 	Enable bool `json:"enable"`
 	Time   int  `json:"time"`
 }
 
 type Settings struct {
-	App         app      `json:"app"`
-	GoogleDrive gdrive   `json:"google_drive"`
-	Telegram    telegram `json:"telegram"`
+	Port          int        `json:"port"`
+	Loop_interval int        `json:"loop_interval_in_minutes"`
+	Files_folder  string     `json:"output_folder"`
+	RateLimit     rate_limit `json:"rate_limit"`
+	GoogleDrive   gdrive     `json:"google_drive"`
+	Telegram      telegram   `json:"telegram"`
 }
 
 type StreamList struct {

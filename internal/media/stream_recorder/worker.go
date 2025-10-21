@@ -80,7 +80,7 @@ func (b *Controller) Execute(command string, name string) {
 			}
 			var streamer settings.Streamer
 			found := false
-			for _, streamConf := range system.System.DB.Streamers.List {
+			for _, streamConf := range system.System.Config.Streamers.List {
 				if streamConf.Name == name {
 					streamer = streamConf
 					found = true

@@ -15,7 +15,7 @@ import (
 // Handles POST /api/upload.
 // It reads an uploaded file and returns a dummy success response.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -65,11 +65,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, streamer := range import_list {
-		if system.System.DB.Streamers.Exist(streamer.Name) {
+		if system.System.Config.Streamers.Exist(streamer.Name) {
 			continue
 		}
 		counter++
-		system.System.DB.AddStreamer(streamer.Name, streamer.Provider)
+		system.System.Config.AddStreamer(streamer.Name, streamer.Provider)
 	}
 
 	resp = status.Response{

@@ -39,8 +39,8 @@ func (vd *VideoDownloader) InitTemp(uid string) {
 	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp_%s", uid)
 	vd.Tmp.TSContentfile = filepath.Join(vd.Tmp.Dir, "output.ts")
 
-	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
-		err := os.Mkdir(system.System.DB.Settings.App.Files_folder, 0755)
+	if _, err := os.Stat(system.System.Config.Settings.Files_folder); os.IsNotExist(err) {
+		err := os.Mkdir(system.System.Config.Settings.Files_folder, 0755)
 		if err != nil {
 			log.Println(err)
 		}
@@ -106,9 +106,9 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 			dest := filepath.Join(targetFolder, F.Save)
 			os.Rename(tmp, dest)
 
-			if system.System.DB.Settings.GoogleDrive.Enabled {
+			if system.System.Config.Settings.GoogleDrive.Enabled {
 				gdrive.Service.UploadFile(dest, "GoStreamRecord") // TODO: Replact string with constant or config setting
-				drivePath := filepath.Join(system.System.DB.Settings.GoogleDrive.Filepath, filepath.Join(site, F.Save))
+				drivePath := filepath.Join(system.System.Config.Settings.GoogleDrive.Filepath, filepath.Join(site, F.Save))
 				if err := utils.CopyFile(dest, drivePath); err == nil {
 					os.RemoveAll(dest)
 				}
@@ -335,7 +335,7 @@ func (vd VideoDownloader) save(pwd string) string {
 		log.Println("Error saving output file:", err)
 		return ""
 	}
-	if system.System.DB.Settings.GoogleDrive.Enabled {
+	if system.System.Config.Settings.GoogleDrive.Enabled {
 		_, err := gdrive.Service.UploadFile(pwd, filepath.Join(gdrive.RootFolder, "downloads"))
 		if err == nil {
 			os.RemoveAll(pwd)

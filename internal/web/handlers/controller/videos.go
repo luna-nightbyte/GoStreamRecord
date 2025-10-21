@@ -36,18 +36,18 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	if system.System.DB.Settings.App.Files_folder == "" {
-		system.System.DB.Settings.App.Files_folder = "videos"
+	if system.System.Config.Settings.Files_folder == "" {
+		system.System.Config.Settings.Files_folder = "videos"
 	}
-	if _, err := os.Stat(system.System.DB.Settings.App.Files_folder); os.IsNotExist(err) {
-		os.MkdirAll(system.System.DB.Settings.App.Files_folder, 0755)
+	if _, err := os.Stat(system.System.Config.Settings.Files_folder); os.IsNotExist(err) {
+		os.MkdirAll(system.System.Config.Settings.Files_folder, 0755)
 	}
 
 	for _, video := range videos {
 		files = append(files, Video{URL: "/files/" + filepath.Join(filepath.Base(filepath.Dir(video.Filepath)), video.Name), Name: video.Name})
 
 	}
-	err = filepath.Walk(system.System.DB.Settings.App.Files_folder, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(system.System.Config.Settings.Files_folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -62,7 +62,7 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(files) == 0 {
-		files = append(files, Video{URL: "", Name: "", NoFiles: fmt.Sprintf("No files available. Try adding some to '%s'", system.System.DB.Settings.App.Files_folder)})
+		files = append(files, Video{URL: "", Name: "", NoFiles: fmt.Sprintf("No files available. Try adding some to '%s'", system.System.Config.Settings.Files_folder)})
 
 	}
 
@@ -133,7 +133,7 @@ func DeleteFiles(w http.ResponseWriter, r *http.Request) {
 	// Process deletion of each video.
 	video_erros := 0
 	for _, video := range req.Files {
-		video_path := filepath.Join(system.System.DB.Settings.App.Files_folder, strings.Replace(video, "/videos/", "", 1))
+		video_path := filepath.Join(system.System.Config.Settings.Files_folder, strings.Replace(video, "/videos/", "", 1))
 		log.Println("Deleting video:", video_path)
 		err := os.Remove(video_path)
 		if err != nil {

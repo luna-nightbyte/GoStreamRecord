@@ -15,7 +15,7 @@ import (
 // Handles POST /api/add-streamer.
 // It decodes a JSON payload with a "data" field and returns a dummy response.
 func AddStreamer(w http.ResponseWriter, r *http.Request) {
-	//if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	//if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	//	http.Redirect(w, r, "/login", http.StatusFound)
 	//	return
 	//}
@@ -34,7 +34,7 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := status.Response{
-		Message: system.System.DB.AddStreamer(reqData.Data, r.URL.Query().Get("provider")),
+		Message: system.System.Config.AddStreamer(reqData.Data, r.URL.Query().Get("provider")),
 		Data:    reqData.Data,
 	}
 
@@ -45,7 +45,7 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 // Handles POST /api/remove-streamer.
 // It decodes a JSON payload with the selected option and returns a dummy response.
 func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
@@ -64,7 +64,7 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := status.Response{
-		Message: system.System.DB.RemoveStreamer(reqData.Selected),
+		Message: system.System.Config.RemoveStreamer(reqData.Selected),
 		Data:    reqData.Selected,
 	}
 
@@ -74,7 +74,7 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 
 // Handles GET /api/get-streamers.
 func GetStreamers(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
@@ -86,7 +86,7 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	list := []string{}
-	for _, s := range system.System.DB.Streamers.List {
+	for _, s := range system.System.Config.Streamers.List {
 		//list[s.Name] = s.Provider
 		list = append(list, s.Name)
 	}
@@ -95,7 +95,7 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
@@ -120,7 +120,7 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if reqData.Provider == "" {
-		for _, streamer := range system.System.DB.Streamers.List {
+		for _, streamer := range system.System.Config.Streamers.List {
 			if streamer.Name == reqData.Streamer {
 				reqData.Provider = streamer.Provider
 				break

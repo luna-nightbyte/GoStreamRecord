@@ -15,7 +15,7 @@ import (
 type Core struct {
 	IsOnline        bool
 	WaitForNetwork  bool
-	DB              settings.DB // ./settings/settings.json
+	Config              settings.DB // ./settings/settings.json
 	Context         context.Context
 	Cancel          context.CancelFunc
 	triggerShutdown chan os.Signal

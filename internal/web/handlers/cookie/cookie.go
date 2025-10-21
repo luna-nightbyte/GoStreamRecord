@@ -81,15 +81,7 @@ func CurrentUser(r *http.Request) string {
 // ValidateSession returns the username if the session is valid
 func ValidateSession(r *http.Request) (string, bool) {
 	c, err := r.Cookie(SessionCookieName)
-	if err != nil {
-		fmt.Println(err)
-
-		var s Session
-		session, err := s.cookies.Get(r, "session")
-		if auth, ok := session.Values["authenticated"].(bool); ok && auth {
-			fmt.Println("Ok")
-		}
-		fmt.Println(err)
+	if err != nil {  
 		return "", false
 	}
 	mu.Lock()
@@ -120,13 +112,12 @@ type SessionData struct {
 	Exp  int64
 }
 
-var Sc = NewSecureCookie(NewAEADKey(NewSecret(32)))
-
 func SetSession(w http.ResponseWriter, session SessionData) error {
 
+	var Sc = NewSecureCookie(NewAEADKey(NewSecret(32)))
 	encoded, err := Sc.Encode(SessionCookieName, session)
 	if err != nil {
-		return err
+		return fmt.Errorf("session error: %v", err)
 	}
 
 	c := http.Cookie{

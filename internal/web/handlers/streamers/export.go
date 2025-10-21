@@ -9,14 +9,14 @@ import (
 // Handles GET /api/download.
 // It sends a dummy file for download.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
 	http.Redirect(w, r, "/home", http.StatusFound)
 }
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
@@ -25,7 +25,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileContent, _ := json.Marshal(system.System.DB.Streamers.List)
+	fileContent, _ := json.Marshal(system.System.Config.Streamers.List)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", "attachment; filename=export.json")
 	w.Write([]byte(fileContent))

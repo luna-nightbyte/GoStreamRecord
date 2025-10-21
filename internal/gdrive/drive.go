@@ -34,7 +34,7 @@ type Drive interface {
 const RootFolder string = "GoStreaRecord"
 
 var (
-	CredentialsFile = "settings/credentials.json"
+	CredentialsFile = "credentials.json"
 
 	// Service is the selected implementation (online or mounted)
 	Service iDrive
@@ -58,7 +58,7 @@ func SetType(serviceType string) error {
 		}
 	case "mounted":
 		Service.d = new(mounted.Mounted)
-		err := Service.d.New(system.System.DB.Settings.GoogleDrive.Filepath)
+		err := Service.d.New(system.System.Config.Settings.GoogleDrive.Filepath)
 		if err != nil {
 			return fmt.Errorf("failed to init mounted drive: %w", err)
 		}

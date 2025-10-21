@@ -47,7 +47,7 @@ func (r Progress) ApendText(s string) Progress {
 }
 func Handler(w http.ResponseWriter, r *http.Request) {
 
-	if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}

@@ -27,7 +27,7 @@ type status struct {
 }
 
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	// if !cookies.Session.IsLoggedIn(system.System.DB.APIKeys, w, r) {
+	// if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
@@ -37,7 +37,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reload streamer list from config file
-	jsondb.Write(settings.CONFIG_STREAMERS_PATH, &system.System.DB.Streamers)
+	jsondb.Write(settings.CONFIG_STREAMERS_PATH, &system.System.Config.Streamers)
 
 	response := Response{
 		Status: Status,

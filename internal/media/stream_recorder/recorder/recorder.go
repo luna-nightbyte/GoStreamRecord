@@ -81,7 +81,7 @@ func (b *Recorder) StartRecordTicker(ctx context.Context) {
 
 }
 func (b *Recorder) start() {
-	jsondb.Load(settings.CONFIG_SETTINGS_PATH, &system.System.DB.Settings)
+	jsondb.Load(settings.CONFIG_SETTINGS_PATH, &system.System.Config.Settings)
 	if !b.Website.Interface.IsOnline(b.Website.Username) {
 		return
 	}
