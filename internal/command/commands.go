@@ -18,15 +18,12 @@ type commandStruct struct {
 }
 type CMDs struct {
 	Startup   Command
-	Telemetry Command
-	General   Command
 }
 
 var CMD CMDs
 
 func init() {
 	CMD.Startup.Map = make(map[string]commandStruct)
-	CMD.Telemetry.Map = make(map[string]commandStruct)
 }
 func (c *Command) Add(commandName, usage string, runFunc func(args []string)) {
 	if c.Map[commandName].Name != "" {
