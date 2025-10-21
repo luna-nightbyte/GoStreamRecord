@@ -21,6 +21,11 @@ VERSION=$(shell git describe --tags --abbrev=0)
 COMMIT_HASH := $(shell git rev-parse HEAD)$(shell git diff --quiet && git diff --cached --quiet && test -z "$$(git ls-files --others --exclude-standard)" || echo "-dirty")
 
 
+USERNAME=default_user
+PASSWORD=default_password
+ROLE=user
+GROUP=viewers
+
 pi: vue
 	GOOS=linux GOARCH=arm64 go build \
 	-ldflags=" \
@@ -46,6 +51,13 @@ run: build_go
 	cd output && \
 	sudo ./GoStreamRecord
 
+add-user: build_go
+	mkdir -p output/settings
+	mkdir -p output/videos
+	cp -r --update settings/* output/settings
+	cp ./GoStreamRecord output/GoStreamRecord
+	cd output && \
+	sudo ./GoStreamRecord add-user $(USERNAME) $(PASSWORD) $(ROLE) $(GROUP)
 # Install go
 .PHONY: golang
 golang:
