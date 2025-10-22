@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go localfolder.ContiniousRead(system.System.Config.Settings.Files_folder)
+	go localfolder.ContiniousRead(system.System.Config.OutputFolder)
 	go web.ServeHTTP(system.System.Context, VueLoginFiles, VueDistFiles)
 
 	<-system.System.Context.Done()

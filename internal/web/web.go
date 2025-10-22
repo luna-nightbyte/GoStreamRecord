@@ -64,13 +64,13 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.HandleFunc("/api/delete-videos", login.RequireAuth(webController.DeleteFiles))
 
 	app.Router.PathPrefix("/api/generate-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.GenAPIKeyHandler(system.System.Config.APIKeys, w, r)
+		//	cookies.GenAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/delete-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.DeleteAPIKeyHandler(system.System.Config.APIKeys, w, r)
+		//	cookies.DeleteAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/keys").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookies.GetAPIkeys(system.System.Config.APIKeys, w, r)
+		//	cookies.GetAPIkeys(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.HandleFunc("/api/user_info", login.RequireAuth(users.GetUsers))
 	app.Router.HandleFunc("/api/add-user", login.RequireAuth(users.AddUser))
@@ -133,7 +133,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.HandleFunc("/login", LoginHandler).Methods("GET")
 	// End SPA Setup
 
-	baseDir := system.System.Config.Settings.Files_folder
+	baseDir := system.System.Config.OutputFolder
 	app.Router.PathPrefix("/videos/").
 		Handler(http.StripPrefix("/videos/", http.FileServer(http.Dir(baseDir))))
 
@@ -164,7 +164,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 
 	// CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:" + fmt.Sprint(system.System.Config.Settings.Port), fmt.Sprintf("http://%s:%d", "localhost", system.System.Config.Settings.Port), "http://localhost:*"},
+		AllowedOrigins:   []string{"http://localhost:" + fmt.Sprint(system.System.Config.Port), fmt.Sprintf("http://%s:%d", "localhost", system.System.Config.Port), "http://localhost:*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		AllowCredentials: true,
 		Debug:            false,
@@ -172,12 +172,12 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 
 	srv := &http.Server{
 		Handler:      c.Handler(app.Router),
-		Addr:         ":" + fmt.Sprint(system.System.Config.Settings.Port),
+		Addr:         ":" + fmt.Sprint(system.System.Config.Port),
 		WriteTimeout: 1 * time.Hour,
 		ReadTimeout:  60 * time.Second,
 	}
 
-	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.Config.Settings.Port)))
+	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.Config.Port)))
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)

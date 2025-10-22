@@ -3,10 +3,7 @@ package video_download
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 )
 
 type Progress struct {
@@ -45,17 +42,6 @@ func (r Progress) ApendText(s string) Progress {
 	r.Text = "\n" + s
 	return r
 }
-func Handler(w http.ResponseWriter, r *http.Request) {
-
-	if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	//ru := Progress{Total: Data.Total, Progress: Data.Progress, Current: Data.Current, Running: Data.Running, QueueText: Data.QueueText, Text: Data.Text}
-	w.Header().Set("Content-Type", "application/json")
-	//json.NewEncoder(w).Encode(ru)
-}
-
 func PrintError(s any) {
 	//Data.Init(Data.Running, Data.Total, Data.Progress, Data.Current, Data.QueueText, fmt.Sprint(s))
 }

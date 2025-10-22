@@ -34,7 +34,7 @@ var randPass, _ = hashPassword(utils.RandString(15))
 
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
-	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
 		q_create_users,
 		q_create_goups,
 		q_create_tabs,
@@ -44,6 +44,7 @@ func createSchema(ctx context.Context, db *sql.DB) error {
 		q_create_tab_groups,
 		q_create_streamers,
 		q_create_streamer_groups,
+		q_create_config,
 	)
 
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
@@ -174,6 +175,14 @@ func Init(ctx context.Context, path string) {
 			fmt.Println("Fatal: Could not create tab: %v", err)
 		}
 		DataBase.NewStreamer("test-streamer", "chaturbate", DataBase.Users.NameToID(exampleAdmin))
+
+		cfg, _ := DataBase.Config()
+		cfg.Port = 8050
+		cfg.OutputFolder = "videos"
+		cfg.EnableTelegram = false
+		cfg.EnableGDrive = false
+		cfg.EnableRateLimit = false
+		DataBase.SaveConfig(cfg)
 	}
 }
 

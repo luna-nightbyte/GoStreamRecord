@@ -12,7 +12,6 @@ import (
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/logger"
 	"remoteCtrl/internal/system/prettyprint"
-	"remoteCtrl/internal/system/settings"
 	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/status"
 	"remoteCtrl/internal/web/telegram"
@@ -26,11 +25,17 @@ var onlineCheckIP = "8.8.8.8"
 
 func Init() error {
 
-	system.System.Config = settings.Init()
+	//system.System.Config = settings.Init()
 	// Context for shutdown
 	system.System.Context, system.System.Cancel = context.WithCancel(context.Background())
 
 	db.Init(system.System.Context, "")
+
+	cfg, err := db.DataBase.Config()
+	if err != nil {
+		log.Fatal(err)
+	}
+	system.System.Config = cfg
 	// db.AEAKEY:= getSecret(secretKey)
 	// COS sig
 	sigChan := make(chan os.Signal, 1)
@@ -53,13 +58,13 @@ func Init() error {
 			}
 		}()
 
-		cookies.Session = cookies.New(system.System.Config.Settings)
+		cookies.Session = cookies.New(system.System.Config)
 		logger.Init(logger.Log_path)
 
 		// -- -- Telegram
-		if system.System.Config.Settings.Telegram.Enabled {
+		if system.System.Config.EnableTelegram {
 			telegram.Bot.Init()
-			telegram.Bot.SendStartup(strconv.Itoa(system.System.Config.Settings.Port))
+			telegram.Bot.SendStartup(strconv.Itoa(system.System.Config.Port))
 		}
 		return nil
 

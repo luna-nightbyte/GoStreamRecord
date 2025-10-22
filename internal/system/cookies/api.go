@@ -1,7 +1,6 @@
 package cookies
 
 import (
-	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/system/settings"
 
 	"encoding/json"
@@ -16,17 +15,6 @@ type api_response struct {
 }
 
 func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Request) {
-	// if !Session.IsLoggedIn(apiKeys, w, r) {
-	// 	http.Redirect(w, r, "/login", http.StatusFound)
-	// 	return
-	// }
-
-	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
-	if err != nil {
-		log.Println("Error getting existing keys..", err)
-		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
-		return
-	}
 
 	session, err := Session.Store().Get(r, "session")
 	new_api_config := apiKeys.NewKey()
@@ -57,11 +45,7 @@ func GenAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r *ht
 
 	new_api_config.Key = hashedKey
 	apiKeys.Keys = append(apiKeys.Keys, new_api_config)
-	err = jsondb.Write(settings.CONFIG_API_PATH, apiKeys)
-	if err != nil {
-		http.Error(w, "error saving new key..", http.StatusBadRequest)
-		return
-	}
+
 	w.Header().Set("Content-Type", "application/json")
 	response := api_response{Status: true, Message: "Generated api key.", Key: key}
 	json.NewEncoder(w).Encode(response)
@@ -72,13 +56,6 @@ func GetAPIkeys(apiKeys settings.API_secrets, w http.ResponseWriter, r *http.Req
 	// 	http.Redirect(w, r, "/login", http.StatusFound)
 	// 	return
 	// }
-
-	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
-	if err != nil {
-		log.Println("Error getting existing keys..", err)
-		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
-		return
-	}
 
 	type data struct {
 		Name string `json:"name"`
@@ -115,13 +92,6 @@ func DeleteAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r 
 		return
 	}
 
-	err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
-	if err != nil {
-		log.Println("Error getting existing keys..", err)
-		http.Error(w, "Error getting existing keys..", http.StatusBadRequest)
-		return
-	}
-
 	session, err := Session.Store().Get(r, "session")
 	if err != nil {
 		log.Println("Error getting session..", err)
@@ -139,12 +109,6 @@ func DeleteAPIKeyHandler(apiKeys settings.API_secrets, w http.ResponseWriter, r 
 	}
 
 	apiKeys.Keys = tmp_secrets.Keys
-	err = jsondb.Write(settings.CONFIG_API_PATH, apiKeys)
-	if err != nil {
-		log.Println("Error saving new key..", err)
-		http.Error(w, "error saving new key..", http.StatusBadRequest)
-		return
-	}
 
 	w.Header().Set("Content-Type", "application/json")
 	response := api_response{Status: true, Message: "Deleted api key.", Key: "nil"}

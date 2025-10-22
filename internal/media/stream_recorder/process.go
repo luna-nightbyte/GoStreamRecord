@@ -137,7 +137,7 @@ func (b *Controller) writeYoutubeDLdb() error {
 	}
 	defer f.Close()
 
-	folder := system.System.Config.Settings.Files_folder
+	folder := system.System.Config.OutputFolder
 	dbLine := fmt.Sprintf("-o \"%s", folder) + "/%(id)s/%(title)s.%(ext)s\""
 	_, err = f.Write([]byte(dbLine))
 	return err

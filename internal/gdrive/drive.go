@@ -58,7 +58,7 @@ func SetType(serviceType string) error {
 		}
 	case "mounted":
 		Service.d = new(mounted.Mounted)
-		err := Service.d.New(system.System.Config.Settings.GoogleDrive.Filepath)
+		err := Service.d.New(system.System.Config.GDriveFilepath)
 		if err != nil {
 			return fmt.Errorf("failed to init mounted drive: %w", err)
 		}

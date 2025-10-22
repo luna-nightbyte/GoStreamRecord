@@ -6,10 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"remoteCtrl/internal/db/jsondb"
 	"remoteCtrl/internal/media/stream_recorder/recorder/provider"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/settings"
 	"time"
 
 	"github.com/Eyevinn/mp4ff/mp4"
@@ -51,8 +48,7 @@ func getFileSize(filePath string) int64 {
 	return info.Size()
 }
 
-
-// StartRecordTicker Starts a new ticker where the bots will wait for the model to be online. 
+// StartRecordTicker Starts a new ticker where the bots will wait for the model to be online.
 // Once online it starts a new recording for that bot until either exit sognal is recieved, or theselected bot should be fully stopped.
 func (b *Recorder) StartRecordTicker(ctx context.Context) {
 
@@ -81,10 +77,6 @@ func (b *Recorder) StartRecordTicker(ctx context.Context) {
 
 }
 func (b *Recorder) start() {
-	jsondb.Load(settings.CONFIG_SETTINGS_PATH, &system.System.Config.Settings)
-	if !b.Website.Interface.IsOnline(b.Website.Username) {
-		return
-	}
 	log.Println("Starting new recording for", b.Website.Username)
 
 	b.StartRecording(b.Website.Username)

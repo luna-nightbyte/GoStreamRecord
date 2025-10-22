@@ -44,8 +44,8 @@ func (c *Chaturbate) IsOnline(username string) bool {
 // Old method from recordurbate. Not really used in this app.
 // IsRoomPublic checks if a given room is public by sending a POST request.
 func (c *Chaturbate) IsRoomPublic(username string) bool {
-	if system.System.Config.Settings.RateLimit.Enable {
-		time.Sleep(time.Duration(system.System.Config.Settings.RateLimit.Time) * time.Second)
+	if system.System.Config.EnableRateLimit {
+		time.Sleep(time.Duration(system.System.Config.RateLimit) * time.Second)
 	}
 	urlStr := "https://chaturbate.com/get_edge_hls_url_ajax/"
 	data := url.Values{}

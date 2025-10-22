@@ -7,18 +7,12 @@ import (
 	"net/http"
 	"path/filepath"
 	"remoteCtrl/internal/db"
-	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/web/handlers/status"
 )
 
 // Handles POST /api/upload.
 // It reads an uploaded file and returns a dummy success response.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if !cookies.Session.IsLoggedIn(system.System.Config.APIKeys, w, r) {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
@@ -65,7 +59,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, streamer := range import_list { 
+	for _, streamer := range import_list {
 		db.DataBase.NewStreamer(streamer.Name, streamer.Provider, db.GetUserID(r))
 		counter++
 	}

@@ -9,7 +9,6 @@ import (
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/prettyprint"
-	"remoteCtrl/internal/system/settings"
 	"sort"
 )
 
@@ -29,7 +28,7 @@ func init() {
 type Core struct {
 	IsOnline        bool
 	WaitForNetwork  bool
-	Config          settings.DB // ./settings/settings.json
+	Config          db.Config
 	Context         context.Context
 	Cancel          context.CancelFunc
 	triggerShutdown chan os.Signal
@@ -41,10 +40,6 @@ var (
 	enableDebug   string = "false"
 	DEBUG                = enableDebug == "true"
 )
-
-func Init() error {
-	return nil
-}
 
 func StartupError() {
 	PrintUsage()

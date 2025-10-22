@@ -4,6 +4,28 @@ import "time"
 
 // Models & Table Structures
 
+type Config struct {
+	Port int `json:"port"`
+
+	// Web request rate limiting
+	EnableRateLimit bool   `json:"enable_rate_limit"`
+	RateLimit       int    `json:"rate_limit"`
+	OutputFolder    string `json:"output_folder"`
+
+	// Online staus ticker
+	LoopInterval int `json:"online_check_min_ticker"`
+
+	EnableGDrive   bool   `json:"enable_google_drive"`
+	GDriveFilepath string `json:"google_drive_path"`
+
+	TelegramChatID string `json:"chatID"`
+	TelegramToken  string `json:"token"`
+	EnableTelegram bool   `json:"enable_telegram"`
+}
+
+type telegram struct {
+}
+
 type User struct {
 	ID           int       `json:"id"`
 	PasswordHash []byte    `json:"-"` // Omit from JSON responses
@@ -29,6 +51,18 @@ type Streamer struct {
 	Provider string `json:"provider"`
 }
 
+type Api struct {
+	ID      int       `json:"id"`
+	Name    string    `json:"name"`
+	Key     string    `json:"key"`
+	Expires time.Time `json:"expires"`
+	Created time.Time `json:"created"`
+}
+
+type user_api_relations struct {
+	UserID int    `json:"user_id"`
+	ApiID  string `json:"api_id"`
+}
 type user_group_relations struct {
 	UserID  int    `json:"user_id"`
 	GroupID string `json:"group_id"`
@@ -101,6 +135,20 @@ const (
     FOREIGN KEY (streamer_id) REFERENCES streamers (id),
     FOREIGN KEY (streamer_id) REFERENCES groups (id)
 );`
+	q_create_apis string = `CREATE TABLE apis (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    key TEXT
+    expires TEXT
+    created TEXT
+);`
+	q_create_api_user_relations string = `CREATE TABLE api_user_relations (
+    api_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (api_id, user_id),
+    FOREIGN KEY (api_id) REFERENCES apis (id),
+    FOREIGN KEY (api_id) REFERENCES users (id)
+);`
 	q_create_videos string = `CREATE TABLE videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT NOT NULL UNIQUE,
@@ -132,6 +180,19 @@ const (
     FOREIGN KEY (tab_id) REFERENCES tabs (id),
     FOREIGN KEY (group_id) REFERENCES groups (id)
 );`
+	q_create_config string = `CREATE TABLE IF NOT EXISTS config (
+    id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    port INTEGER,
+    enable_rate_limit INTEGER,
+    rate_limit INTEGER,
+    output_folder TEXT,
+    online_check_min_ticker INTEGER,
+    enable_google_drive INTEGER,
+    google_drive_path TEXT,
+    chat_id TEXT,
+    token TEXT,
+    enable_telegram INTEGER
+);`
 )
 
 // Reusable queries
@@ -159,6 +220,43 @@ const (
 // Using constants for queries makes the Go code cleaner and prevents typos.
 
 const (
+	saveConfig = `INSERT INTO config (
+    id, port, enable_rate_limit, rate_limit, output_folder, 
+    online_check_min_ticker, enable_google_drive, google_drive_path, 
+    chat_id, token, enable_telegram
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    port = excluded.port,
+    enable_rate_limit = excluded.enable_rate_limit,
+    rate_limit = excluded.rate_limit,
+    output_folder = excluded.output_folder,
+    online_check_min_ticker = excluded.online_check_min_ticker,
+    enable_google_drive = excluded.enable_google_drive,
+    google_drive_path = excluded.google_drive_path,
+    chat_id = excluded.chat_id,
+    token = excluded.token,
+    enable_telegram = excluded.enable_telegram;`
+
+	getConfig = `SELECT 
+    port, enable_rate_limit, rate_limit, output_folder, 
+    online_check_min_ticker, enable_google_drive, google_drive_path, 
+    chat_id, token, enable_telegram 
+FROM config WHERE id = 1;`
+	// --- API Queries (apis table) ---
+
+	// createUser inserts a new user record.
+	createApi = `INSERT INTO apis (name, key, expires, created) VALUES (?, ?, ?, ?)`
+	// getApiByID retrieves a single user with their password hash for authentication.
+	listApis = `SELECT id, name, key, expires, created FROM apis ORDER BY id`
+
+	createApiRelation = `INSERT INTO user_api_relations (user_id, api_id) VALUES (?, ?)`
+	getUserApis       = `
+		SELECT DISTINCT a.id, a.name, a.key, a.expires, a.created
+		FROM apis a
+		LEFT JOIN user_api_relations ua ON a.id = ua.api_id 
+		WHERE ua.user_id = ? 
+		ORDER BY a.id DESC`
+
 	// --- User Queries (users table) ---
 
 	// createUser inserts a new user record.

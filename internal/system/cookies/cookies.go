@@ -1,9 +1,8 @@
 package cookies
 
 import (
-	"log"
 	"net/http"
-	"remoteCtrl/internal/db/jsondb"
+	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/system/settings"
 	"sync"
 
@@ -21,7 +20,7 @@ type session struct {
 	apiKeys    []string
 }
 
-func New(s settings.Settings) *session {
+func New(s db.Config) *session {
 	session := session{
 		subs_mutex: &sync.Mutex{},
 		cookies:    sessions.NewCookieStore(securecookie.GenerateRandomKey(32)),
@@ -76,33 +75,27 @@ func (s *session) IsLoggedIn(apiKeys settings.API_secrets, w http.ResponseWriter
 
 // isValidAPIKey compares the provided API key against the preloaded valid keys.
 func (s *session) isValidAPIKey(apiKeys settings.API_secrets, providedKey string) bool {
-	if len(s.apiKeys) == 0 {
+	// if len(s.apiKeys) == 0 {
+	// 	for _, k := range apiKeys.Keys {
 
-		err := jsondb.Load(settings.CONFIG_API_PATH, &apiKeys)
-		if err != nil {
-			log.Println("Error getting existing keys..", err)
-			return false
-		}
+	// 		exist := false
+	// 		for _, existingKey := range s.apiKeys {
+	// 			if existingKey == k.Key {
+	// 				exist = true
+	// 				break
+	// 			}
 
-		for _, k := range apiKeys.Keys {
-
-			exist := false
-			for _, existingKey := range s.apiKeys {
-				if existingKey == k.Key {
-					exist = true
-					break
-				}
-
-			}
-			if !exist {
-				s.apiKeys = append(s.apiKeys, k.Key)
-			}
-		}
-	}
-	for _, key := range s.apiKeys {
-		if settings.VerifyAPIKey(key, providedKey) {
-			return true
-		}
-	}
+	// 		}
+	// 		if !exist {
+	// 			s.apiKeys = append(s.apiKeys, k.Key)
+	// 		}
+	// 	}
+	// }
+	// for _, key := range s.apiKeys {
+	// 	if settings.VerifyAPIKey(key, providedKey) {
+	// 		return true
+	// 	}
+	// }
+	// return false
 	return false
 }
