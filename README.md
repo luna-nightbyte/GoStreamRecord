@@ -132,7 +132,7 @@ user@hostname:~$ docker run \
   -v ./output:/app/videos \
   -v ./app.log:/app/remoteCtrl.log \
   -p 8080:8050 \
-  docker.io/lunanightbyte/gorecord:latest
+  docker.io/lunanightbyte/gorecord:v0.3.3
 ```
 
 
