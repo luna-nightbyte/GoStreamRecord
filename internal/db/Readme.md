@@ -1,7 +1,4 @@
-# db – Simple SQLite-backed data layer for your app
-
-A tiny Go package that wraps a SQLite database with helpers for users, groups/roles, tabs (feature access), streamers, videos, API keys, and app config. It is designed to be easy to drop into a project: call one init function and start using the typed helpers.
-
+# db 
 ---
 
 ## Highlights
