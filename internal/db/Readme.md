@@ -1,7 +1,4 @@
-# db – Simple SQLite-backed data layer for your app
-
-A tiny Go package that wraps a SQLite database with helpers for users, groups/roles, tabs (feature access), streamers, videos, API keys, and app config. It is designed to be easy to drop into a project: call one init function and start using the typed helpers.
-
+# db 
 ---
 
 ## Highlights
@@ -31,8 +28,8 @@ func main() {
   // Pass "" to use default ./db/database.sqlite or set DB_PATH env var
   db.Init(ctx, "")
 
-  // Create a user and put them in the "mod" group
-  if err := db.DataBase.Users.New("alice", "mod"); err != nil { log.Fatal(err) }
+  // Create a user and put them in the "viewers" group
+  if err := db.DataBase.Users.New("alice", "viewers"); err != nil { log.Fatal(err) }
   aliceID := db.DataBase.Users.NameToID("alice")
   viewID := db.DataBase.Groups.NameToID(db.GroupViewerOnly)
   if err := db.DataBase.Groups.AddUser(aliceID, modID, db.RoleUsers); err != nil { log.Fatal(err) }
