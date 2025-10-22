@@ -1,8 +1,3 @@
-output/videos
-
-**.log
-!app.log
-
 **.jpg
 **.png
 **.PNG 
@@ -13,16 +8,18 @@ output/videos
 **.zip
 **.sqlite
 **.log
+**/youtube-dl.config
+**.env
+
 tmp 
 
-output
 
-**/youtube-dl.config
-
-
-.env
 
 
 # Binaries
 GoStreamRecord_Rpi
 GoStreamRecord
+
+output/* 
+!output/db
+!output/log

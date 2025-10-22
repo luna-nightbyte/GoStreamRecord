@@ -19,6 +19,9 @@
 - Check streamer online status.
 
 ## Usage
+
+__NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release.
+
 **See the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) to find pre-built binaries**
 |Username|Password|
 |-|-|
@@ -49,7 +52,7 @@ user@hostname:~/GoStreamRecord$ make app
 user@hostname:~/GoStreamRecord$ ./GoStreamRecord
 ```
 
-#### Settings
+#### Settings (Only up to release v0.3.4)
 The main settings can be found in [`settings.json`](https://github.com/luna-nightbyte/GoStreamRecord/blob/main/settings/settings.json):
 
 __Notes__: 
@@ -85,7 +88,7 @@ __Notes__:
 **Note:**
 The `output` folder path defined in the configuration file applies **only inside the Docker container**.
 To ensure recorded files are saved correctly, the Docker volume path **must match** the folder specified in the configuration file.
-  Example: 
+  Example (Only up to release v0.3.4): 
   - `settings.json`:
     ```json
     "output_folder": "MyCustomFolder"
@@ -121,6 +124,8 @@ docker compose up dev -d
 - `output` folder for saving output videos.
 
 App uses port __8050__ by default internally.
+
+__NOTE__: v0.3.5 and up uses SQL database. The readme will be updated on the next release.
 ```bash
 user@hostname:~$ docker run \
   -v ./settings:/app/settings \

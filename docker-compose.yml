@@ -4,9 +4,9 @@ x-defaults: &default-opts
   ports:
     - "8050:8050"
   volumes:
-    - ./log:/app/log  # optional
-    - ./db:/app/db # Should have to save database / settings
-    - ./output:/app/videos # Must have to access videos
+    - ./output/log:/app/log  # optional
+    - ./output/db:/app/db # Should have to save database / settings
+    - ./output/output:/app/videos # Must have to access videos
 services:
 
 # App
