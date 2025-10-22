@@ -16,8 +16,7 @@ func init() {
 	// Register available commands.
 	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
 	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
-	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi)
-	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
+	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi) 
 	command.CMD.Startup.Add("add-group", "./GoStreamRecord add-group <group-name> <description>", addGroup)
 	command.CMD.Startup.Add("add-user-to-group", "./GoStreamRecord add-user-to-group <username> <group-name>", addUserToGroup)
 	command.CMD.Startup.Add("list-users", "./GoStreamRecord list-users", listUsers)
