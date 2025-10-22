@@ -11,7 +11,7 @@ import (
 
 var (
 	logFile  *os.File
-	Log_path string = "./app.log"
+	Log_path string = "./log/app.log"
 )
 
 type logWriter struct{}

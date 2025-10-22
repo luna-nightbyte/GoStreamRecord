@@ -43,10 +43,8 @@ build_go:
 		-X 'remoteCtrl/internal/system/version.Shasum=$(COMMIT_HASH)'" \
 	-o GoStreamRecord
   
-run: build_go
-	mkdir -p output/settings
-	mkdir -p output/videos
-	cp -r --update settings/* output/settings
+run: build_go 
+	mkdir -p output/videos 
 	cp ./GoStreamRecord output/GoStreamRecord
 	cd output && \
 	sudo ./GoStreamRecord

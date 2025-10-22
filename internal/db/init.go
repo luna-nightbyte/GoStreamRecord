@@ -21,6 +21,8 @@ type DB struct {
 	Tabs      Tab
 }
 
+const default_db_path string = "./db/database.sqlite"
+
 // Global variable to hold the database instance.
 var DataBase *DB
 
@@ -59,7 +61,7 @@ func Init(ctx context.Context, path string) {
 
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
-		dbPath = "database.sqlite"
+		dbPath = default_db_path
 	}
 	// Allow overriding path for testing or specific configurations.
 	if path != "" {
