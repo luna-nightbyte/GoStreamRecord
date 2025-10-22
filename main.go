@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"remoteCtrl/internal"
-	"remoteCtrl/internal/media/localfolder"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/system/version"
@@ -23,7 +22,6 @@ var VueLoginFiles embed.FS
 var VueDistFiles embed.FS
 
 func init() {
-
 	fmt.Println()
 	prettyprint.P.BoldGrey.Println("Software version: ")
 	prettyprint.P.Cyan.Println(version.Version)
@@ -31,16 +29,16 @@ func init() {
 	prettyprint.P.Cyan.Println(version.Shasum)
 	fmt.Println()
 	prettyprint.P.BoldGreen.Println("Startup")
-	system.Check_requirements()
 
+	system.Check_requirements()
 }
 func main() {
-	system.System.WaitForNetwork = false
+
 	err := internal.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
-	go localfolder.ContiniousRead(system.System.Config.OutputFolder)
+
 	go web.ServeHTTP(system.System.Context, VueLoginFiles, VueDistFiles)
 
 	<-system.System.Context.Done()

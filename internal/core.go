@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"remoteCtrl/internal/command"
 	"remoteCtrl/internal/db"
+	"remoteCtrl/internal/media/localfolder"
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/cookies"
 	"remoteCtrl/internal/system/logger"
@@ -25,19 +26,8 @@ var onlineCheckIP = "8.8.8.8"
 
 func Init() error {
 
-	//system.System.Config = settings.Init()
 	// Context for shutdown
 	system.System.Context, system.System.Cancel = context.WithCancel(context.Background())
-
-	db.Init(system.System.Context, "")
-
-	cfg, err := db.DataBase.Config()
-	if err != nil {
-		log.Fatal(err)
-	}
-	system.System.Config = cfg
-	// db.AEAKEY:= getSecret(secretKey)
-	// COS sig
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -47,7 +37,15 @@ func Init() error {
 		system.System.Cancel()
 	}()
 
-	// -- Default init
+	// Database
+	db.Init(system.System.Context, "")
+	cfg, err := db.DataBase.Config()
+	if err != nil {
+		log.Fatal(err)
+	}
+	system.System.Config = cfg
+
+	// -- Backend logic
 	if len(os.Args) < 2 {
 		// -- -- Network
 		ticker := time.NewTicker(30 * time.Second)
@@ -66,24 +64,23 @@ func Init() error {
 			telegram.Bot.Init()
 			telegram.Bot.SendStartup(strconv.Itoa(system.System.Config.Port))
 		}
-		return nil
 
+		go localfolder.ContiniousRead(system.System.Config.OutputFolder)
+
+	} else { // Startup commands = run once and exit
+		cmdName := os.Args[1]
+		statup_command, exists := command.CMD.Startup.Map[cmdName]
+		if !exists {
+			system.StartupError()
+			prettyprint.P.Cyan.Println("Unknown command:", cmdName)
+			log.Println("Unknown command:", cmdName)
+			return fmt.Errorf("unknown command")
+		}
+		statup_command.Run(os.Args[2:])
+
+		system.System.Cancel()
 	}
-	//
-	//	Only argument handling below
-	//
-
-	cmdName := os.Args[1]
-	statup_command, exists := command.CMD.Startup.Map[cmdName]
-	if !exists {
-		system.StartupError()
-		prettyprint.P.Cyan.Println("Unknown command:", cmdName)
-		log.Println("Unknown command:", cmdName)
-		return fmt.Errorf("unknown command")
-	}
-	statup_command.Run(os.Args[2:])
-
-	system.System.Cancel()
-
+	
+	// Nothing should be done here.
 	return nil
 }
