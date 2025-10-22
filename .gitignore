@@ -11,6 +11,8 @@ output/videos
 **.avi
 **.mp4
 **.zip
+**.sqlite
+**.log
 tmp 
 
 output
