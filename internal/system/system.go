@@ -15,8 +15,8 @@ import (
 func init() {
 	// Register available commands.
 	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
-	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
-	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi) 
+	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password> <role> <group-name>", AddNewUser)
+	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi)
 	command.CMD.Startup.Add("add-group", "./GoStreamRecord add-group <group-name> <description>", addGroup)
 	command.CMD.Startup.Add("add-user-to-group", "./GoStreamRecord add-user-to-group <username> <group-name>", addUserToGroup)
 	command.CMD.Startup.Add("list-users", "./GoStreamRecord list-users", listUsers)
@@ -56,24 +56,24 @@ func PrintUsage() {
 
 	sort.Strings(keys)
 
-	prettyprint.P.Cyan.Println("Usage:")
+	prettyprint.P.LightCyan.Println("Usage:")
 
 	for _, key := range keys {
 		cmd := command.CMD.Startup.Map[key]
-		prettyprint.P.Cyan.Println(" - " + cmd.Usage)
+		prettyprint.P.LightCyan.Println(" - " + cmd.Usage)
 	}
 
-	prettyprint.P.Cyan.Println("Otherwise run the server without any arguments.")
+	prettyprint.P.LightCyan.Println("Otherwise run the server without any arguments.")
 }
 func ResetWebUIPassword(args []string) {
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 1 {
-			prettyprint.P.BoldRed.Println("No username provided.")
+			prettyprint.P.LightRed.Println("No username provided.")
 		} else {
-			prettyprint.P.BoldRed.Println("No new password provided.", args)
+			prettyprint.P.LightRed.Println("No new password provided.", args)
 		}
-		prettyprint.P.BoldRed.Println("Error. See usage.")
+		prettyprint.P.LightRed.Println("Error. See usage.")
 		return
 	}
 
@@ -94,40 +94,40 @@ func ResetWebUIPassword(args []string) {
 
 	if !userFound {
 		log.Println("No matching username found.")
-		prettyprint.P.BoldRed.Println("No matching username found.")
+		prettyprint.P.LightRed.Println("No matching username found.")
 		return
 	}
 
 	log.Println("Password updated for", username)
-	prettyprint.P.Green.Println("Password updated for ")
-	prettyprint.P.BoldWhite.Println(username)
+	prettyprint.P.Success.Println(fmt.Sprintf("Password updated for %s", username))
 }
 
 func AddNewUser(args []string) {
 
-	if len(args) < 3 {
+	if len(args) < 4 {
 		// Provide clear feedback on what is missing.
-		if len(args) < 2 {
-			prettyprint.P.BoldRed.Println("No role provided.")
+		if len(args) < 3 {
+			prettyprint.P.LightRed.Println("No role provided.")
+		} else if len(args) < 2 {
+			prettyprint.P.LightRed.Println("No group name provided.")
 		} else if len(args) < 1 {
-			prettyprint.P.BoldRed.Println("No username provided.")
+			prettyprint.P.LightRed.Println("No username provided.")
 		} else {
-			prettyprint.P.BoldRed.Println("No new password provided.", args)
+			prettyprint.P.LightRed.Println("No new password provided.", args)
 		}
-		prettyprint.P.BoldRed.Println("Error! See usage.")
+		prettyprint.P.LightRed.Println("Error! See usage.")
 		return
 	}
 
 	username := args[0]
 	newPassword := args[1]
-
 	role := args[2]
 	group := args[3]
 
 	err := db.DataBase.Users.New(username, newPassword)
 	if err != nil {
 		log.Println(err)
-		prettyprint.P.BoldRed.Println(err)
+		prettyprint.P.LightRed.Println(err)
 		return
 	}
 
@@ -135,19 +135,18 @@ func AddNewUser(args []string) {
 	group_id := db.DataBase.Groups.NameToID(group)
 	err = db.DataBase.Groups.AddUser(user_id, group_id, role)
 	if err != nil {
-		prettyprint.P.BoldRed.Println(err)
-		prettyprint.P.BoldRed.Println(err)
+		prettyprint.P.LightRed.Println(err)
 		return
 	}
 
-	prettyprint.P.Green.Println("Added new user:")
-	prettyprint.P.BoldWhite.Println(username)
-	prettyprint.P.Green.Println("Password:")
-	prettyprint.P.BoldGrey.Println(newPassword)
-	prettyprint.P.Green.Println("Group:")
-	prettyprint.P.BoldGrey.Println(group)
-	prettyprint.P.Green.Println("Role:")
-	prettyprint.P.BoldGrey.Println(role)
+	prettyprint.P.LightGreen.Println("Added new user:")
+	prettyprint.P.LightWhite.Println(username)
+	prettyprint.P.LightGreen.Println("Password:")
+	prettyprint.P.FaintWhite.Println(newPassword)
+	prettyprint.P.LightGreen.Println("Group:")
+	prettyprint.P.FaintWhite.Println(group)
+	prettyprint.P.LightGreen.Println("Role:")
+	prettyprint.P.FaintWhite.Println(role)
 }
 
 func AddNewApi(args []string) {
@@ -155,11 +154,11 @@ func AddNewApi(args []string) {
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 2 {
-			prettyprint.P.BoldRed.Println("No api provided.")
+			prettyprint.P.LightRed.Println("No api provided.")
 		} else if len(args) < 1 {
-			prettyprint.P.BoldRed.Println("No username provided.")
+			prettyprint.P.LightRed.Println("No username provided.")
 		}
-		prettyprint.P.BoldRed.Println("Error! See usage.")
+		prettyprint.P.LightRed.Println("Error! See usage.")
 		return
 	}
 
@@ -169,21 +168,20 @@ func AddNewApi(args []string) {
 	err := db.DataBase.APIs.New(apiName, username)
 	if err != nil {
 		log.Println(err)
-		prettyprint.P.BoldRed.Println(err)
+		prettyprint.P.LightRed.Println(err)
 		return
 	}
 	user_id := db.DataBase.Users.NameToID(username)
-	// user_id := db.DataBase.Users.NameToID(username)
 	apis, err := db.DataBase.APIs.List(user_id)
 	if err != nil {
-		prettyprint.P.BoldRed.Println(err)
-		prettyprint.P.BoldRed.Println(err)
+		prettyprint.P.LightRed.Println(err)
 		return
 	}
 
-	prettyprint.P.Green.Println("Added new api:")
-	prettyprint.P.BoldWhite.Println("KEY:", apis[apiName].Key)
-	prettyprint.P.BoldWhite.Println("Expires at:", apis[apiName].Expires)
+	prettyprint.P.LightGreen.Println("Added new api:")
+
+	prettyprint.P.LightWhite.Println("KEY:", apis[apiName].Key)
+	prettyprint.P.LightWhite.Println("Expires at:", apis[apiName].Expires)
 
 }
 
@@ -199,8 +197,8 @@ func addGroup(args []string) {
 		log.Fatalf("Fatal: Could not create group '%s': %v", groupName, err)
 	}
 
-	fmt.Printf("Successfully created group:")
-	prettyprint.P.Green.Println(groupName)
+	prettyprint.P.LightGreen.Print("Successfully created group: ")
+	prettyprint.P.LightWhite.Println(groupName)
 	os.Exit(0)
 }
 
@@ -230,7 +228,7 @@ func addUserToGroup(args []string) {
 		log.Fatalf("Fatal: Could not add user '%s' to group '%s': %v", username, groupName, err)
 	}
 
-	fmt.Printf("Successfully added user %s to group %s\n", prettyprint.P.Green.Color(username), prettyprint.P.Green.Color(groupName))
+	fmt.Printf("Successfully added user %s to group %s\n", prettyprint.P.LightGreen.Color(username), prettyprint.P.LightGreen.Color(groupName))
 	os.Exit(0)
 }
 
@@ -245,9 +243,9 @@ func listUsers(args []string) {
 		log.Fatalf("Fatal: Could not list users: %v", err)
 	}
 
-	prettyprint.P.BoldWhite.Println("Registered Users:")
+	prettyprint.P.LightWhite.Println("Registered Users:")
 	if len(users) == 0 {
-		prettyprint.P.BoldGrey.Println("  (No users found)")
+		prettyprint.P.FaintWhite.Println("  (No users found)")
 		os.Exit(0)
 	}
 
@@ -262,7 +260,7 @@ func listUsers(args []string) {
 	sort.Strings(userNames)
 
 	for _, name := range userNames {
-		fmt.Printf("  - %s\n", prettyprint.P.Green.Color(name))
+		fmt.Printf("  - %s\n", prettyprint.P.LightGreen.Color(name))
 	}
 	os.Exit(0)
 }
@@ -278,9 +276,9 @@ func listGroups(args []string) {
 		log.Fatalf("Fatal: Could not list groups: %v", err)
 	}
 
-	prettyprint.P.BoldWhite.Println("Available Groups:")
+	prettyprint.P.LightWhite.Println("Available Groups:")
 	if len(groups) == 0 {
-		prettyprint.P.BoldGrey.Println("  (No groups found)")
+		prettyprint.P.FaintWhite.Println("  (No groups found)")
 		os.Exit(0)
 	}
 
@@ -293,8 +291,7 @@ func listGroups(args []string) {
 
 	for _, name := range groupNames {
 		group := groups[name]
-		// Assumes db.Group struct has Name and Description fields
-		fmt.Printf("  - %s (%s)\n", prettyprint.P.Green.Color(group.Name), prettyprint.P.BoldGrey.Color(group.Description))
+		fmt.Printf("  - %s (%s)\n", prettyprint.P.LightGreen.Color(group.Name), prettyprint.P.FaintWhite.Color(group.Description))
 	}
 	os.Exit(0)
 }
@@ -318,14 +315,14 @@ func listUserGroups(args []string) {
 		log.Fatalf("Fatal: Could not list groups for user '%s': %v", username, err)
 	}
 
-	fmt.Printf("%s for user %s:\n", prettyprint.P.BoldWhite.Color("Groups"), prettyprint.P.Green.Color(username))
+	fmt.Printf("%s for user %s:\n", prettyprint.P.LightWhite.Color("Groups"), prettyprint.P.LightGreen.Color(username))
 	if len(groups) == 0 {
-		prettyprint.P.BoldGrey.Println("  (No groups assigned)")
+		prettyprint.P.FaintWhite.Println("  (No groups assigned)")
 		os.Exit(0)
 	}
 
 	for _, group := range groups {
-		fmt.Printf("  - %s (%s)\n", prettyprint.P.Green.Color(group.Name), prettyprint.P.BoldGrey.Color(group.Description))
+		fmt.Printf("  - %s (%s)\n", prettyprint.P.LightGreen.Color(group.Name), prettyprint.P.FaintWhite.Color(group.Description))
 	}
 	os.Exit(0)
 }
