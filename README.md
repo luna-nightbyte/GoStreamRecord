@@ -20,7 +20,7 @@
 
 ## Usage
 
-__NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release.
+__NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release (not pre-releases).
 
 **See the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) to find pre-built binaries**
 |Username|Password|
