@@ -25,9 +25,11 @@ var VueDistFiles embed.FS
 
 func init() {
 
-	fmt.Println(prettyprint.Green("Startup"))
-	fmt.Println(prettyprint.BoldGrey("Software version", version.Version))
-	fmt.Println(prettyprint.BoldGrey("Github commit sha:", version.Shasum), "\n")
+	fmt.Println()
+	fmt.Println(prettyprint.BoldGrey("Software version: "), prettyprint.Cyan(version.Version))
+	fmt.Println(prettyprint.BoldGrey("Github commit sha:"), prettyprint.Cyan(version.Shasum))
+	fmt.Println()
+	fmt.Println(prettyprint.BoldGreen("Startup"))
 	ytDLP_path := utils.CheckPath("yt-dlp")
 
 	ffmpeg_path := utils.CheckPath("ffmpeg")
