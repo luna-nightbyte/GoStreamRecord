@@ -52,11 +52,12 @@ type Streamer struct {
 }
 
 type Api struct {
-	ID      int       `json:"id"`
-	Name    string    `json:"name"`
-	Key     string    `json:"key"`
-	Expires time.Time `json:"expires"`
-	Created time.Time `json:"created"`
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	OwnerID int    `json:"owner_id"`
+	Key     string `json:"key"`
+	Expires string `json:"expires"`
+	Created string `json:"created"`
 }
 
 type user_api_relations struct {
@@ -138,16 +139,10 @@ const (
 	q_create_apis string = `CREATE TABLE apis (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT NOT NULL UNIQUE,
+	owner_id TEXT NOT NULL,
 	key TEXT NOT NULL,
 	expires TEXT, -- RFC3339
 	created TEXT NOT NULL
-);`
-	q_create_api_user_relations string = `CREATE TABLE api_user_relations (
-	api_id INTEGER NOT NULL,
-	user_id INTEGER NOT NULL,
-	PRIMARY KEY (api_id, user_id),
-	FOREIGN KEY (api_id) REFERENCES apis (id) ON DELETE CASCADE,
-	FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );`
 	q_create_videos string = `CREATE TABLE videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -245,12 +240,11 @@ FROM config WHERE id = 1;`
 	// --- API Queries (apis table) ---
 
 	// createUser inserts a new user record.
-	createApi = `INSERT INTO apis (name, key, expires, created) VALUES (?, ?, ?, ?)`
+	createApi = `INSERT INTO apis (name, owner_id, key, expires, created) VALUES (?, ?, ?, ?, ?)`
 	// getApiByID retrieves a single user with their password hash for authentication.
-	listApis = `SELECT id, name, key, expires, created FROM apis ORDER BY id`
+	listApis = `SELECT id, name, owner_id, key, expires, created FROM apis ORDER BY id`
 
-	createApiRelation = `INSERT INTO user_api_relations (user_id, api_id) VALUES (?, ?)`
-	getUserApis       = `
+	getUserApis = `
 		SELECT DISTINCT a.id, a.name, a.key, a.expires, a.created
 		FROM apis a
 		LEFT JOIN user_api_relations ua ON a.id = ua.api_id 
