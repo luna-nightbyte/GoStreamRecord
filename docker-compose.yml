@@ -2,11 +2,11 @@ x-defaults: &default-opts
   tty: true
   privileged: true
   ports:
-    - "8050:80"
+    - "8050:8050"
   volumes:
-    - ./settings:/app/settings
-    - ./app.log:/app/app.log  
-    - ./output:/app/videos
+    - ./log:/app/log  # optional
+    - ./db:/app/db # Should have to save database / settings
+    - ./output:/app/videos # Must have to access videos
 services:
 
 # App

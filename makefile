@@ -44,7 +44,7 @@ build_go:
 	-o GoStreamRecord
   
 run: build_go 
-	mkdir -p output/videos 
+	mkdir -p output/videos output/db output/log 
 	cp ./GoStreamRecord output/GoStreamRecord
 	cd output && \
 	sudo ./GoStreamRecord
