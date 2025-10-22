@@ -47,7 +47,7 @@ func createSchema(ctx context.Context, db *sql.DB) error {
 		q_create_tab_groups,
 		q_create_streamers,
 		q_create_streamer_groups,
-		q_create_apis, 
+		q_create_apis,
 		q_create_config,
 	)
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
@@ -101,10 +101,10 @@ func Init(ctx context.Context, path string) {
 		if err := DataBase.Users.New(exampleAdmin, defaultPass); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.Users.New(exampleViewer, defaultPass); err != nil {
+		if err := DataBase.Users.New(exampleViewer, exampleViewer); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.Users.New(exampleMod, defaultPass); err != nil {
+		if err := DataBase.Users.New(exampleMod, exampleMod); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
 		// Add to group
@@ -129,12 +129,17 @@ func Init(ctx context.Context, path string) {
 		internalID := DataBase.Users.NameToID(InternalUser)
 		DataBase.Groups.AddUser(internalID, admin_group_id, RoleAdmin)
 
-		prettyprint.P.Yellow.Println("New database created.")
-		prettyprint.P.BoldWhite.Println("Default users:")
-		prettyprint.P.BoldGrey.Println("	", exampleAdmin)
-		prettyprint.P.BoldGrey.Println("	", exampleMod)
-		prettyprint.P.BoldGrey.Println("	", exampleViewer)
-		prettyprint.P.BoldGrey.Println("	password:", defaultPass)
+		prettyprint.P.Yellow.Println("New database created:")
+		prettyprint.P.BoldWhite.Println("	User:	| Password:")
+		prettyprint.P.BoldGrey.Print("	", exampleAdmin)
+		prettyprint.P.BoldWhite.Print("	| ")
+		prettyprint.P.FaintWhite.Println(defaultPass)
+		prettyprint.P.BoldGrey.Print("	", exampleMod)
+		prettyprint.P.BoldWhite.Print("	| ")
+		prettyprint.P.FaintWhite.Println(exampleMod)
+		prettyprint.P.BoldGrey.Print("	", exampleViewer)
+		prettyprint.P.BoldWhite.Print("	| ")
+		prettyprint.P.FaintWhite.Println(exampleViewer)
 		// TABS --------------------------------------------
 
 		err := DataBase.Tabs.New(TabDownload, "Download videos directly from websites")
