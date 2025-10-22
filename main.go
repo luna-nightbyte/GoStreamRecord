@@ -23,9 +23,9 @@ var VueDistFiles embed.FS
 
 func init() {
 	fmt.Println()
-	prettyprint.P.BoldGrey.Println("Software version: ")
+	prettyprint.P.BoldGrey.Print("Software version: ")
 	prettyprint.P.Cyan.Println(version.Version)
-	prettyprint.P.BoldGrey.Println("Github commit sha:")
+	prettyprint.P.BoldGrey.Print("Github commit sha: ")
 	prettyprint.P.Cyan.Println(version.Shasum)
 	fmt.Println()
 	prettyprint.P.BoldGreen.Println("Startup")
