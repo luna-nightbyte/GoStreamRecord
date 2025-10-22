@@ -27,7 +27,7 @@ func init() {
 
 	fmt.Println(prettyprint.Green("Startup"))
 	fmt.Println(prettyprint.BoldGrey("Software version", version.Version))
-	fmt.Println(prettyprint.BoldGrey("Software sha256:", version.Shasum), "\n")
+	fmt.Println(prettyprint.BoldGrey("Github commit sha:", version.Shasum), "\n")
 	ytDLP_path := utils.CheckPath("yt-dlp")
 
 	ffmpeg_path := utils.CheckPath("ffmpeg")
