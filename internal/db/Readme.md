@@ -28,8 +28,8 @@ func main() {
   // Pass "" to use default ./db/database.sqlite or set DB_PATH env var
   db.Init(ctx, "")
 
-  // Create a user and put them in the "mod" group
-  if err := db.DataBase.Users.New("alice", "mod"); err != nil { log.Fatal(err) }
+  // Create a user and put them in the "viewers" group
+  if err := db.DataBase.Users.New("alice", "viewers"); err != nil { log.Fatal(err) }
   aliceID := db.DataBase.Users.NameToID("alice")
   viewID := db.DataBase.Groups.NameToID(db.GroupViewerOnly)
   if err := db.DataBase.Groups.AddUser(aliceID, modID, db.RoleUsers); err != nil { log.Fatal(err) }
