@@ -128,12 +128,12 @@ func Init(ctx context.Context, path string) {
 		DataBase.Users.New(InternalUser, string(randPass))
 		DataBase.Groups.AddUser(internal_id, admin_group_id, RoleAdmin)
 
-		fmt.Println(prettyprint.Yellow("New database created."))
-		fmt.Println(prettyprint.BoldWhite("Default users:"))
-		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleAdmin))
-		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleMod))
-		fmt.Println(prettyprint.BoldGrey("	username:"), prettyprint.Green(exampleViewer))
-		fmt.Println(prettyprint.BoldGrey("	password:"), prettyprint.Green(defaultPass))
+		prettyprint.P.Yellow.Println("New database created.")
+		prettyprint.P.BoldWhite.Println("Default users:")
+		prettyprint.P.BoldGrey.Println("	",exampleAdmin)
+		prettyprint.P.BoldGrey.Println("	",exampleMod)
+		prettyprint.P.BoldGrey.Println("	",exampleViewer)
+		prettyprint.P.BoldGrey.Println("	password:", defaultPass)
 		// TABS --------------------------------------------
 
 		err := DataBase.Tabs.New(TabDownload, "Download videos directly from websites")

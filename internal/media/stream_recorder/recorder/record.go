@@ -5,7 +5,6 @@ import (
 	"log"
 	"os/exec"
 	"remoteCtrl/internal/system"
-	"remoteCtrl/internal/utils"
 	"strings"
 )
 
@@ -30,9 +29,7 @@ func (rec *Recorder) StartRecording(streamerName string) {
 	}
 	rec.IsRecording = true
 
-	ytDlpPath := utils.CheckPath("yt-dlp")
-
-	args := strings.Fields(fmt.Sprint(ytDlpPath) + " --no-part")
+	args := strings.Fields("yt-dlp --no-part")
 
 	args = append(args, fmt.Sprintf("%s%s/", rec.Website.Url, streamerName), "--config-location", "youtube-dl.config")
 	if system.DEBUG {

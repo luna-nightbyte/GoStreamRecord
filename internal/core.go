@@ -77,7 +77,7 @@ func Init() error {
 	statup_command, exists := command.CMD.Startup.Map[cmdName]
 	if !exists {
 		system.StartupError()
-		fmt.Println(prettyprint.Cyan("Unknown command:"), cmdName)
+		prettyprint.P.Cyan.Println("Unknown command:", cmdName)
 		log.Println("Unknown command:", cmdName)
 		return fmt.Errorf("unknown command")
 	}

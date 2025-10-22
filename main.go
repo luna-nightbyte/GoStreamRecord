@@ -12,7 +12,6 @@ import (
 	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/system/version"
-	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web"
 	"remoteCtrl/internal/web/telegram"
 )
@@ -26,22 +25,14 @@ var VueDistFiles embed.FS
 func init() {
 
 	fmt.Println()
-	fmt.Println(prettyprint.BoldGrey("Software version: "), prettyprint.Cyan(version.Version))
-	fmt.Println(prettyprint.BoldGrey("Github commit sha:"), prettyprint.Cyan(version.Shasum))
+	prettyprint.P.BoldGrey.Println("Software version: ")
+	prettyprint.P.Cyan.Println(version.Version)
+	prettyprint.P.BoldGrey.Println("Github commit sha:")
+	prettyprint.P.Cyan.Println(version.Shasum)
 	fmt.Println()
-	fmt.Println(prettyprint.BoldGreen("Startup"))
-	ytDLP_path := utils.CheckPath("yt-dlp")
+	prettyprint.P.BoldGreen.Println("Startup")
+	system.Check_requirements()
 
-	ffmpeg_path := utils.CheckPath("ffmpeg")
-	if ytDLP_path == "" {
-		fmt.Println("missing yt-dlp. Please instalwebControllerl before running this program.")
-	}
-	if ffmpeg_path == "" {
-		fmt.Println("missing yt-dlp. Please install before running this program.")
-	}
-	if ytDLP_path == "" || ffmpeg_path == "" {
-		log.Fatal("missing dependencies")
-	}
 }
 func main() {
 	system.System.WaitForNetwork = false

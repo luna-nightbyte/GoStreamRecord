@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
 )
 
@@ -66,7 +65,7 @@ func (c *Exec) Error() error {
 func (c *Exec) Output() string {
 	return string(c.stdoutBytes)
 }
-func CheckPath(command string) string {
+func Is_installed(command string) bool {
 	cmd := exec.Command("sh", "-c", "which "+command)
 
 	var stdout, stderr bytes.Buffer
@@ -76,12 +75,11 @@ func CheckPath(command string) string {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Printf("Unable to locate '%s' binary installation. Add it to your $PATH. \nOr move/create symbolic link for the binary to a known path. I.E 'sudo cp /home/$USER/.local/bin/%s /usr/local/bin/'", command, command)
-		fmt.Printf("Unable to locate '%s' binary installation. Add it to your $PATH. \nOr move/create symbolic link for the binary to a known path. I.E 'sudo cp /home/$USER/.local/bin/%s /usr/local/bin/'", command, command)
-		return ""
+		// log.Printf("Unable to locate '%s' binary installation. Add it to your $PATH. \nOr move/create symbolic link for the binary to a known path. I.E 'sudo cp /home/$USER/.local/bin/%s /usr/local/bin/'", command, command)
+		return false
 	}
 
-	pwd := bytes.TrimSpace(stdout.Bytes())
-	return string(pwd)
+	//pwd := bytes.TrimSpace(stdout.Bytes())
+	return true
 
 }

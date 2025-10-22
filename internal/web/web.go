@@ -177,7 +177,8 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 		ReadTimeout:  60 * time.Second,
 	}
 
-	fmt.Println(prettyprint.BoldWhite("Local web server avalable at:"), prettyprint.Green(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.Config.Port)))
+	prettyprint.P.BoldWhite.Println("Local web server avalable at:")
+	prettyprint.P.Green.Println(fmt.Sprintf("http://%s:%d", utils.GetLocalIp(), system.System.Config.Port))
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)
