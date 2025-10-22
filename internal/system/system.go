@@ -16,7 +16,8 @@ func init() {
 	// Register available commands.
 	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
 	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
-	// --- User and Group Management Commands ---
+	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi)
+	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password>", AddNewUser)
 	command.CMD.Startup.Add("add-group", "./GoStreamRecord add-group <group-name> <description>", addGroup)
 	command.CMD.Startup.Add("add-user-to-group", "./GoStreamRecord add-user-to-group <username> <group-name>", addUserToGroup)
 	command.CMD.Startup.Add("list-users", "./GoStreamRecord list-users", listUsers)
@@ -148,6 +149,43 @@ func AddNewUser(args []string) {
 	prettyprint.P.BoldGrey.Println(group)
 	prettyprint.P.Green.Println("Role:")
 	prettyprint.P.BoldGrey.Println(role)
+}
+
+func AddNewApi(args []string) {
+
+	if len(args) < 2 {
+		// Provide clear feedback on what is missing.
+		if len(args) < 2 {
+			prettyprint.P.BoldRed.Println("No api provided.")
+		} else if len(args) < 1 {
+			prettyprint.P.BoldRed.Println("No username provided.")
+		}
+		prettyprint.P.BoldRed.Println("Error! See usage.")
+		return
+	}
+
+	username := args[0]
+	apiName := args[1]
+
+	err := db.DataBase.APIs.New(apiName, username)
+	if err != nil {
+		log.Println(err)
+		prettyprint.P.BoldRed.Println(err)
+		return
+	}
+	user_id := db.DataBase.Users.NameToID(username)
+	// user_id := db.DataBase.Users.NameToID(username)
+	apis, err := db.DataBase.APIs.List(user_id)
+	if err != nil {
+		prettyprint.P.BoldRed.Println(err)
+		prettyprint.P.BoldRed.Println(err)
+		return
+	}
+
+	prettyprint.P.Green.Println("Added new api:")
+	prettyprint.P.BoldWhite.Println("KEY:", apis[apiName].Key)
+	prettyprint.P.BoldWhite.Println("Expires at:", apis[apiName].Expires)
+
 }
 
 // addGroup creates a new user group.
