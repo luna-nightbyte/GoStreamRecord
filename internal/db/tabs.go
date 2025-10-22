@@ -70,11 +70,14 @@ func (db *Tab) GetAvailableTabsForUser(userID int) (map[string]Tab, error) {
  
 	return tabsMap, nil
 }
-func (db *Tab) DeleteTabForUser(user_id, tab_id int) (*Tab, error) {
+func (db *Tab) DeleteForUser(user_id, tab_id int) (*Tab, error) {
 	err := db.queryTabSql(unshareTabFromGroup, user_id, tab_id)
 	return db, err
 }
-
+func (db *Tab) DeleteForGroup(groupID, tabID int) error {
+_, err := DataBase.SQL.ExecContext(DataBase.ctx, unshareTabFromGroup, tabID, groupID)
+return err
+}
 // HELPERS ------------------------------------------------------------------------------------
 func (u *Tab) queryTabSql(query string, args ...any) error {
 	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)

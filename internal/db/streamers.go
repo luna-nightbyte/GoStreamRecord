@@ -75,6 +75,10 @@ func (db *Streamer) DeleteForUser(user_id, streamer_id int) (*Streamer, error) {
 	return db, err
 }
 
+func (db *Streamer) DeleteForGroup(groupID, streamerID int) error {
+_, err := DataBase.SQL.ExecContext(DataBase.ctx, unshareStreamerFromGroup, streamerID, groupID)
+return err
+}
 // HELPERS ------------------------------------------------------------------------------------
 func (u *Streamer) queryTabSql(query string, args ...any) error {
 	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)

@@ -36,7 +36,7 @@ var randPass, _ = hashPassword(utils.RandString(15))
 
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
-	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
 		q_create_users,
 		q_create_goups,
 		q_create_tabs,
@@ -46,9 +46,10 @@ func createSchema(ctx context.Context, db *sql.DB) error {
 		q_create_tab_groups,
 		q_create_streamers,
 		q_create_streamer_groups,
+		q_create_apis,
+		q_create_api_user_relations,
 		q_create_config,
 	)
-
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
 		return fmt.Errorf("failed to execute schema creation: %w", err)
 	}
@@ -123,16 +124,16 @@ func Init(ctx context.Context, path string) {
 		admin_group_id := DataBase.Groups.NameToID(GroupAdmins)
 		DataBase.Groups.AddUser(admin_id, admin_group_id, RoleAdmin)
 
-		// -- internal server user
-		internal_id := DataBase.Users.NameToID(exampleAdmin)
+		// -- internal server user 
 		DataBase.Users.New(InternalUser, string(randPass))
-		DataBase.Groups.AddUser(internal_id, admin_group_id, RoleAdmin)
+		internalID := DataBase.Users.NameToID(InternalUser)
+		DataBase.Groups.AddUser(internalID, admin_group_id, RoleAdmin) 
 
 		prettyprint.P.Yellow.Println("New database created.")
 		prettyprint.P.BoldWhite.Println("Default users:")
-		prettyprint.P.BoldGrey.Println("	",exampleAdmin)
-		prettyprint.P.BoldGrey.Println("	",exampleMod)
-		prettyprint.P.BoldGrey.Println("	",exampleViewer)
+		prettyprint.P.BoldGrey.Println("	", exampleAdmin)
+		prettyprint.P.BoldGrey.Println("	", exampleMod)
+		prettyprint.P.BoldGrey.Println("	", exampleViewer)
 		prettyprint.P.BoldGrey.Println("	password:", defaultPass)
 		// TABS --------------------------------------------
 

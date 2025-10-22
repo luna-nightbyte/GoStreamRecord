@@ -93,8 +93,8 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 	for rows.Next() {
 		var v Video
 		var createdAt string
-		if err := rows.Scan(&v.ID, &v.Name, &v.Filepath, &v.Sha256, &v.UploaderUserID, &createdAt); err != nil {
-			fmt.Println(err)
+		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.Sha256, &v.UploaderUserID, &createdAt); err != nil {
+				fmt.Println(err)
 			return nil, fmt.Errorf("failed to scan video row: %w", err)
 		}
 		v.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)

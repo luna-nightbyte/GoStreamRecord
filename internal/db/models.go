@@ -129,25 +129,25 @@ const (
     provider TEXT
 );`
 	q_create_streamer_groups string = `CREATE TABLE streamer_group_relations (
-    streamer_id INTEGER NOT NULL,
-    group_id INTEGER NOT NULL,
-    PRIMARY KEY (streamer_id, group_id),
-    FOREIGN KEY (streamer_id) REFERENCES streamers (id),
-    FOREIGN KEY (streamer_id) REFERENCES groups (id)
+	streamer_id INTEGER NOT NULL,
+	group_id INTEGER NOT NULL,
+	PRIMARY KEY (streamer_id, group_id),
+	FOREIGN KEY (streamer_id) REFERENCES streamers (id) ON DELETE CASCADE,
+	FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE
 );`
 	q_create_apis string = `CREATE TABLE apis (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    key TEXT
-    expires TEXT
-    created TEXT
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT NOT NULL UNIQUE,
+	key TEXT NOT NULL,
+	expires TEXT, -- RFC3339
+	created TEXT NOT NULL
 );`
 	q_create_api_user_relations string = `CREATE TABLE api_user_relations (
-    api_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    PRIMARY KEY (api_id, user_id),
-    FOREIGN KEY (api_id) REFERENCES apis (id),
-    FOREIGN KEY (api_id) REFERENCES users (id)
+	api_id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	PRIMARY KEY (api_id, user_id),
+	FOREIGN KEY (api_id) REFERENCES apis (id) ON DELETE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );`
 	q_create_videos string = `CREATE TABLE videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -208,7 +208,7 @@ const (
 	FROM videos v
 	WHERE v.uploader_user_id = ?; -- The logged-in user's ID`
 
-	admin_del_user string = `DELETE FROM users WHERE user_id = ?`
+	admin_del_user string = `DELETE FROM users WHERE id = ?;`
 	get_users      string = `SELECT user_id, group_id, role FROM user_group_roles WHERE user_id = ?`
 
 	mod_share_video string = `INSERT INTO video_groups (video_id, group_id) VALUES (?, ?);` // video_id, group_id
@@ -410,9 +410,9 @@ FROM config WHERE id = 1;`
 
 	getVisibleStreamerForUser = `
         SELECT DISTINCT s.id, s.name, s.provider
-        FROM streamers s
-        JOIN streamer_group_relations sg ON s.id = sg.tab_id
-        JOIN user_group_roles ugr ON sg.group_id = ugr.group_id
-        WHERE ugr.user_id = ?
-        ORDER BY s.id`
+		FROM streamers s
+		JOIN streamer_group_relations sg ON s.id = sg.streamer_id
+		JOIN user_group_roles ugr ON sg.group_id = ugr.group_id
+		WHERE ugr.user_id = ?
+		ORDER BY s.id;`
 )
