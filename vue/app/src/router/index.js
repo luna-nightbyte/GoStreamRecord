@@ -27,18 +27,21 @@ const routes = [
   { path: '/', redirect: '/gallery' },
   { path: '/gallery', redirect: '/galleryTab' },
   { path: '/getVideo', redirect: '/downloadTab' },
+
+  // Tabs
+  { path: '/adminSettingsTab', name: 'settingsadmin', component: AdminSettings },
+  { path: '/generalSettingsTab', name: 'settingsgeneraltab', component: GeneralSettings },
   { path: '/galleryTab', component: GalleryTab },
   { path: '/downloadTab', component: DownloadTab }, 
+  { path: '/livestreamTab', name: 'livestream', component: LivestreamTab }, 
+  { path: '/recorderTab', name: 'recorder', component: RecorderTab }, 
+
   { path: '/btn', name: 'btn', component: AnimatedButton },
   { path: '/tabbtn', name: 'tabbtn', component: TabButton }, 
   { path: '/progress', name: 'progress', component: ProgressBar },
-  { path: '/livestreamTab', name: 'livestream', component: LivestreamTab }, 
-  { path: '/recorderTab', name: 'recorder', component: RecorderTab }, 
   { path: '/logsTab', name: 'GoStreamRecord', component: GoStreamRecord }, 
 
   { path: '/settingsTab', name: 'settingsadmin', component: SettingsTab },
-  { path: '/adminSettings', name: 'settingsadmin', component: AdminSettings },
-  { path: '/generalSettings', name: 'settingsgeneraltab', component: GeneralSettings },
   { path: '/streamersSettingsSection', name: 'streamersection', component: StreamerSectionSection },
   { path: '/apiSettingsSection', name: 'apisection', component: ApiSectionSection },
   { path: '/userSettingsSection', name: 'usersection', component: UserSettingsSection },
