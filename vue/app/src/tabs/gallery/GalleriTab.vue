@@ -18,10 +18,10 @@
       </div>
       <div v-else class="row">
         <figure v-for="url in localMedia" :key="url" class="column media-container" @click="openFullScreen(url.url)">
-          <div class="notransform" v-if="url.error.length !== 0">
+          <!-- <div class="notransform" v-if="url.error.length !== 0">
             <p>{{ url.error }}</p>
-          </div>
-          <div v-else>
+          </div> -->
+          <div>
 
             <img v-if="isImage(url.url)" :src="url.url" alt="Image" class="image" />
             <video v-if="isVideo(url.url)" controls class="video">
@@ -63,9 +63,7 @@ export default {
   try {
     const res = await fetch("/api/user_info");
     const resp = await res.json();
-    this.is_admin = resp.is_admin 
-    console.log(this.is_admin); 
-    console.log(resp.is_admin ); 
+    this.is_admin = resp.is_admin  
   } catch (err) {
     console.error("Error fetching status:", err); 
     this.is_admin=false;

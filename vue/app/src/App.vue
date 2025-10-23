@@ -52,9 +52,7 @@ const updateStatus = async () => {
   try {
     const res = await fetch("/api/user_info");
     const resp = await res.json();
-    const availableTabsObject =resp.tabs 
-    console.log(availableTabsObject);
- 
+    const availableTabsObject =resp.tabs  
     const processedTabs = Object.values(availableTabsObject).map(tab => ({
         ...tab,
         displayText: getDisplayText(tab.name),
