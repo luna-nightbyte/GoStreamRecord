@@ -32,8 +32,12 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
-	db.DataBase.NewStreamer(reqData.Data, r.URL.Query().Get("provider"), db.GetUserID(r))
+	shareStr := r.URL.Query().Get("share")
+	share := false
+	if shareStr == "true" {
+		share = true
+	}
+	db.DataBase.NewStreamer(reqData.Data, r.URL.Query().Get("provider"), db.DataBase.Users.HttpRequestID(r), share)
 	resp := status.Response{
 		Message: "success",
 		Data:    reqData.Data,
@@ -65,7 +69,7 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	streamers, _ := db.DataBase.Streamers.List()
-	_, err := db.DataBase.Streamers.DeleteForUser(db.GetUserID(r), streamers[reqData.Selected].ID)
+	_, err := db.DataBase.Streamers.DeleteForUser(db.DataBase.Users.HttpRequestID(r), streamers[reqData.Selected].ID)
 	resp := status.Response{
 		Message: err.Error(),
 		Data:    reqData.Selected,

@@ -139,13 +139,13 @@ func AddNewUser(args []string) {
 		return
 	}
 
-	prettyprint.P.LightGreen.Println("Added new user:")
+	prettyprint.P.LightGreen.Print("Added new user: ")
 	prettyprint.P.LightWhite.Println(username)
-	prettyprint.P.LightGreen.Println("Password:")
+	prettyprint.P.LightGreen.Print("Password: ")
 	prettyprint.P.FaintWhite.Println(newPassword)
-	prettyprint.P.LightGreen.Println("Group:")
+	prettyprint.P.LightGreen.Print("Group: ")
 	prettyprint.P.FaintWhite.Println(group)
-	prettyprint.P.LightGreen.Println("Role:")
+	prettyprint.P.LightGreen.Print("Role: ")
 	prettyprint.P.FaintWhite.Println(role)
 }
 

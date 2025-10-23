@@ -10,14 +10,82 @@ import (
 // SQL QUERIES ---------------------------------------------------------------------
 
 // AddUser hashes the password and inserts a new user record.
-func (db *Streamer) New(streamerName, provider string) error {
+func (db *Streamer) New(streamerName, provider string, user_id int) error {
 	if streamerName == "" {
 		return errors.New("tabName cannot be empty")
 	}
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createStreamer, streamerName, provider)
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createStreamer, streamerName, provider, user_id)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("tab already exists")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// GetAvailableTabsForUser retrieves all tabs a user has access to.
+// It takes a database connection pointer and InternalUsera user ID.
+// This function replaces your original `GetAvalable` method.
+func (db *Streamer) GetAvailableForUser(userID int) (map[string]Streamer, error) {
+	rows, err := DataBase.SQL.Query(getVisibleStreamerForUser, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute getVisibleTabsForUser query: %w", err)
+	}
+	defer rows.Close()
+	tabsMap := make(map[string]Streamer)
+	for rows.Next() {
+		var t Streamer
+		if err := rows.Scan(&t.ID, &t.Name, &t.Provider, &t.UploaderUserID); err != nil {
+			return nil, fmt.Errorf("failed to scan tab row: %w", err)
+		}
+		tabsMap[t.Name] = t
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during tab row iteration: %w", err)
+	}
+
+	return tabsMap, nil
+}
+func (db *Streamer) GetAvailableForGroup(groupID int) (map[string]Streamer, error) {
+	rows, err := DataBase.SQL.Query(getVisibleStreamerForGroup, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute getVisibleTabsForUser query: %w", err)
+	}
+	defer rows.Close()
+	tabsMap := make(map[string]Streamer)
+	for rows.Next() {
+		var t Streamer
+		if err := rows.Scan(&t.ID, &t.Name, &t.Provider, &t.UploaderUserID); err != nil {
+			return nil, fmt.Errorf("failed to scan tab row: %w", err)
+		}
+		tabsMap[t.Name] = t
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during tab row iteration: %w", err)
+	}
+
+	return tabsMap, nil
+}
+func (db *Streamer) DeleteForUser(user_id, streamer_id int) (*Streamer, error) {
+	err := db.queryTabSql(removeUploaderUserFromStreamer, streamer_id, user_id)
+	return db, err
+}
+
+func (db *Streamer) DeleteForGroup(groupID, streamerID int) error {
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, unshareStreamerFromGroup, streamerID, groupID)
+	return err
+}
+
+// AddGroup inserts a new group with a given set of permissions.
+func (db *Streamer) Share(streamerID, groupID int) error {
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareStreamerbWithGroup, streamerID, groupID)
+	if err != nil {
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("Username exists")
 		}
 		return err
 	}
@@ -46,39 +114,6 @@ func (db *Streamer) List() (map[string]Streamer, error) {
 	return tabMap, rows.Err()
 }
 
-// GetAvailableTabsForUser retrieves all tabs a user has access to.
-// It takes a database connection pointer and InternalUsera user ID.
-// This function replaces your original `GetAvalable` method.
-func (db *Streamer) GetAvailableForUser(userID int) (map[string]Streamer, error) {
-	rows, err := DataBase.SQL.Query(getVisibleStreamerForUser, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute getVisibleTabsForUser query: %w", err)
-	}
-	defer rows.Close()
-	tabsMap := make(map[string]Streamer)
-	for rows.Next() {
-		var t Streamer
-		if err := rows.Scan(&t.ID, &t.Name, &t.Provider); err != nil {
-			return nil, fmt.Errorf("failed to scan tab row: %w", err)
-		}
-		tabsMap[t.Name] = t
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during tab row iteration: %w", err)
-	}
-
-	return tabsMap, nil
-}
-func (db *Streamer) DeleteForUser(user_id, streamer_id int) (*Streamer, error) {
-	err := db.queryTabSql(unshareStreamerFromGroup, user_id, streamer_id)
-	return db, err
-}
-
-func (db *Streamer) DeleteForGroup(groupID, streamerID int) error {
-_, err := DataBase.SQL.ExecContext(DataBase.ctx, unshareStreamerFromGroup, streamerID, groupID)
-return err
-}
 // HELPERS ------------------------------------------------------------------------------------
 func (u *Streamer) queryTabSql(query string, args ...any) error {
 	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
@@ -105,17 +140,4 @@ func (u *Streamer) queryTabrGroupRelationsSql(query string, args ...any) (stream
 	}
 
 	return usrGrp, nil
-}
-
-// AddGroup inserts a new group with a given set of permissions.
-func (db *Streamer) Share(streamerID, groupID int) error {
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareStreamerbWithGroup, streamerID, groupID)
-	if err != nil {
-		if strings.Contains(err.Error(), ErrIsExist) {
-			return errors.New("Username exists")
-		}
-		return err
-	}
-
-	return nil
 }

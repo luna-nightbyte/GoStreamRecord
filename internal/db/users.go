@@ -77,7 +77,7 @@ func (db *User) Update(userID int, newUsername string, newPassword string) error
 }
 
 // DeleteUser removes a user record by ID.
-func (db *User) DeleteUser(userID int) error {
+func (db *User) Delete(userID int) error {
 	result, err := DataBase.SQL.ExecContext(DataBase.ctx, admin_del_user, userID)
 	if err != nil {
 		return fmt.Errorf("database error during deletion: %w", err)
@@ -89,6 +89,50 @@ func (db *User) DeleteUser(userID int) error {
 	}
 
 	return nil
+}
+
+// Authenticate checks a user's credentials against the database.
+func (db *User) Authenticate(username, password string) (bool, error) {
+	user, err := db.GetUserByName(username)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return false, errors.New("invalid username or password")
+		}
+		return false, err
+	}
+
+	if checkPasswordHash(password, user.PasswordHash) {
+		return true, nil
+	}
+
+	return false, errors.New("invalid username or password")
+}
+
+// IsAdmin checks ifunc (db *User) Authenticate(username, password string) (bool, error)f a user has admin privileges.
+func (db *User) IsAdmin(username string) (bool, error) {
+	user, err := db.GetUserByName(username)
+	if err != nil {
+		return false, err
+	}
+	_, role, err := DataBase.Groups.ListGroupsByUserID(user.ID)
+	if role == RoleAdmin {
+		return true, nil
+	}
+	return false, err
+}
+
+func (db *User) HttpRequestID(r *http.Request) int {
+	name, _ := cookie.ValidateSession(r)
+	return db.NameToID(name)
+}
+
+func (db *User) GetUserByName(username string) (*User, error) {
+	err := db.queryUserSql(getUserByUsername, username)
+	return db, err
+}
+func (db *User) GetUserByID(id int) (*User, error) {
+	err := db.queryUserSql(getUserByID, id)
+	return db, err
 }
 
 // ListUsers fetches all users from the database.
@@ -114,15 +158,6 @@ func (db *User) List() (map[string]User, error) {
 	}
 
 	return userMap, rows.Err()
-}
-
-func (db *User) GetUserByName(username string) (*User, error) {
-	err := db.queryUserSql(getUserByUsername, username)
-	return db, err
-}
-func (db *User) GetUserByID(id int) (*User, error) {
-	err := db.queryUserSql(getUserByID, id)
-	return db, err
 }
 
 // HELPERS ------------------------------------------------------------------------------------
@@ -156,41 +191,4 @@ func (u *User) queryUserGroupRelationsSql(query string, args ...any) (user_group
 	}
 
 	return usrGrp, nil
-}
-
-// Authenticate checks a user's credentials against the database.
-func (db *User) Authenticate(username, password string) (bool, error) {
-	user, err := db.GetUserByName(username)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return false, errors.New("invalid username or password")
-		}
-		return false, err
-	}
-
-	if checkPasswordHash(password, user.PasswordHash) {
-		return true, nil
-	}
-
-	return false, errors.New("invalid username or password")
-}
-
-// IsAdmin checks if a user has admin privileges.
-func (db *User) IsAdmin(username string) (bool, error) {
-	user, err := db.GetUserByName(username)
-	if err != nil {
-		return false, err
-	}
-	_, role, err := DataBase.Groups.ListGroupsByUserID(user.ID)
-	if role == RoleAdmin {
-		return true, nil
-	}
-	return false, err
-}
-
-func GetUserID(r *http.Request) int {
-	name, _ := cookie.ValidateSession(r)
-	return DataBase.Users.NameToID(name)
-	// usrs, _ := db.ListUsers()
-	// grps, _ := db.ListGroups()
 }

@@ -59,8 +59,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	shareStr := r.URL.Query().Get("share")
+	share := false
+	if shareStr == "true" {
+		share = true
+	}
 	for _, streamer := range import_list {
-		db.DataBase.NewStreamer(streamer.Name, streamer.Provider, db.GetUserID(r))
+		db.DataBase.NewStreamer(streamer.Name, streamer.Provider, db.DataBase.Users.HttpRequestID(r), share)
 		counter++
 	}
 
