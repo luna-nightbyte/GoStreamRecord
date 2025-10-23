@@ -1,18 +1,74 @@
 # db 
----
 
-## Highlights
+## Global functions
+```go
 
-- **One-call bootstrap** – `db.Init(ctx, path)` creates/open the SQLite DB, builds tables, and seeds sensible defaults.
-- **Batteries included models** – `User`, `Group`, `Tab`, `Streamer`, `Video`, `Api`, and `Config`.
-- **Role & sharing model** – Users belong to groups with roles; tabs/streamers/videos are shared to groups.
-- **Convenience queries** – "visible for user" helpers and lookup-by-name to ID.
-- **Zero external migrations** – schema is created on first run; uses SQLite.
+// ---- CONFIG 
 
----
- 
-## Quick start
+// SaveConfig saves or updates the single application configuration row (id=1).
+// This function uses an "UPSERT" pattern.
+func (db *DB) SaveConfig(cfg Config) error 
+// GetConfig retrieves the single application configuration row (id=1).
+func (db *DB) Config() (Config) 
 
+
+// -- Users 
+func (db *User) New(username, raw_password string) error 
+func (db *User) Authenticate(username, password string) (bool, error)
+func (db *User) HttpRequestID(r *http.Request) int
+func (db *User) GetUserByName(username string) (*User, error)
+func (db *User) GetUserByID(id int) (*User, error)
+func (db *User) IsAdmin(username string) (bool, error) 
+func (db *User) Update(userID int, newUsername string, newPassword string) error 
+func (db *User) Delete(userID int) error 
+func (db *User) List() (map[string]User, error)
+
+// -- Videos
+
+func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy string) error 
+func (db *DB) ShareVideo(videoID, groupID int) error 
+func (u *User) NameToID(name string) int
+func (g *Group) NameToID(name string) int
+func (db *DB) VideoNameToID(name string) int
+func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error)
+func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video, error)
+func (db *DB) UserHasAccessToVideo(ctx context.Context, username string, videoName string) (bool, error)
+
+// -- Groups 
+func (db *Group) New(groupName string, description string) error 
+func (db *Group) AddUser(userID, groupID int, role string) error
+func (db *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error)
+func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error)
+func (db *User) GetGroupByName(username string) (*User, error)
+func (db *Group) List() (map[string]Group, error) 
+
+// -- Tabs
+func (db *Tab) New(tabName, description string) error 
+func (db *Tab) GetAvailableTabsForUser(userID int) (map[string]Tab, error) 
+func (db *Tab) DeleteForGroup(groupID, tabID int) error
+func (db *Tab) ShareTab(tabID, groupID int) error
+func (db *Tab) List() (map[string]Tab, error) 
+
+
+// -- Streamers
+func (db *Streamer) New(streamerName, provider string) error
+func (db *Streamer) Share(streamerID, groupID int) error 
+func (db *Streamer) List() (map[string]Streamer, error) 
+func (db *Streamer) GetAvailableForUser(userID int) (map[string]Streamer, error)
+func (db *Streamer) GetAvailableForGroup(groupID int) (map[string]Streamer, error)
+func (db *Streamer) DeleteForUser(user_id, streamer_id int) (*Streamer, error) 
+func (db *Streamer) DeleteForGroup(groupID, streamerID int) error 
+func (db *Streamer) Share(streamerID, groupID int) error
+
+
+// -- API 
+func (db *Api) New(apiName, username string) error
+func (db *Api) ListUserApis(user_id int) (map[string]Api, error)
+func (db *Api) List(owner_id int) (map[string]Api, error) 
+func (db *Api) DeleteForUser(user_id, api_id int) (*Api, error)
+```
+
+## Example
 ```go
 package main
 
@@ -118,10 +174,11 @@ usrs, _ := db.DataBase.Users.List()
 if err := db.DataBase.Users.Update(userID, "bobby", ""); err != nil { /* handle */ }
 
 // Delete
-if err := db.DataBase.Users.DeleteUser(userID); err != nil { /* handle */ }
+if err := db.DataBase.Users.Delete(userID); err != nil { /* handle */ }
 
 // Check admin role
 isAdmin, _ := db.DataBase.Users.IsAdmin("admin")
+
 ```
 
 ### Groups & roles
