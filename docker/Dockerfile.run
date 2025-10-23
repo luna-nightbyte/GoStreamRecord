@@ -2,8 +2,7 @@ FROM alpine:latest AS final
 
 # Install yt-dlp and Python dependencies
 RUN apk add --no-cache yt-dlp python3 libc6-compat
-
-  
+ 
 COPY --from=lunanightbyte/gorecord-base:latest /compiled/server /app/server
 RUN chmod +x /app/server 
 
