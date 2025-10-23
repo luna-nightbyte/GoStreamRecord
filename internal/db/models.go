@@ -46,9 +46,10 @@ type Tab struct {
 	Description string `json:"description"`
 }
 type Streamer struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Provider string `json:"provider"`
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Provider       string `json:"provider"`
+	UploaderUserID int    `json:"uploader_user_id"`
 }
 
 type Api struct {
@@ -60,10 +61,6 @@ type Api struct {
 	Created string `json:"created"`
 }
 
-type user_api_relations struct {
-	UserID int    `json:"user_id"`
-	ApiID  string `json:"api_id"`
-}
 type user_group_relations struct {
 	UserID  int    `json:"user_id"`
 	GroupID string `json:"group_id"`
@@ -99,10 +96,11 @@ const (
 )
 
 const (
-	TabGallery    string = "gallery_tab"
-	TabDownload   string = "download_tab"
-	TabLiveStream string = "live_tab"
-	TabRecorder   string = "recorder_tab"
+	TabGallery       string = "gallery_tab"
+	TabDownload      string = "download_tab"
+	TabLiveStream    string = "live_tab"
+	TabRecorder      string = "recorder_tab"
+	TabAdminSettings string = "general_settings_tab"
 )
 
 // initial queries
@@ -127,7 +125,9 @@ const (
 	q_create_streamers string = `CREATE TABLE streamers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    provider TEXT
+    uploader_user_id INTEGER NOT NULL,
+    provider TEXT,
+    FOREIGN KEY (uploader_user_id) REFERENCES users (id)
 );`
 	q_create_streamer_groups string = `CREATE TABLE streamer_group_relations (
 	streamer_id INTEGER NOT NULL,
@@ -246,11 +246,11 @@ FROM config WHERE id = 1;`
 
 	getUserApis = `
 		SELECT DISTINCT a.id, a.name, a.key, a.expires, a.created
-		FROM apis a
-		LEFT JOIN user_api_relations ua ON a.id = ua.api_id 
-		WHERE ua.user_id = ? 
+		FROM apis a 
+		WHERE a.owner_id = ? 
 		ORDER BY a.id DESC`
-
+	// deleteApi removes api from user. Cascading deletes will handle their relationships.
+	deleteApi = `DELETE FROM apis WHERE owner = ? AND id = ?`
 	// --- User Queries (users table) ---
 
 	// createUser inserts a new user record.
@@ -390,23 +390,31 @@ FROM config WHERE id = 1;`
 	// --- Streamers Queries ---
 
 	// createTab inserts a new user record.
-	createStreamer = `INSERT INTO streamers (name, provider) VALUES (?, ?)`
+	createStreamer = `INSERT INTO streamers (name, provider, uploader_user_id) VALUES (?, ?, ?)`
 
 	// addTabToGroup = `INSERT OR REPLACE INTO user_group_roles (user_id, tab_id) VALUES (?, ?)`
 	// listUsers retrieves all users without their password hashes for general listings.
-	listStreamer = `SELECT id, name, provider FROM streamers ORDER BY id`
+	listStreamer = `SELECT id, name, provider, uploader_user_id FROM streamers ORDER BY id`
 
 	// 'INSERT OR IGNORE' prevents errors if the share link already exists.
 	shareStreamerbWithGroup = `INSERT OR IGNORE INTO streamer_group_relations (streamer_id, group_id) VALUES (?, ?)`
 
 	// unshareVideoFromGroup revokes a group's access to a video.
-	unshareStreamerFromGroup = `DELETE FROM streamer_group_relations WHERE streamer_id = ? AND group_id = ?`
+	unshareStreamerFromGroup       = `DELETE FROM streamer_group_relations WHERE streamer_id = ? AND group_id = ?`
+	removeUploaderUserFromStreamer = `DELETE FROM streamers WHERE id = ? AND uploader_user_id = ?`
 
 	getVisibleStreamerForUser = `
-        SELECT DISTINCT s.id, s.name, s.provider
+        SELECT DISTINCT s.id, s.name, s.provider, s.uploader_user_id
 		FROM streamers s
 		JOIN streamer_group_relations sg ON s.id = sg.streamer_id
 		JOIN user_group_roles ugr ON sg.group_id = ugr.group_id
 		WHERE ugr.user_id = ?
+		ORDER BY s.id;`
+
+	getVisibleStreamerForGroup = `
+        SELECT DISTINCT s.id, s.name, s.provider
+		FROM streamers s
+		JOIN streamer_group_relations sg ON s.id = sg.streamer_id 
+		WHERE sg.group_id = ?
 		ORDER BY s.id;`
 )

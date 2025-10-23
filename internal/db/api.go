@@ -21,7 +21,7 @@ func (db *Api) New(apiName, username string) error {
 	createdDate := time.Unix(int64(now.Unix()), 0)
 	user_id := DataBase.Users.NameToID(username)
 	expiresDate := createdDate.AddDate(0, 1, 0)
-
+ 
 	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createApi, apiName, user_id, utils.RandString(64), fmt.Sprint(expiresDate), fmt.Sprint(createdDate))
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
@@ -77,11 +77,12 @@ func (db *Api) List(owner_id int) (map[string]Api, error) {
 	return tabMap, rows.Err()
 }
 
-func (db *Api) DeleteTabForUser(user_id, tab_id int) (*Api, error) {
-	err := db.queryTabSql(unshareTabFromGroup, user_id, tab_id)
+func (db *Api) DeleteForUser(user_id, api_id int) (*Api, error) {
+	err := db.queryTabSql(deleteApi, user_id, api_id)
 	return db, err
 }
 
+ 
 // HELPERS ------------------------------------------------------------------------------------
 func (u *Api) queryTabSql(query string, args ...any) error {
 
@@ -96,17 +97,4 @@ func (u *Api) queryTabSql(query string, args ...any) error {
 
 	return nil
 }
-
-func (u *Api) queryTabrGroupRelationsSql(query string, args ...any) (user_api_relations, error) {
-	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
-	var usrGrp user_api_relations
-	err := row.Scan(&usrGrp.ApiID, &usrGrp.UserID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return usrGrp, ErrUserNotFound
-		}
-		return usrGrp, err
-	}
-
-	return usrGrp, nil
-}
+ 

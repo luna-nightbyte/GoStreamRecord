@@ -39,9 +39,9 @@ func Init() error {
 
 	// Database
 	db.Init(system.System.Context, "")
-	cfg, err := db.DataBase.Config()
-	if err != nil {
-		log.Fatal(err)
+	cfg := db.DataBase.Config()
+	if cfg.Port == -1 {
+		log.Fatal("Config load failed")
 	}
 	system.System.Config = cfg
 
@@ -80,7 +80,7 @@ func Init() error {
 
 		system.System.Cancel()
 	}
-	
+
 	// Nothing should be done here.
 	return nil
 }

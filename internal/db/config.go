@@ -1,8 +1,8 @@
 package db
 
 import (
-	"database/sql" // Required for sql.ErrNoRows
-	"errors"       // Required for errors.Is
+	// Required for sql.ErrNoRows
+
 	"fmt"
 	// "strings" // No longer needed for this logic
 )
@@ -34,7 +34,7 @@ func (db *DB) SaveConfig(cfg Config) error {
 }
 
 // GetConfig retrieves the single application configuration row (id=1).
-func (db *DB) Config() (Config, error) {
+func (db *DB) Config() Config {
 	var cfg Config
 
 	// Use QueryRowContext since we only ever expect one row.
@@ -55,14 +55,12 @@ func (db *DB) Config() (Config, error) {
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			// If no row exists yet, return a default/empty Config struct.
-			// The application can then use this to insert the first config.
-			return Config{}, nil
-		}
-		// A real database error occurred.
-		return Config{}, fmt.Errorf("failed to scan config: %w", err)
+		// if errors.Is(err, sql.ErrNoRows) {
+		// 	return Config{}
+		// }
+		// // A real database error occurred.
+		return Config{Port: -1}
 	}
 
-	return cfg, nil
+	return cfg
 }

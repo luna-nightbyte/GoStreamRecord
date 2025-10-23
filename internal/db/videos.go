@@ -8,7 +8,7 @@ import (
 	"remoteCtrl/internal/utils"
 	"strconv"
 	"time"
-)
+) 
 
 // AddVideo inserts a new video record.
 func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy string) error {
@@ -113,7 +113,7 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 // UserHasAccessToVideo checks if a user has access to a specific video.
 // This is a simplified check based on who downloaded it.
 // A more robust implementation would check against user groups.
-func (db *DB) UserHasAccessToVideo_(ctx context.Context, username string, videoName string) (bool, error) {
+func (db *DB) UserHasAccessToVideo(ctx context.Context, username string, videoName string) (bool, error) {
 	query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
 	var count int
 	err := db.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)

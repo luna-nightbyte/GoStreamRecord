@@ -158,6 +158,12 @@ func Init(ctx context.Context, path string) {
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
+
+		// TODO
+		// err = DataBase.Tabs.New(TabAdminSettings, "General settings")
+		// if err != nil {
+		// 	log.Fatalf("Fatal: Could not create tab: %v", err)
+		// }
 		tabs, err := DataBase.Tabs.List()
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
@@ -167,24 +173,25 @@ func Init(ctx context.Context, path string) {
 		for _, tab := range tabs {
 			err = DataBase.Tabs.ShareTab(tab.ID, admin_group_id)
 			if err != nil {
-				fmt.Println("Fatal: Could not create tab: %v", err)
+				log.Fatalf("Fatal: Could not create tab: %v", err)
 			}
 			err = DataBase.Tabs.ShareTab(tab.ID, mod_group_id)
 			if err != nil {
-				fmt.Println("Fatal: Could not create tab: %v", err)
+				log.Fatalf("Fatal: Could not create tab: %v", err)
 			}
 		}
 		err = DataBase.Tabs.ShareTab(tabs[TabGallery].ID, viewer_group_id)
 		if err != nil {
-			fmt.Println("Fatal: Could not create tab: %v", err)
+			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
 		err = DataBase.Tabs.ShareTab(tabs[TabLiveStream].ID, viewer_group_id)
 		if err != nil {
-			fmt.Println("Fatal: Could not create tab: %v", err)
+			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		DataBase.NewStreamer("test-streamer", "chaturbate", DataBase.Users.NameToID(exampleAdmin))
 
-		cfg, _ := DataBase.Config()
+		// DataBase.NewStreamer("test-streamer", "chaturbate", DataBase.Users.NameToID(exampleAdmin), true)
+
+		cfg := DataBase.Config()
 		cfg.Port = 8050
 		cfg.OutputFolder = "videos"
 		cfg.EnableTelegram = false
@@ -194,13 +201,14 @@ func Init(ctx context.Context, path string) {
 	}
 }
 
-func (s *DB) NewStreamer(streamer_name, provider string, user_id int) {
-	groups, _, _ := DataBase.Groups.ListGroupsByUserID(user_id)
-	DataBase.Streamers.New(streamer_name, provider)
-	streamers, _ := DataBase.Streamers.List()
-	for _, group := range groups {
-		DataBase.Streamers.Share(streamers[streamer_name].ID, group.ID)
-
+func (s *DB) NewStreamer(streamer_name, provider string, user_id int, share bool) {
+	DataBase.Streamers.New(streamer_name, provider, user_id)
+	if share {
+		groups, _, _ := DataBase.Groups.ListGroupsByUserID(user_id)
+		streamers, _ := DataBase.Streamers.List()
+		for _, group := range groups {
+			DataBase.Streamers.Share(streamers[streamer_name].ID, group.ID)
+		}
 	}
 }
 
