@@ -16,6 +16,7 @@ func init() {
 	// Register available commands.
 	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
 	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password> <role> <group-name>", AddNewUser)
+	command.CMD.Startup.Add("del-user", "./GoStreamRecord del-user <username>", DeleteUser)
 	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi)
 	command.CMD.Startup.Add("add-group", "./GoStreamRecord add-group <group-name> <description>", addGroup)
 	command.CMD.Startup.Add("add-user-to-group", "./GoStreamRecord add-user-to-group <username> <group-name>", addUserToGroup)
@@ -147,6 +148,56 @@ func AddNewUser(args []string) {
 	prettyprint.P.FaintWhite.Println(group)
 	prettyprint.P.LightGreen.Print("Role: ")
 	prettyprint.P.FaintWhite.Println(role)
+}
+
+func DeleteUser(args []string) {
+
+	if len(args) < 1 {
+		prettyprint.P.LightRed.Println("No username provided.")
+		return
+	}
+
+	username := args[0]
+	user_id := db.DataBase.Users.NameToID(username)
+
+
+	// Remove user from all groups
+	groups, _, err := db.DataBase.Groups.ListGroupsByUserID(user_id)
+	for _, group := range groups {
+		err = db.DataBase.Groups.RemoveUser(user_id, group.ID)
+		if err != nil {
+			log.Println(err)
+			prettyprint.P.LightRed.Println(err)
+			return
+		}
+	}
+
+	// Delete all APIs for the user
+	apis, err := db.DataBase.APIs.ListUserApis(user_id)
+	if err != nil {
+		log.Println(err)
+		prettyprint.P.LightRed.Println(err)
+		return
+	}
+	for _, api := range apis {
+		err = db.DataBase.APIs.DeleteForUser(user_id, api.ID)
+		if err != nil {
+			log.Println(err)
+			prettyprint.P.LightRed.Println(err)
+			return
+		}
+	}
+
+	// Finally, delete the user
+	err = db.DataBase.Users.Delete(user_id)
+	if err != nil {
+		log.Println(err)
+		prettyprint.P.LightRed.Println(err)
+		return
+	}
+
+	prettyprint.P.LightGreen.Print("Deleted user: ")
+	prettyprint.P.LightWhite.Println(username)
 }
 
 func AddNewApi(args []string) {
