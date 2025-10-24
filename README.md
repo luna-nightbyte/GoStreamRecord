@@ -22,7 +22,7 @@
 
 __NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release (not pre-releases).
 
-**See the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) to find pre-built binaries**
+**Always download the latest release from the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) as this is ensured to have the files needed. Pre releases are not included in this.**
 |Username|Password|
 |-|-|
 |`admin`|`password`|
@@ -132,7 +132,7 @@ user@hostname:~$ docker run \
   -v ./output:/app/videos \
   -v ./app.log:/app/remoteCtrl.log \
   -p 8080:8050 \
-  docker.io/lunanightbyte/gorecord:latest
+  docker.io/lunanightbyte/gorecord:v0.3.3
 ```
 ```bash
 docker run \
