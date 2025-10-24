@@ -160,10 +160,14 @@ func Init(ctx context.Context, path string) {
 		}
 
 		// TODO
-		// err = DataBase.Tabs.New(TabAdminSettings, "General settings")
-		// if err != nil {
-		// 	log.Fatalf("Fatal: Could not create tab: %v", err)
-		// }
+		err = DataBase.Tabs.New(TabSettings, "General settings")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+		err = DataBase.Tabs.New(TabAbout, "About us")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
 		tabs, err := DataBase.Tabs.List()
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)

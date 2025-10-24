@@ -140,6 +140,10 @@ func (db *User) GetUserByID(id int) (*User, error) {
 	return db, err
 }
 
+func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error) {
+	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
+}
+
 // ListUsers fetches all users from the database.
 func (db *User) List() (map[string]User, error) {
 	//query := "SELECT id, username, password_hash,  created_at FROM users"

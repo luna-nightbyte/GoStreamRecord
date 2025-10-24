@@ -40,9 +40,9 @@ func (g *Group) New(groupName string, description string) error
 func (g *Group) AddUser(userID, groupID int, role string) error
 func (g *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error)
 func (g *Group) List() (map[string]Group, error) 
-func (g *Group) GetGroupByName(username string) (*Group, error) 
-func (g *User) GetUserGroupRelations(user_id int) (user_group_relations, error) 
+func (g *Group) GetGroupByName(username string) (*Group, error)  
 func (g *Group) NameToID(groupName string) int 
+func (g *Group) RemoveUser(userID, groupID int) error
 
 // -- Tabs
 func (db *Tab) New(tabName, description string) error 

@@ -21,7 +21,7 @@ func (db *Api) New(apiName, username string) error {
 	createdDate := time.Unix(int64(now.Unix()), 0)
 	user_id := DataBase.Users.NameToID(username)
 	expiresDate := createdDate.AddDate(0, 1, 0)
- 
+
 	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createApi, apiName, user_id, utils.RandString(64), fmt.Sprint(expiresDate), fmt.Sprint(createdDate))
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
@@ -77,12 +77,11 @@ func (db *Api) List(owner_id int) (map[string]Api, error) {
 	return tabMap, rows.Err()
 }
 
-func (db *Api) DeleteForUser(user_id, api_id int) (*Api, error) {
+func (db *Api) DeleteForUser(user_id, api_id int) error {
 	err := db.queryTabSql(deleteApi, user_id, api_id)
-	return db, err
+	return err
 }
 
- 
 // HELPERS ------------------------------------------------------------------------------------
 func (u *Api) queryTabSql(query string, args ...any) error {
 
@@ -97,4 +96,3 @@ func (u *Api) queryTabSql(query string, args ...any) error {
 
 	return nil
 }
- 

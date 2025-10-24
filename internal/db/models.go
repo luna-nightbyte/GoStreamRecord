@@ -96,11 +96,12 @@ const (
 )
 
 const (
-	TabGallery       string = "gallery_tab"
-	TabDownload      string = "download_tab"
-	TabLiveStream    string = "live_tab"
-	TabRecorder      string = "recorder_tab"
-	TabAdminSettings string = "general_settings_tab"
+	TabGallery    string = "gallery_tab"
+	TabDownload   string = "download_tab"
+	TabLiveStream string = "live_tab"
+	TabRecorder   string = "recorder_tab"
+	TabSettings   string = "settings_tab"
+	TabAbout      string = "about_tab"
 )
 
 // initial queries

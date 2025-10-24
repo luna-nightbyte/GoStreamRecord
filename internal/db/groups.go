@@ -43,6 +43,20 @@ func (g *Group) AddUser(userID, groupID int, role string) error {
 	return nil
 }
 
+// AddGroup inserts a new group with a given set of permissions.
+func (g *Group) RemoveUser(userID, groupID int) error {
+
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, removeUserFromGroup, userID, groupID)
+	if err != nil {
+		if strings.Contains(err.Error(), ErrIsExist) {
+			return errors.New("Username exists")
+		}
+		return err
+	}
+
+	return nil
+}
+
 // ListGroups fetches all groups from the database.
 func (g *Group) List() (map[string]Group, error) {
 	// query := "SELECT id, name, permissions, updated_at FROM groups"
@@ -96,10 +110,6 @@ func (u *Group) GetGroupByName(username string) (*Group, error) {
 	return u, err
 }
 
-// GetUserByUsername retrieves a single user by their username.
-func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error) {
-	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
-}
 func (g *Group) NameToID(groupName string) int {
 	grps, err := g.List()
 	if err != nil {
