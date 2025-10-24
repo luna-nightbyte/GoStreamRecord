@@ -36,7 +36,7 @@ type DownloadForm struct {
 func (vd *VideoDownloader) InitTemp(uid string) {
 
 	vd.Tmp.Dir = fmt.Sprintf("tmp_%s", uid)
-	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp_%s", uid)
+	vd.Tmp.TSSegmentsTXT = fmt.Sprintf("tmp_%s.txt", uid)
 	vd.Tmp.TSContentfile = filepath.Join(vd.Tmp.Dir, "output.ts")
 
 	if _, err := os.Stat(system.System.Config.OutputFolder); os.IsNotExist(err) {
@@ -59,6 +59,10 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 	//vd.Data.Init(false, 100, 0, 0, vd.Data.QueueText, "Starting download..")
 	if !F.Bulk {
 		pwd = filepath.Join(targetFolder, fmt.Sprintf("%s", F.Save))
+		video_ext := filepath.Ext(pwd)
+		if video_ext == "" {
+			pwd = pwd + ".mp4"
+		}
 		utils.VideoVerify.Add(pwd) // add for later verification
 
 		os.MkdirAll(vd.Tmp.Dir, 0755)
@@ -103,7 +107,13 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 			if _, err = io.Copy(out, resp.Body); err != nil {
 				return "", ""
 			}
+
 			dest := filepath.Join(targetFolder, F.Save)
+
+			video_ext := filepath.Ext(dest)
+			if video_ext == "" {
+				dest = dest + ".mp4"
+			}
 			os.Rename(tmp, dest)
 
 			if system.System.Config.EnableGDrive {
@@ -126,7 +136,6 @@ func (vd *VideoDownloader) Download(F DownloadForm) (string, string) {
 			}
 
 		} else { // Pornhub, Xnxx, Xvideos
-
 			fmt.Printf("\nSaving as %s file..\n", pwd)
 			err = mp4.TSToMP4_n(vd.Tmp.Dir, pwd, vd.Tmp.TSSegmentsTXT)
 			if err != nil {
