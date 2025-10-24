@@ -39,6 +39,7 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		currentCodecQueue := len(utils.VideoVerify.Queue)
+		go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
 		if currentCodecQueue == 0 {
 			status.Status.Ok = false
 			status.Status.Is_Fixing_Codec = false
@@ -46,7 +47,6 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(resp)
 			return
 		}
-		go stream_recorder.Streamer.Execute(reqData.Command, reqData.Name)
 
 	}
 	status.Status.Ok = true
