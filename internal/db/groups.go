@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -11,7 +12,7 @@ import (
 //  GROUPS ----------------------------------------------------------------------------------------
 
 // AddGroup inserts a new group with a given set of permissions.
-func (db *Group) New(groupName string, description string) error {
+func (g *Group) New(groupName string, description string) error {
 	if groupName == "" {
 		return errors.New("group name cannot be empty")
 	}
@@ -29,7 +30,7 @@ func (db *Group) New(groupName string, description string) error {
 }
 
 // AddGroup inserts a new group with a given set of permissions.
-func (db *Group) AddUser(userID, groupID int, role string) error {
+func (g *Group) AddUser(userID, groupID int, role string) error {
 
 	_, err := DataBase.SQL.ExecContext(DataBase.ctx, addUserToGroup, userID, groupID, role)
 	if err != nil {
@@ -43,7 +44,7 @@ func (db *Group) AddUser(userID, groupID int, role string) error {
 }
 
 // ListGroups fetches all groups from the database.
-func (db *Group) List() (map[string]Group, error) {
+func (g *Group) List() (map[string]Group, error) {
 	// query := "SELECT id, name, permissions, updated_at FROM groups"
 	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, getAllGroups)
 	if err != nil {
@@ -68,7 +69,7 @@ func (db *Group) List() (map[string]Group, error) {
 	return groupMap, rows.Err()
 }
 
-func (db *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error) {
+func (g *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error) {
 	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, getGroupsForUser, user_id)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to query groups: %w", err)
@@ -90,17 +91,47 @@ func (db *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, erro
 }
 
 // GetUserByUsername retrieves a single user by their username.
-func (db *User) GetGroupByName(username string) (*User, error) {
-	err := db.queryUserSql(getGroupByName, username)
-	return db, err
+func (u *Group) GetGroupByName(username string) (*Group, error) {
+	err := u.queryGroupSql(getGroupByName, username)
+	return u, err
 }
 
 // GetUserByUsername retrieves a single user by their username.
 func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error) {
 	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
 }
+func (g *Group) NameToID(groupName string) int {
+	grps, err := g.List()
+	if err != nil {
+		return -1
+	}
+	group, exists := grps[groupName]
+	if !exists {
+		return -1
+	}
+	return group.ID
+}
 
 // // GetUserByUsername retrieves a single user by their username.
 // func (db *User) GetAllUserGroupRelations() (user_group_relations, error) {
 // 	return db.queryUserGroupRelationsSql(getUserGroupRelations)
 // }
+
+// HELPERS ------------------------------------------------------------------------------------
+func (g *Group) queryGroupSql(query string, args ...any) error {
+	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+
+	var createdAt string
+	err := row.Scan(&g.ID, &g.Name, &g.Description, &createdAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	if g.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return err
+	}
+	return nil
+}

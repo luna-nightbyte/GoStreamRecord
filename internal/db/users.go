@@ -130,6 +130,11 @@ func (db *User) GetUserByName(username string) (*User, error) {
 	err := db.queryUserSql(getUserByUsername, username)
 	return db, err
 }
+
+func (u *User) NameToID(username string) int {
+	u.queryUserSql(getUserByUsername, username)
+	return u.ID
+}
 func (db *User) GetUserByID(id int) (*User, error) {
 	err := db.queryUserSql(getUserByID, id)
 	return db, err

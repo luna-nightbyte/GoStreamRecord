@@ -8,20 +8,18 @@ import (
 	"remoteCtrl/internal/utils"
 	"strconv"
 	"time"
-) 
+)
 
 // AddVideo inserts a new video record.
-func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy string) error {
-	if downloadedBy == "" || videoFilepath == "" {
+func (v *Video) Add(ctx context.Context, videoFilepath string, user_id int) error {
+	if videoFilepath == "" {
 		return errors.New("video filepath and downloader username cannot be empty")
 	}
-
 	now := time.Now().Format(time.RFC3339)
 	videoName := filepath.Base(videoFilepath)
-	// Default to an empty list of groups, can be updated later.
 
 	sha256, _ := utils.FileSHA256(videoFilepath)
-	_, err := db.SQL.ExecContext(ctx, createVideo, videoFilepath, videoName, sha256, db.Users.NameToID(downloadedBy), now)
+	_, err := DataBase.SQL.ExecContext(ctx, createVideo, videoFilepath, videoName, sha256, user_id, now)
 
 	if err != nil {
 		return err
@@ -31,31 +29,21 @@ func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy s
 }
 
 // AddVideo inserts a new video record.
-func (db *DB) ShareVideo(videoID, groupID int) error {
+func (v *Video) Share(videoID, groupID int) error {
 
-	_, err := db.SQL.ExecContext(db.ctx, shareVideoWithGroup, videoID, groupID)
+	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareVideoWithGroup, videoID, groupID)
 	return err
 }
-func (u *User) NameToID(name string) int {
-	r, _ := u.List()
-	return r[name].ID
-
-}
-func (g *Group) NameToID(name string) int {
-	r, _ := g.List()
-	return r[name].ID
-
-}
-func (db *DB) VideoNameToID(name string) int {
-	r, _ := db.ListAllVideos(db.ctx)
+func (v *Video) NameToID(name string) int {
+	r, _ := v.ListAll(DataBase.ctx)
 	return r[name].ID
 
 }
 
 // ListAllVideos retrieves all videos from the database.
-func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error) {
-	usr_id := strconv.Itoa(db.Users.NameToID(InternalUser))
-	rows, err := db.SQL.QueryContext(ctx, getVisibleVideosForUser, usr_id, usr_id)
+func (v *Video) ListAll(ctx context.Context) (map[string]Video, error) {
+	usr_id := strconv.Itoa(DataBase.Users.NameToID(InternalUser))
+	rows, err := DataBase.SQL.QueryContext(ctx, getVisibleVideosForUser, usr_id, usr_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query videos: %w", err)
 	}
@@ -79,9 +67,9 @@ func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error) {
 
 // In db/video.go
 
-func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video, error) {
+func (v *Video) ListAvailable(ctx context.Context, userID int) ([]Video, error) {
 
-	rows, err := db.SQL.QueryContext(ctx, getVisibleVideosForUser, userID, userID)
+	rows, err := DataBase.SQL.QueryContext(ctx, getVisibleVideosForUser, userID, userID)
 	if err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("failed to query visible videos: %w", err)
@@ -94,7 +82,7 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 		var v Video
 		var createdAt string
 		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.Sha256, &v.UploaderUserID, &createdAt); err != nil {
-				fmt.Println(err)
+			fmt.Println(err)
 			return nil, fmt.Errorf("failed to scan video row: %w", err)
 		}
 		v.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
@@ -113,10 +101,10 @@ func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video
 // UserHasAccessToVideo checks if a user has access to a specific video.
 // This is a simplified check based on who downloaded it.
 // A more robust implementation would check against user groups.
-func (db *DB) UserHasAccessToVideo(ctx context.Context, username string, videoName string) (bool, error) {
+func (v *Video) CheckUserAccess(ctx context.Context, username string, videoName string) (bool, error) {
 	query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
 	var count int
-	err := db.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)
+	err := DataBase.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to query video access: %w", err)
 	}

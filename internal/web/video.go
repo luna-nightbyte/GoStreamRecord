@@ -21,7 +21,7 @@ func getVideos(api, basbaseDireDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pageNum, _ := strconv.Atoi(r.FormValue("page"))
 		pageSize, _ := strconv.Atoi(r.FormValue("pageSize"))
-		videos, _ := db.DataBase.ListVisibleVideosForUser(system.System.Context, db.DataBase.Users.HttpRequestID(r))
+		videos, _ := db.DataBase.Videos.ListAvailable(system.System.Context, db.DataBase.Users.HttpRequestID(r))
 		var outVideos []localfolder.Video
 
 		for i, video := range videos {
@@ -65,7 +65,7 @@ func getVideos2() http.HandlerFunc {
 			pageSize = 10
 		}
 
-		videos, err := db.DataBase.ListVisibleVideosForUser(system.System.Context, db.DataBase.Users.HttpRequestID(r))
+		videos, err := db.DataBase.Videos.ListAvailable(system.System.Context, db.DataBase.Users.HttpRequestID(r))
 		if err != nil {
 			http.Error(w, "Failed to retrieve videos from database.", http.StatusInternalServerError)
 			return

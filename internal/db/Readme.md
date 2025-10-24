@@ -17,7 +17,10 @@ func (db *User) New(username, raw_password string) error
 func (db *User) Authenticate(username, password string) (bool, error)
 func (db *User) HttpRequestID(r *http.Request) int
 func (db *User) GetUserByName(username string) (*User, error)
+func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error)
+func (db *User) GetGroupByName(username string) (*User, error)// <-- TODO
 func (db *User) GetUserByID(id int) (*User, error)
+func (db *User) NameToID(name string) int
 func (db *User) IsAdmin(username string) (bool, error) 
 func (db *User) Update(userID int, newUsername string, newPassword string) error 
 func (db *User) Delete(userID int) error 
@@ -25,22 +28,21 @@ func (db *User) List() (map[string]User, error)
 
 // -- Videos
 
-func (db *DB) AddVideo(ctx context.Context, videoFilepath string, downloadedBy string) error 
-func (db *DB) ShareVideo(videoID, groupID int) error 
-func (u *User) NameToID(name string) int
-func (g *Group) NameToID(name string) int
-func (db *DB) VideoNameToID(name string) int
-func (db *DB) ListAllVideos(ctx context.Context) (map[string]Video, error)
-func (db *DB) ListVisibleVideosForUser(ctx context.Context, userID int) ([]Video, error)
-func (db *DB) UserHasAccessToVideo(ctx context.Context, username string, videoName string) (bool, error)
+func (v *Video) AddVideo(ctx context.Context, videoFilepath string, user_id int) error
+func (v *Video) ListAll(ctx context.Context) (map[string]Video, error)
+func (v *Video) ListAvailable(ctx context.Context, userID int) ([]Video, error) 
+func (v *Video) ShareVideo(videoID, groupID int) error 
+func (v *Video) NameToID(name string) int
+func (v *Video) CheckUserAccess(ctx context.Context, username string, videoName string) (bool, error) 
 
 // -- Groups 
-func (db *Group) New(groupName string, description string) error 
-func (db *Group) AddUser(userID, groupID int, role string) error
-func (db *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error)
-func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error)
-func (db *User) GetGroupByName(username string) (*User, error)
-func (db *Group) List() (map[string]Group, error) 
+func (g *Group) New(groupName string, description string) error 
+func (g *Group) AddUser(userID, groupID int, role string) error
+func (g *Group) ListGroupsByUserID(user_id int) (map[string]Group, string, error)
+func (g *Group) List() (map[string]Group, error) 
+func (g *Group) GetGroupByName(username string) (*Group, error) 
+func (g *User) GetUserGroupRelations(user_id int) (user_group_relations, error) 
+func (g *Group) NameToID(groupName string) int 
 
 // -- Tabs
 func (db *Tab) New(tabName, description string) error 
