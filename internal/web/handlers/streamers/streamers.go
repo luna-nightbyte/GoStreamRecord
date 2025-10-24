@@ -8,6 +8,7 @@ import (
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/stream_recorder"
 	"remoteCtrl/internal/media/stream_recorder/recorder"
+	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/web/handlers/status"
 	"sync"
 )
@@ -92,12 +93,16 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	streamers, _ := db.DataBase.Streamers.List()
+	streamers, err := db.DataBase.Streamers.List()
+	if err != nil {
+		prettyprint.P.BoldRed.Println(err)
+	}
 	list := []string{}
 	for _, s := range streamers {
 		//list[s.Name] = s.Provider
 		list = append(list, s.Name)
 	}
+	fmt.Println("Sending streams:", list)
 	json.NewEncoder(w).Encode(list)
 }
 

@@ -101,6 +101,7 @@ const (
 	TabLiveStream string = "live_tab"
 	TabRecorder   string = "recorder_tab"
 	TabSettings   string = "settings_tab"
+	TabLogs       string = "logs_tab"
 	TabAbout      string = "about_tab"
 )
 

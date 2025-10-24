@@ -168,6 +168,11 @@ func Init(ctx context.Context, path string) {
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
+		err = DataBase.Tabs.New(TabLogs, "System logs")
+		if err != nil {
+			log.Fatalf("Fatal: Could not create tab: %v", err)
+		}
+
 		tabs, err := DataBase.Tabs.List()
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)

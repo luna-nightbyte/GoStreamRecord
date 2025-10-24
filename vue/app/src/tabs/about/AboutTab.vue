@@ -10,7 +10,8 @@
 
     <h2>Key Features</h2>
     <ul>
-      <li><strong>Download Videos Directly from URL:</strong> Easily download any video by simply pasting the URL into our application. No complex steps, just straightforward downloads.</li>
+      <li><strong>Record live streams:</strong> Record and manage livestreams directly in the webUI.</li>
+       <li><strong>Download Videos Directly from URL:</strong> Easily download any video by simply pasting the URL into our application. No complex steps, just straightforward downloads.</li>
       <li><strong>Highest Quality:</strong> The tool always looks for the highest quality available for the selected videos.  </li>
       <li><strong>Batch Download:</strong> Save time by downloading an entire page of videos in one go. Simply search for your desired videos, select the page, and initiate the batch download.</li>
       <li><strong>Privacy First:</strong> We respect your privacy. Our application does not connect to any external servers or collect any user data. Your download activities remain completely private and secure.</li>

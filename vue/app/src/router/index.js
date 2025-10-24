@@ -1,21 +1,24 @@
 import { createRouter,createWebHashHistory } from 'vue-router';
 
-import GalleryTab from '../tabs/gallery/GalleriTab.vue';
-import DownloadTab from '../tabs/download/DownloadTab.vue'; 
-
+// Components
 import AnimatedButton from '../components/AnimatedButton.vue';
 import TabButton from '../components/TabButton.vue';
 import ProgressBar from '../components/ProgressBar.vue';
 
-import GoStreamRecord from '@/tabs/LogsTab.vue';  
+// Tabs
 import LivestreamTab from '@/tabs/livestream/LivestreamTab.vue';  
 import RecorderTab from '@/tabs/recorder/RecorderTab.vue';  
+import GalleryTab from '../tabs/gallery/GalleriTab.vue';
+import DownloadTab from '../tabs/download/DownloadTab.vue'; 
+import AboutTab from '@/tabs/about/AboutTab.vue'; 
+import SettingsTab from '@/tabs/settings/SettingsTab.vue'; 
+// import SettingsTab from '@/tabs/SettingsTab.vue'; 
 
-import SettingsTab from '@/tabs/SettingsTab.vue'; 
+// Cards
+import LogsTab from '@/tabs/logs/LogsTab.vue';  
 import AdminSettings from '@/tabs/settings/AdminSettings.vue'; 
 import GeneralSettings from '@/tabs/settings/GeneralSettings.vue'; 
-import ApiSectionSection from '@/tabs/settings/sections/ApiSection.vue'; 
-import StreamerSectionSection from '@/tabs/settings/sections/StreamersSection.vue'; 
+import ApiSectionSection from '@/tabs/settings/sections/ApiSection.vue';  
 import UserSettingsSection from '@/tabs/settings/sections/UserSection.vue'; 
 
 
@@ -29,20 +32,19 @@ const routes = [
   { path: '/getVideo', redirect: '/downloadTab' },
 
   // Tabs
-  { path: '/adminSettingsTab', name: 'settingsadmin', component: AdminSettings },
-  { path: '/generalSettingsTab', name: 'settingsgeneraltab', component: GeneralSettings },
+  { path: '/settingsTab', name: 'settings', component: SettingsTab },
   { path: '/galleryTab', component: GalleryTab },
   { path: '/downloadTab', component: DownloadTab }, 
   { path: '/livestreamTab', name: 'livestream', component: LivestreamTab }, 
   { path: '/recorderTab', name: 'recorder', component: RecorderTab }, 
+  { path: '/logsTab', name: 'logs', component: LogsTab }, 
 
-  { path: '/btn', name: 'btn', component: AnimatedButton },
+  { path: '/aboutTab', name: 'about', component: AboutTab }, 
+
+  { path: '/animatedbtn', name: 'animatedbtn', component: AnimatedButton },
   { path: '/tabbtn', name: 'tabbtn', component: TabButton }, 
   { path: '/progress', name: 'progress', component: ProgressBar },
-  { path: '/logsTab', name: 'GoStreamRecord', component: GoStreamRecord }, 
-
-  { path: '/settingsTab', name: 'settingsadmin', component: SettingsTab },
-  { path: '/streamersSettingsSection', name: 'streamersection', component: StreamerSectionSection },
+ 
   { path: '/apiSettingsSection', name: 'apisection', component: ApiSectionSection },
   { path: '/userSettingsSection', name: 'usersection', component: UserSettingsSection },
 
@@ -51,6 +53,11 @@ const routes = [
     { path: '/settingsView', component: SettingsView },
     { path: '/clients', component: ClientViews },
     { path: '/client/:id', component: ClientDetail, props: true },
+
+// Old / to be discontinued
+  { path: '/adminSettingsTab', name: 'settingsadmin', component: AdminSettings },
+  { path: '/generalSettingsTab', name: 'settingsgeneraltab', component: GeneralSettings },
+
 ];
 
 const router = createRouter({

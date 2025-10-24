@@ -105,7 +105,7 @@ func (db *Streamer) List() (map[string]Streamer, error) {
 	tabMap := make(map[string]Streamer)
 	for rows.Next() {
 		var u Streamer
-		if err := rows.Scan(&u.ID, &u.Name, &u.Provider); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Provider, &u.UploaderUserID); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
 		tabMap[u.Name] = u

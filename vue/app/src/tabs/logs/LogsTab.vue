@@ -113,12 +113,14 @@ onUnmounted(() => {
   <div class="item-container"  >
     <!-- Header with Title and Status -->
     <header >
-      <h1 class="text-3xl font-bold text-gray-800">GoStreamRecord WebUI</h1>
-      <div id="statusIndicator"
-           class="px-4 py-2 rounded-full text-white font-semibold transition-colors duration-300"
-           :style="{ backgroundColor: statusColor }">
-        Status: {{ statusText }}
-      </div>
+      <h1 class="text-3xl font-bold text-gray-800">System logs</h1>
+      <section class="mb-2">
+            <div class="card-header p-4 border-b">Logs</div>
+            <pre
+              ref="logTerminal"
+              class="mt-2 p-3 border rounded-md h-48 overflow-auto bg-black text-white text-xs"
+            ></pre>
+          </section>
     </header> 
     <!-- Response area for transient messages -->
     <div id="responseArea" class="fixed bottom-4 right-4 z-50 space-y-2"></div>

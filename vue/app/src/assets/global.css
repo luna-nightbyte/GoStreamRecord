@@ -223,7 +223,68 @@ header {
 /* ================================
    Inputs
    ================================ */
-input[type="text"], input[type="number"], select, textarea {
+   /* ================================
+   Button-like Inputs
+   ================================ */
+input[type="file"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  display: inline-block;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius);
+  font-family: var(--font-family);
+  border: 1px solid #3A3A3A;
+  background-color: #2c2c2c;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Hover and focus effects */
+input[type="file"]:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover {
+  background-color: #333333;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+input[type="file"]:focus,
+input[type="button"]:focus,
+input[type="submit"]:focus,
+input[type="reset"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Optional: hide the ugly default file input text */
+input[type="file"]::-webkit-file-upload-button {
+  visibility: hidden;
+}
+input[type="file"]::before {
+  content: "Choose File";
+  display: inline-block;
+  background: #2c2c2c;
+  color: var(--text-color);
+  border: 1px solid #3A3A3A;
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+input[type="file"]:hover::before {
+  background-color: #333333;
+  border-color: var(--accent);
+}
+input[type="file"]:active::before {
+  transform: translateY(1px);
+}
+
+
+input[type="text"], input[type="number"], input[type="password"], select, textarea {
   width: auto;
   padding: 0.65rem;
   border-radius: var(--radius);

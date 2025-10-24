@@ -64,12 +64,15 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	app.Router.HandleFunc("/api/delete-videos", login.RequireAuth(webController.DeleteFiles))
 
 	app.Router.PathPrefix("/api/generate-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("gen api")
 		//	cookies.GenAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/delete-api-key").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("del api")
 		//	cookies.DeleteAPIKeyHandler(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.PathPrefix("/api/keys").Handler(login.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("get api")
 		//	cookies.GetAPIkeys(system.System.Config.APIKeys, w, r)
 	})))
 	app.Router.HandleFunc("/api/user_info", login.RequireAuth(users.GetUsers))
