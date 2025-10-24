@@ -134,6 +134,8 @@ user@hostname:~$ docker run \
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:v0.3.3
 ```
+
+##### Database version (v0.3.5 and above only)
 ```bash
 docker run \
   -v ./output/db:/app/db \
