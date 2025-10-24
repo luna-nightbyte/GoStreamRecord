@@ -134,6 +134,14 @@ user@hostname:~$ docker run \
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:latest
 ```
+```bash
+docker run \
+  -v ./output/db:/app/db \
+  -v ./output/videos:/app/videos \
+  -v ./output/log:/app/log \
+  -p 8080:8050 \
+  docker.io/lunanightbyte/gorecord:latest
+```
 
 
 ### Source
