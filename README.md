@@ -1,5 +1,7 @@
 # GoStreamRecord
- 
+ __NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release (not pre-releases).
+__Always use the latest release (nit pre-release) and not the master branch__
+
 ## Core Features
 ### Recorder:
 - Streamer status checks bypasses rate limits. _Recording ratelimit can still occur if recordings are restarted too often in a short period of time._
@@ -18,9 +20,13 @@
 - Watch live streams directly from the WebUI.
 - Check streamer online status.
 
+### To be implemented
+- Google drive
+- Telegram bot
+- User groups: Videos and streamers only visible to owners and/or members of common groups.
+- Role based access to web functions like gallery, download tool, recording tool, settings and so on
 ## Usage
 
-__NOTE__: v0.3.5 and up uses SQL database. The readme and usage will be updated on the next release (not pre-releases).
 
 **Always download the latest release from the [release page](https://github.com/luna-nightbyte/GoStreamRecord/releases) as this is ensured to have the files needed. Pre releases are not included in this.**
 |Username|Password|
@@ -133,16 +139,6 @@ user@hostname:~$ docker run \
   -v ./app.log:/app/remoteCtrl.log \
   -p 8080:8050 \
   docker.io/lunanightbyte/gorecord:v0.3.3
-```
-
-##### Database version (v0.3.5 and above only)
-```bash
-docker run \
-  -v ./output/db:/app/db \
-  -v ./output/videos:/app/videos \
-  -v ./output/log:/app/log \
-  -p 8080:8050 \
-  docker.io/lunanightbyte/gorecord:latest
 ```
 
 
