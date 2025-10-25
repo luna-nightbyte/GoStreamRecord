@@ -14,10 +14,10 @@ type commandMap struct {
 type commandStruct struct {
 	Name  string
 	Usage string
-	Run   func(args []string)
+	Run   func(args ...string)
 }
 type CMDs struct {
-	Startup   Command
+	Startup Command
 }
 
 var CMD CMDs
@@ -25,7 +25,7 @@ var CMD CMDs
 func init() {
 	CMD.Startup.Map = make(map[string]commandStruct)
 }
-func (c *Command) Add(commandName, usage string, runFunc func(args []string)) {
+func (c *Command) Add(commandName, usage string, runFunc func(args ...string)) {
 	if c.Map[commandName].Name != "" {
 		fmt.Println("Command already in use.", c.Map[commandName])
 		return

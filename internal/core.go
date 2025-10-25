@@ -76,7 +76,7 @@ func Init() error {
 			log.Println("Unknown command:", cmdName)
 			return fmt.Errorf("unknown command")
 		}
-		statup_command.Run(os.Args[2:])
+		statup_command.Run(os.Args[2:]...)
 
 		system.System.Cancel()
 	}
