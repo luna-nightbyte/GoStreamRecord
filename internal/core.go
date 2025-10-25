@@ -26,6 +26,7 @@ var onlineCheckIP = "8.8.8.8"
 
 func Init() error {
 
+	logger.Init(logger.Log_path)
 	// Context for shutdown
 	system.System.Context, system.System.Cancel = context.WithCancel(context.Background())
 	sigChan := make(chan os.Signal, 1)
@@ -57,7 +58,6 @@ func Init() error {
 		}()
 
 		cookies.Session = cookies.New(system.System.Config)
-		logger.Init(logger.Log_path)
 
 		// -- -- Telegram
 		if system.System.Config.EnableTelegram {
@@ -77,7 +77,6 @@ func Init() error {
 			return fmt.Errorf("unknown command")
 		}
 		statup_command.Run(os.Args[2:]...)
-
 		system.System.Cancel()
 	}
 
