@@ -58,7 +58,7 @@ func (db *DB) RemoveUserFromGroup(userID, groupID int) error {
 }
 
 // ListGroups fetches all groups from the db.
-func (db *DB) ListGroups() (map[string]Group, error) {
+func (db *DB) ListAllGroups() (map[string]Group, error) {
 	// query := "SELECT id, name, permissions, updated_at FROM groups"
 	rows, err := db.SQL.QueryContext(db.ctx, getAllGroups)
 	if err != nil {
@@ -109,8 +109,13 @@ func (db *DB) GetGroupByName(username string) (Group, error) {
 	return db.queryGroupSql(getGroupByName, username)
 }
 
+// GetUserByUsername retrieves a single user by their username.
+func (db *DB) GetGroupByID(id int) (Group, error) {
+	return db.queryGroupSql(getGroupByGroupID, id)
+}
+
 func (db *DB) GroupNameToID(groupName string) int {
-	grps, err := db.ListGroups()
+	grps, err := db.ListAllGroups()
 	if err != nil {
 		return -1
 	}

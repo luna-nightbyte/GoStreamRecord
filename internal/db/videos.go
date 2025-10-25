@@ -19,7 +19,7 @@ func (db *DB) AddVideo(videoFilepath string, user_id int) error {
 	videoName := filepath.Base(videoFilepath)
 
 	sha256, _ := utils.FileSHA256(videoFilepath)
-	err := db.execQuery(createVideo, videoFilepath, videoName, sha256, user_id, now)
+	_, err := db.SQL.ExecContext(db.ctx, createVideo, videoFilepath, videoName, sha256, user_id, now)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,8 @@ func (db *DB) AddVideo(videoFilepath string, user_id int) error {
 }
 
 func (db *DB) ShareVideo(videoID, groupID int) error {
-	return db.execQuery(shareVideoWithGroup, videoID, groupID)
+	_, err := db.SQL.ExecContext(db.ctx, shareVideoWithGroup, videoID, groupID)
+	return err
 }
 func (db *DB) VideoNameToID(name string) int {
 	r, _ := db.ListVideos()
@@ -39,7 +40,7 @@ func (db *DB) VideoNameToID(name string) int {
 // ListAllVideos retrieves all videos from the database.
 func (db *DB) ListVideos() (map[string]Video, error) {
 	usr_id := strconv.Itoa(db.UserNameToID(InternalUser))
-	rows, err := db.query(getVisibleVideosForUser, usr_id, usr_id)
+	rows, err := db.SQL.QueryContext(db.ctx, getVisibleVideosForUser, usr_id, usr_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query videos: %w", err)
 	}
@@ -63,7 +64,7 @@ func (db *DB) ListVideos() (map[string]Video, error) {
 
 func (db *DB) ListAvailableVideosForUser(userID int) ([]Video, error) {
 
-	rows, err := db.query(getVisibleVideosForUser, userID, userID)
+	rows, err := db.SQL.QueryContext(db.ctx, getVisibleVideosForUser, userID, userID)
 	if err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("failed to query visible videos: %w", err)
@@ -94,8 +95,26 @@ func (db *DB) CheckUserVideoAccess(ctx context.Context, username string, videoNa
 	//query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
 	var count int
 	userID := db.UserNameToID(username)
-	rows, _ := db.query(getVisibleVideosForUser, userID, userID)
+	rows, err := db.SQL.QueryContext(db.ctx, getVisibleVideosForUser, userID, userID)
+	if err != nil {
+		return false, err
+	}
 	defer rows.Close()
-	rows.Scan(count)
+
+	db.ListVideos()
+	for rows.Next() {
+		var v Video
+		var createdAt string
+		if err := rows.Scan(&v.ID, &v.Filepath, &v.Name, &v.Sha256, &v.UploaderUserID, &createdAt); err != nil {
+			fmt.Println(err)
+			return false, fmt.Errorf("failed to scan video row: %w", err)
+		}
+
+		if v.Name == videoName {
+			if v.UploaderUserID == userID {
+
+			}
+		}
+	}
 	return count > 0, nil
 }

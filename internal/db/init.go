@@ -3,11 +3,13 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/utils"
+	"time"
 )
 
 // DB wraps the sql.DB connection pool.
@@ -30,24 +32,36 @@ var DataBase *DB
 // Internal server user
 const InternalUser string = "_internal"
 
-var exampleAdmin, defaultPass string = "admin", "password"
-var exampleViewer string = "viewer"
-var exampleMod string = "mod"
+const exampleAdmin, defaultPass string = "admin", "password"
+const exampleViewer string = "viewer"
+const exampleMod string = "mod"
+
 var randPass, _ = hashPassword(utils.RandString(15))
 
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
-	schemaSQL := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+	schemaSQL := fmt.Sprintf(`
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s 
+	%s`,
 		q_create_users,
-		q_create_goups,
+		q_create_groups,
 		q_create_tabs,
-		q_create_user_group_roles,
 		q_create_videos,
-		q_create_video_groups,
-		q_create_tab_groups,
-		q_create_streamers,
-		q_create_streamer_groups,
 		q_create_apis,
+		q_create_streamers,
+		q_create_video_group_relations,
+		q_create_tab_group_relations,
+		q_create_user_group_relations,
+		q_create_streamer_group_relations, 
 		q_create_config,
 	)
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
@@ -101,33 +115,34 @@ func Init(ctx context.Context, path string) {
 		if err := DataBase.NewUser(exampleAdmin, defaultPass); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.NewUser(exampleViewer, exampleViewer); err != nil {
+		if err := DataBase.NewUser(exampleViewer, defaultPass); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.NewUser(exampleMod, exampleMod); err != nil {
+		if err := DataBase.NewUser(exampleMod, defaultPass); err != nil {
+			log.Fatalf("Fatal: Could not add default admin user: %v", err)
+		}
+		if err := DataBase.NewUser(InternalUser, string(randPass)); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
 		// Add to group
 
 		// -- main user
-		viewer_id := DataBase.UserNameToID(exampleViewer)
-		viewer_group_id := DataBase.GroupNameToID(GroupViewerOnly)
-		DataBase.AddUserToGroup(viewer_id, viewer_group_id, RoleUsers)
-
-		// -- example moderator user
-		mod_id := DataBase.UserNameToID(exampleMod)
-		mod_group_id := DataBase.GroupNameToID(GroupDownloadAndView)
-		DataBase.AddUserToGroup(mod_id, mod_group_id, RoleUsers)
-
-		// -- example viewer user
-		admin_id := DataBase.UserNameToID(exampleAdmin)
 		admin_group_id := DataBase.GroupNameToID(GroupAdmins)
-		DataBase.AddUserToGroup(admin_id, admin_group_id, RoleAdmin)
+		mod_group_id := DataBase.GroupNameToID(GroupDownloadAndView)
+		viewer_group_id := DataBase.GroupNameToID(GroupViewerOnly)
 
-		// -- internal server user
-		DataBase.NewUser(InternalUser, string(randPass))
-		internalID := DataBase.UserNameToID(InternalUser)
-		DataBase.AddUserToGroup(internalID, admin_group_id, RoleAdmin)
+		AddUserToGroup(exampleAdmin, GroupAdmins, RoleAdmin)
+		AddUserToGroup(exampleAdmin, GroupDownloadAndView, RoleAdmin)
+		AddUserToGroup(exampleAdmin, GroupViewerOnly, RoleAdmin)
+
+		AddUserToGroup(InternalUser, GroupAdmins, RoleAdmin)
+		AddUserToGroup(InternalUser, GroupDownloadAndView, RoleAdmin)
+		AddUserToGroup(InternalUser, GroupViewerOnly, RoleAdmin)
+
+		AddUserToGroup(exampleMod, GroupDownloadAndView, RoleUsers)
+		AddUserToGroup(exampleMod, GroupViewerOnly, RoleAdmin)
+
+		AddUserToGroup(exampleViewer, GroupViewerOnly, RoleUsers)
 
 		prettyprint.P.Yellow.Println("New database created:")
 		prettyprint.P.BoldWhite.Print("User:")
@@ -222,10 +237,40 @@ func open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (db *DB) execQuery(query string, args ...any) error {
-	_, err := db.SQL.ExecContext(db.ctx, deleteApi, query, args)
-	return err
+// USER & GROUPS ------------------------------------------------------------------------------------
+func (db *DB) query_row_UserSql(query string, args ...any) (User, error) {
+	var usr User
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	var createdAt string
+	err := row.Scan(&usr.ID, &usr.Username, &usr.PasswordHash, &createdAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return usr, ErrUserNotFound
+		}
+		return usr, err
+	}
+
+	if usr.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return usr, err
+	}
+	return usr, nil
 }
-func (db *DB) query(query string, args ...any) (*sql.Rows, error) {
-	return db.SQL.QueryContext(db.ctx, query, args...)
+func (db *DB) query_rows_UserGroupRelationsSql(query string, args ...any) ([]user_group_relations, error) {
+
+	rows, err := db.SQL.QueryContext(db.ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	defer rows.Close()
+
+	usrGrpRel := []user_group_relations{}
+	for rows.Next() {
+		var ugr user_group_relations
+		if err := rows.Scan(&ugr.UserID, &ugr.GroupID, &ugr.Role); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		usrGrpRel = append(usrGrpRel, ugr)
+	}
+
+	return usrGrpRel, nil
 }

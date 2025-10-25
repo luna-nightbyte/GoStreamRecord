@@ -12,17 +12,16 @@ import (
 // SQL QUERIES ---------------------------------------------------------------------
 
 // AddUser hashes the password and inserts a new user record.
-func (db *DB) NewApi(apiName, username string) error {
+func (db *DB) NewApi(apiName string, user User) error {
 	if apiName == "" {
 		return errors.New("tabName cannot be empty")
 	}
 	now := time.Now()
 
 	createdDate := time.Unix(int64(now.Unix()), 0)
-	user_id := db.UserNameToID(username)
 	expiresDate := createdDate.AddDate(0, 1, 0)
 
-	err := db.execQuery(createApi, apiName, user_id, utils.RandString(64), fmt.Sprint(expiresDate), fmt.Sprint(createdDate))
+	_, err := db.SQL.ExecContext(db.ctx, createApi, apiName, user.ID, utils.RandString(64), fmt.Sprint(expiresDate), fmt.Sprint(createdDate))
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("api already exists")
@@ -35,7 +34,8 @@ func (db *DB) NewApi(apiName, username string) error {
 // ListUsers fetches all users from the db.
 func (db *DB) ListAvailableAPIsForUser(user_id int) (map[string]Api, error) {
 	//query := "SELECT id, username, password_hash,  created_at FROM users"
-	rows, err := db.query(getUserApis, user_id)
+
+	rows, err := db.SQL.QueryContext(db.ctx, getUserApis, user_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
@@ -54,7 +54,8 @@ func (db *DB) ListAvailableAPIsForUser(user_id int) (map[string]Api, error) {
 }
 
 func (db *DB) DeleteApiForUser(user_id, api_id int) error {
-	return db.execQuery(deleteApi, user_id, api_id)
+	_, err := db.SQL.ExecContext(db.ctx, deleteApi, user_id, api_id)
+	return err
 }
 
 // HELPERS ------------------------------------------------------------------------------------

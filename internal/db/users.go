@@ -81,7 +81,7 @@ func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) err
 
 // DeleteUser removes a user record by ID.
 func (db *DB) DeleteUser(userID int) error {
-	result, err := db.SQL.ExecContext(db.ctx, admin_del_user, userID)
+	result, err := db.SQL.ExecContext(db.ctx, deleteUser, userID)
 	if err != nil {
 		return fmt.Errorf("database error during deletion: %w", err)
 	}
@@ -136,29 +136,27 @@ func (db *DB) RequestUserID(r *http.Request) int {
 }
 
 func (db *DB) GetUserByName(username string) (User, error) {
-	usr, err := db.queryUserSql(getUserByUsername, username)
+	usr, err := db.query_row_UserSql(getUserByUsername, username)
 	return usr, err
 }
 
 func (db *DB) UserNameToID(username string) int {
-	usr, err := db.queryUserSql(getUserByUsername, username)
-	if err != nil {
-		prettyprint.P.Error.Println(err)
-		log.Println(err)
+	usr, err := db.query_row_UserSql(getUserByUsername, username)
+	if err != nil { 
 		return -1
 
 	}
 	return usr.ID
 }
 func (db *DB) GetUserByID(id int) (User, error) {
-	return db.queryUserSql(getUserByID, id)
+	return db.query_row_UserSql(getUserByID, id)
 }
 
 func (db *DB) GetUserGroupRelations(user_id int) ([]user_group_relations, error) {
-	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
+	return db.query_rows_UserGroupRelationsSql(getUserGroupRelations, user_id)
 }
-func (db *DB) AddUserGroupRelations(user_id int) ([]user_group_relations, error) {
-	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
+func (db *DB) ListAllUserGroupRelations() ([]user_group_relations, error) {
+	return db.query_rows_UserGroupRelationsSql(getAllUserGroupRelations)
 }
 
 // ListUsers fetches all users from the database.
@@ -184,41 +182,4 @@ func (db *DB) ListUsers() (map[string]User, error) {
 	}
 
 	return userMap, rows.Err()
-}
-
-// HELPERS ------------------------------------------------------------------------------------
-func (db *DB) queryUserSql(query string, args ...any) (User, error) {
-	row := db.SQL.QueryRowContext(DataBase.ctx, query, args...)
-	var usr User
-	var createdAt string
-	err := row.Scan(&usr.ID, &usr.Username, &usr.PasswordHash, &createdAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return usr, ErrUserNotFound
-		}
-		return usr, err
-	}
-
-	if usr.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
-		return usr, err
-	}
-	return usr, nil
-}
-
-func (db *DB) queryUserGroupRelationsSql(query string, args ...any) ([]user_group_relations, error) {
-
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	var usrGrp user_group_relations
-	var usrGrpOutput []user_group_relations
-	err := row.Scan(&usrGrp.UserID, &usrGrp.GroupID, &usrGrp.Role)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return usrGrpOutput, ErrUserNotFound
-			//return usrGrp, ErrUserNotFound
-		}
-		usrGrpOutput = append(usrGrpOutput, usrGrp)
-		//	return usrGrp, err
-	}
-
-	return usrGrpOutput, nil
 }

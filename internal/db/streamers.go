@@ -91,7 +91,7 @@ func (db *DB) DeleteStreamerForGroup(groupID, streamerID int) error {
 
 // AddGroup inserts a new group with a given set of permissions.
 func (db *DB) ShareStreamer(streamerID, groupID int) error {
-	_, err := db.SQL.ExecContext(db.ctx, shareStreamerbWithGroup, streamerID, groupID)
+	_, err := db.SQL.ExecContext(db.ctx, shareStreamerWithGroup, streamerID, groupID)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("Username exists")
