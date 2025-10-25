@@ -2,7 +2,7 @@
  
 ## Core Features
 ### Recorder:
-- Streamer status checks bypasses rate limits; recording rate limits still under testing.
+- Streamer status checks bypasses rate limits. _Recording ratelimit can still occur if recordings are restarted too often in a short period of time._
 - Start, stop, and restart all recordings.
 - View active recorders in real-time
 - Start, stop restart  individual recordings as needed.
