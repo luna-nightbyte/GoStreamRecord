@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"remoteCtrl/internal/db"
-	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/utils"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ func ContiniousRead(baseDir string) {
 	select {
 	case <-ticker.C:
 		var videos []Video
-		videosMap, err := db.DataBase.Videos.ListAll(system.System.Context)
+		videosMap, err := db.DataBase.ListVideos()
 
 		err = filepath.WalkDir(baseDir, func(fp string, d os.DirEntry, err error) error {
 			if err != nil {
@@ -52,7 +51,7 @@ func ContiniousRead(baseDir string) {
 					segs[i] = url.PathEscape(s)
 				}
 				encoded := strings.Join(segs, "/")
-				err := db.DataBase.Videos.Add(system.System.Context, fp, db.DataBase.Users.NameToID(db.InternalUser))
+				err := db.DataBase.AddVideo(fp, db.DataBase.UserNameToID(db.InternalUser))
 				if err != nil {
 
 					fmt.Println(err)
@@ -62,11 +61,11 @@ func ContiniousRead(baseDir string) {
 					return err
 				}
 
-				latestVideosMap, err := db.DataBase.Videos.ListAll(system.System.Context)
+				latestVideosMap, err := db.DataBase.ListVideos()
 
-				err = db.DataBase.Videos.Share(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupViewerOnly))
-				err = db.DataBase.Videos.Share(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupDownloadAndView))
-				err = db.DataBase.Videos.Share(latestVideosMap[fp].ID, db.DataBase.Groups.NameToID(db.GroupAdmins))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.GroupNameToID(db.GroupViewerOnly))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.GroupNameToID(db.GroupDownloadAndView))
+				err = db.DataBase.ShareVideo(latestVideosMap[fp].ID, db.DataBase.GroupNameToID(db.GroupAdmins))
 				if err != nil {
 					fmt.Println(err)
 				}

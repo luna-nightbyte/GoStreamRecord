@@ -79,19 +79,19 @@ func CurrentUser(r *http.Request) string {
 }
 
 // ValidateSession returns the username if the session is valid
-func ValidateSession(r *http.Request) (string, bool) {
+func ValidateSession(r *http.Request) (string, error) {
 	c, err := r.Cookie(SessionCookieName)
-	if err != nil {  
-		return "", false
+	if err != nil {
+		return "", err
 	}
 	mu.Lock()
 	defer mu.Unlock()
 	sess, ok := UserSessions[c.Value]
 	if !ok || time.Now().After(sess.ExpiresAt) {
-		return "", false
+		return "", err
 	}
 
-	return sess.Name, true
+	return sess.Name, err
 }
 
 func SecurityHeaders(next http.Handler) http.Handler {

@@ -14,7 +14,7 @@ import (
 
 func init() {
 	// Register available commands.
-	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetWebUIPassword)
+	command.CMD.Startup.Add("reset-pwd", "./GoStreamRecord reset-pwd <username> <new-password>", ResetUserPassword)
 	command.CMD.Startup.Add("add-user", "./GoStreamRecord add-user <username> <password> <role> <group-name>", AddNewUser)
 	command.CMD.Startup.Add("del-user", "./GoStreamRecord del-user <username>", DeleteUser)
 	command.CMD.Startup.Add("add-api", "./GoStreamRecord add-api <username> <api-name>", AddNewApi)
@@ -22,6 +22,7 @@ func init() {
 	command.CMD.Startup.Add("add-user-to-group", "./GoStreamRecord add-user-to-group <username> <group-name>", addUserToGroup)
 	command.CMD.Startup.Add("list-users", "./GoStreamRecord list-users", listUsers)
 	command.CMD.Startup.Add("list-groups", "./GoStreamRecord list-groups", listGroups)
+	command.CMD.Startup.Add("list-roles", "./GoStreamRecord list-roles", listRoles)
 	command.CMD.Startup.Add("list-user-groups", "./GoStreamRecord list-user-groups <username>", listUserGroups)
 	command.CMD.Startup.Add("help", "./GoStreamRecord help", printUsage)
 }
@@ -66,7 +67,7 @@ func PrintUsage() {
 
 	prettyprint.P.LightCyan.Println("Otherwise run the server without any arguments.")
 }
-func ResetWebUIPassword(args []string) {
+func ResetUserPassword(args []string) {
 	if len(args) < 2 {
 		// Provide clear feedback on what is missing.
 		if len(args) < 1 {
@@ -83,11 +84,11 @@ func ResetWebUIPassword(args []string) {
 
 	userFound := false
 
-	usrs, _ := db.DataBase.Users.List()
+	usrs, _ := db.DataBase.ListUsers()
 	// Loop over the users in the database to find a matching username.
 	for _, u := range usrs {
 		if u.Username == username {
-			db.DataBase.Users.Update(u.ID, u.Username, string(cookies.HashedPassword(newPassword)))
+			db.DataBase.UpdateUser(u.ID, u.Username, string(cookies.HashedPassword(newPassword)))
 			userFound = true
 			break
 		}
@@ -103,20 +104,31 @@ func ResetWebUIPassword(args []string) {
 	prettyprint.P.Success.Println(fmt.Sprintf("Password updated for %s", username))
 }
 
+// usrName, usrPass, UsrGroup, GroupRole
 func AddNewUser(args []string) {
-
-	if len(args) < 4 {
-		// Provide clear feedback on what is missing.
-		if len(args) < 3 {
-			prettyprint.P.LightRed.Println("No role provided.")
-		} else if len(args) < 2 {
-			prettyprint.P.LightRed.Println("No group name provided.")
-		} else if len(args) < 1 {
-			prettyprint.P.LightRed.Println("No username provided.")
-		} else {
-			prettyprint.P.LightRed.Println("No new password provided.", args)
-		}
-		prettyprint.P.LightRed.Println("Error! See usage.")
+	switch len(args) {
+	case 0:
+		prettyprint.P.LightRed.Println("No username provided.")
+		prettyprint.P.LightRed.Println("No new password provided.")
+		prettyprint.P.LightRed.Println("No group name provided.")
+		prettyprint.P.LightRed.Println("No group role provided.")
+		return
+	case 1:
+		prettyprint.P.LightRed.Println("No new password provided.")
+		prettyprint.P.LightRed.Println("No group name provided.")
+		prettyprint.P.LightRed.Println("No group role provided.")
+		return
+	case 2:
+		prettyprint.P.LightRed.Println("No group name provided.")
+		prettyprint.P.LightRed.Println("No group role provided.")
+		return
+	case 3:
+		prettyprint.P.LightRed.Println("No group role provided.")
+		return
+	case 4:
+		break
+	default:
+		prettyprint.P.LightRed.Println("Too many arguments. See 'help' for usage")
 		return
 	}
 
@@ -125,16 +137,16 @@ func AddNewUser(args []string) {
 	role := args[2]
 	group := args[3]
 
-	err := db.DataBase.Users.New(username, newPassword)
+	err := db.DataBase.NewUser(username, newPassword)
 	if err != nil {
 		log.Println(err)
 		prettyprint.P.LightRed.Println(err)
 		return
 	}
 
-	user_id := db.DataBase.Users.NameToID(username)
-	group_id := db.DataBase.Groups.NameToID(group)
-	err = db.DataBase.Groups.AddUser(user_id, group_id, role)
+	user_id := db.DataBase.UserNameToID(username)
+	group_id := db.DataBase.GroupNameToID(group)
+	err = db.DataBase.AddUserToGroup(user_id, group_id, role)
 	if err != nil {
 		prettyprint.P.LightRed.Println(err)
 		return
@@ -158,13 +170,12 @@ func DeleteUser(args []string) {
 	}
 
 	username := args[0]
-	user_id := db.DataBase.Users.NameToID(username)
-
+	user_id := db.DataBase.UserNameToID(username)
 
 	// Remove user from all groups
-	groups, _, err := db.DataBase.Groups.ListGroupsByUserID(user_id)
+	groups, _, err := db.DataBase.ListGroupsByUserID(user_id)
 	for _, group := range groups {
-		err = db.DataBase.Groups.RemoveUser(user_id, group.ID)
+		err = db.DataBase.RemoveUserFromGroup(user_id, group.ID)
 		if err != nil {
 			log.Println(err)
 			prettyprint.P.LightRed.Println(err)
@@ -173,14 +184,14 @@ func DeleteUser(args []string) {
 	}
 
 	// Delete all APIs for the user
-	apis, err := db.DataBase.APIs.ListUserApis(user_id)
+	apis, err := db.DataBase.ListAvailableAPIsForUser(user_id)
 	if err != nil {
 		log.Println(err)
 		prettyprint.P.LightRed.Println(err)
 		return
 	}
 	for _, api := range apis {
-		err = db.DataBase.APIs.DeleteForUser(user_id, api.ID)
+		err = db.DataBase.DeleteApiForUser(user_id, api.ID)
 		if err != nil {
 			log.Println(err)
 			prettyprint.P.LightRed.Println(err)
@@ -189,7 +200,7 @@ func DeleteUser(args []string) {
 	}
 
 	// Finally, delete the user
-	err = db.DataBase.Users.Delete(user_id)
+	err = db.DataBase.DeleteUser(user_id)
 	if err != nil {
 		log.Println(err)
 		prettyprint.P.LightRed.Println(err)
@@ -216,14 +227,14 @@ func AddNewApi(args []string) {
 	username := args[0]
 	apiName := args[1]
 
-	err := db.DataBase.APIs.New(apiName, username)
+	err := db.DataBase.NewApi(apiName, username)
 	if err != nil {
 		log.Println(err)
 		prettyprint.P.LightRed.Println(err)
 		return
 	}
-	user_id := db.DataBase.Users.NameToID(username)
-	apis, err := db.DataBase.APIs.List(user_id)
+	user_id := db.DataBase.UserNameToID(username)
+	apis, err := db.DataBase.ListAvailableAPIsForUser(user_id)
 	if err != nil {
 		prettyprint.P.LightRed.Println(err)
 		return
@@ -244,7 +255,7 @@ func addGroup(args []string) {
 	groupName := args[0]
 	description := args[1]
 
-	if err := db.DataBase.Groups.New(groupName, description); err != nil {
+	if err := db.DataBase.NewGroup(groupName, description); err != nil {
 		log.Fatalf("Fatal: Could not create group '%s': %v", groupName, err)
 	}
 
@@ -262,20 +273,20 @@ func addUserToGroup(args []string) {
 	groupName := args[1]
 
 	// Get User ID
-	userID := db.DataBase.Users.NameToID(username)
+	userID := db.DataBase.UserNameToID(username)
 	if userID == 0 { // Assuming 0 is the "not found" indicator
 		log.Fatalf("Fatal: User '%s' not found.", username)
 	}
 
 	// Get Group ID
-	groupID := db.DataBase.Groups.NameToID(groupName)
+	groupID := db.DataBase.GroupNameToID(groupName)
 	if groupID == 0 { // Assuming 0 is the "not found" indicator
 		log.Fatalf("Fatal: Group '%s' not found.", groupName)
 	}
 
 	// Add user to group with a default role
 	// Assuming db.RoleUsers is the correct constant for a standard member
-	if err := db.DataBase.Groups.AddUser(userID, groupID, db.RoleUsers); err != nil {
+	if err := db.DataBase.AddUserToGroup(userID, groupID, db.RoleUsers); err != nil {
 		log.Fatalf("Fatal: Could not add user '%s' to group '%s': %v", username, groupName, err)
 	}
 
@@ -289,7 +300,7 @@ func listUsers(args []string) {
 		log.Fatalf("Usage: ./GoStreamRecord list-users")
 	}
 
-	users, err := db.DataBase.Users.List() // Assumes returns map[string]db.User
+	users, err := db.DataBase.ListUsers() // Assumes returns map[string]db.User
 	if err != nil {
 		log.Fatalf("Fatal: Could not list users: %v", err)
 	}
@@ -322,7 +333,7 @@ func listGroups(args []string) {
 		log.Fatalf("Usage: ./GoStreamRecord list-groups")
 	}
 
-	groups, err := db.DataBase.Groups.List() // Assumes returns map[string]db.Group
+	groups, err := db.DataBase.ListGroups() // Assumes returns map[string]db.Group
 	if err != nil {
 		log.Fatalf("Fatal: Could not list groups: %v", err)
 	}
@@ -354,14 +365,12 @@ func listUserGroups(args []string) {
 	}
 	username := args[0]
 
-	userID := db.DataBase.Users.NameToID(username)
+	userID := db.DataBase.UserNameToID(username)
 	if userID == 0 {
 		log.Fatalf("Fatal: User '%s' not found.", username)
 	}
-
-	// This function is ASSUMED to exist: db.DataBase.Groups.ListForUser(userID)
-	// It's assumed to return a slice of db.Group structs.
-	groups, _, err := db.DataBase.Groups.ListGroupsByUserID(userID)
+ 
+	groups, _, err := db.DataBase.ListGroupsByUserID(userID)
 	if err != nil {
 		log.Fatalf("Fatal: Could not list groups for user '%s': %v", username, err)
 	}
@@ -375,5 +384,43 @@ func listUserGroups(args []string) {
 	for _, group := range groups {
 		fmt.Printf("  - %s (%s)\n", prettyprint.P.LightGreen.Color(group.Name), prettyprint.P.FaintWhite.Color(group.Description))
 	}
+	os.Exit(0)
+}
+
+func listRoles(args []string) {
+	if len(args) != 0 {
+		log.Fatalf("Usage: ./GoStreamRecord list-roles")
+	}
+
+	usrs, _ := db.DataBase.ListUsers()
+	for _, usr := range usrs {
+		fmt.Println("Checking user id", usr)
+		groupRelations, err := db.DataBase.GetUserGroupRelations(usr.ID) // Assumes returns map[string]db.Group
+		if err != nil {
+			fmt.Printf("Fatal: Could not list groups: %v", err)
+			log.Fatalf("Fatal: Could not list groups: %v", err)
+		}
+		groups, _, _ := db.DataBase.ListGroupsByUserID(usr.ID)
+		if err != nil {
+			log.Fatalf("Fatal: Could not list groups: %v", err)
+		}
+		if len(groupRelations) == 0 {
+			prettyprint.P.FaintWhite.Println(fmt.Sprintf("  (No group relations found for %s)", usr.Username))
+			fmt.Println(groups)
+			continue
+		}
+		for _, group := range groupRelations {
+			if group.UserID == usr.ID {
+
+				fmt.Printf(" | User: %s| - | Group: %s| Role: %s| Description: %s\n",
+					prettyprint.P.Green.Color(usr.Username),
+					prettyprint.P.LightGreen.Color(groups[group.GroupID].Name),
+					prettyprint.P.FaintWhite.Color(group.Role),
+					prettyprint.P.FaintWhite.Color(groups[group.GroupID].Description))
+			}
+
+		}
+	}
+
 	os.Exit(0)
 }

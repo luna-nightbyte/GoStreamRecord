@@ -38,7 +38,7 @@ func AddStreamer(w http.ResponseWriter, r *http.Request) {
 	if shareStr == "true" {
 		share = true
 	}
-	db.DataBase.NewStreamer(reqData.Data, r.URL.Query().Get("provider"), db.DataBase.Users.HttpRequestID(r), share)
+	db.DataBase.NewStreamer(reqData.Data, r.URL.Query().Get("provider"), db.DataBase.RequestUserID(r), share)
 	resp := status.Response{
 		Message: "success",
 		Data:    reqData.Data,
@@ -69,8 +69,8 @@ func RemoveStreamer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	streamers, _ := db.DataBase.Streamers.List()
-	_, err := db.DataBase.Streamers.DeleteForUser(db.DataBase.Users.HttpRequestID(r), streamers[reqData.Selected].ID)
+	streamers, _ := db.DataBase.ListStreamers()
+	err := db.DataBase.DeleteStreamerForUser(db.DataBase.RequestUserID(r), streamers[reqData.Selected].ID)
 	resp := status.Response{
 		Message: err.Error(),
 		Data:    reqData.Selected,
@@ -93,7 +93,7 @@ func GetStreamers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	streamers, err := db.DataBase.Streamers.List()
+	streamers, err := db.DataBase.ListStreamers()
 	if err != nil {
 		prettyprint.P.BoldRed.Println(err)
 	}
@@ -134,7 +134,7 @@ func CheckOnlineStatus(w http.ResponseWriter, r *http.Request) {
 
 	if reqData.Provider == "" {
 
-		streamers, _ := db.DataBase.Streamers.List()
+		streamers, _ := db.DataBase.ListStreamers()
 		for _, streamer := range streamers {
 			if streamer.Name == reqData.Streamer {
 				reqData.Provider = streamer.Provider

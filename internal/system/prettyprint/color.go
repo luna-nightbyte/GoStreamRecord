@@ -38,6 +38,7 @@ type colors struct {
 	UnderlineWhite iColor
 	FaintWhite     iColor
 	Success        iColor // Bold Black text on Green background
+	Error        iColor // Bold Black text on Green background
 	BackgroundBlue iColor // White text on Blue background
 }
 
@@ -79,6 +80,7 @@ func init() {
 	P.UnderlineWhite.c = color.New(color.FgWhite, color.Underline).SprintFunc()
 	P.FaintWhite.c = color.New(color.FgWhite, color.Faint).SprintFunc()
 	P.Success.c = color.New(color.FgBlack, color.BgGreen, color.Bold).SprintFunc()
+	P.Error.c = color.New(color.FgBlack, color.BgHiRed, color.Bold).SprintFunc()
 	P.BackgroundBlue.c = color.New(color.FgWhite, color.BgBlue).SprintFunc()
 }
 

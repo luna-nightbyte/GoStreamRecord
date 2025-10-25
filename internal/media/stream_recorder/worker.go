@@ -78,7 +78,7 @@ func (b *Controller) Execute(command string, name string) {
 			}
 			var streamer db.Streamer
 			found := false
-			stramers, _ := db.DataBase.Streamers.List()
+			stramers, _ := db.DataBase.ListStreamers()
 			for _, streamConf := range stramers {
 				if streamConf.Name == name {
 					streamer = streamConf

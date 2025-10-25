@@ -84,7 +84,7 @@ func IsNotValid(reqData RequestData, w http.ResponseWriter) (outErr error) {
 func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		if _, ok := cookie.ValidateSession(r); !ok {
+		if _, err := cookie.ValidateSession(r); err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}

@@ -25,9 +25,9 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	user_id := db.DataBase.Users.NameToID(cookie.UserSessions[c.Value].Name)
+	user_id := db.DataBase.UserNameToID(cookie.UserSessions[c.Value].Name)
 
-	videos, _ := db.DataBase.Videos.ListAvailable(system.System.Context, user_id)
+	videos, _ := db.DataBase.ListAvailableVideosForUser(user_id)
 	fmt.Println("Videos for user: ", videos)
 	files := []Video{}
 

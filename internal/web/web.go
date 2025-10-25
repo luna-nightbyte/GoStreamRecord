@@ -83,7 +83,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	// Auth logic
 	if cookies.UserStore == nil {
 		cookies.UserStore = make(map[string]string)
-		users, _ := db.DataBase.Users.List()
+		users, _ := db.DataBase.ListUsers()
 		for _, u := range users {
 			cookies.UserStore[u.Username] = string(u.PasswordHash)
 		}
@@ -102,8 +102,7 @@ func ServeHTTP(ctx context.Context, eLogin, eApp embed.FS) {
 	}
 	rootAssetHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var fsToUse fs.FS
-		var ok bool
-		if _, ok = cookie.ValidateSession(r); !ok {
+		if _, err := cookie.ValidateSession(r); err != nil {
 			fsToUse = loginFS
 		} else {
 			fsToUse = frontendFS

@@ -124,7 +124,7 @@ func (db *DB) IsUserAdmin(username string) (bool, error) {
 	return false, err
 }
 
-func (db *DB) GetUserIDFromCookie(r *http.Request) int {
+func (db *DB) RequestUserID(r *http.Request) int {
 	name, err := cookie.ValidateSession(r)
 	if err != nil {
 		prettyprint.P.Error.Println(err)

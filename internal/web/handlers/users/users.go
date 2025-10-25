@@ -12,11 +12,10 @@ import (
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	username := cookie.CurrentUser(r)
-	user_id := db.DataBase.Users.NameToID(username)
-	is_admin, _ := db.DataBase.Users.IsAdmin(username)
+	user ,_:= db.DataBase.GetUserByName(username) 
+	is_admin, _ := db.DataBase.IsUserAdmin(username)
 
-	db.DataBase.Users.GetUserByID(user_id)
-	avalable_tabs, err := db.DataBase.Tabs.GetAvailableTabsForUser(user_id)
+	avalable_tabs, err := db.DataBase.GetAvailableTabsForUser(user.ID)
 	if err != nil {
 		fmt.Println(err)
 	}

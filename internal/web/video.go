@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"remoteCtrl/internal/db"
 	"remoteCtrl/internal/media/localfolder"
-	"remoteCtrl/internal/system"
 	"remoteCtrl/internal/web/handlers/login"
 	"sort"
 	"strconv"
@@ -21,7 +20,7 @@ func getVideos(api, basbaseDireDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pageNum, _ := strconv.Atoi(r.FormValue("page"))
 		pageSize, _ := strconv.Atoi(r.FormValue("pageSize"))
-		videos, _ := db.DataBase.Videos.ListAvailable(system.System.Context, db.DataBase.Users.HttpRequestID(r))
+		videos, _ := db.DataBase.ListAvailableVideosForUser(db.DataBase.RequestUserID(r))
 		var outVideos []localfolder.Video
 
 		for i, video := range videos {
@@ -65,7 +64,7 @@ func getVideos2() http.HandlerFunc {
 			pageSize = 10
 		}
 
-		videos, err := db.DataBase.Videos.ListAvailable(system.System.Context, db.DataBase.Users.HttpRequestID(r))
+		videos, err := db.DataBase.ListAvailableVideosForUser(db.DataBase.RequestUserID(r))
 		if err != nil {
 			http.Error(w, "Failed to retrieve videos from database.", http.StatusInternalServerError)
 			return
