@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"remoteCtrl/internal/utils"
@@ -33,8 +32,6 @@ func (db *DB) NewApi(apiName string, user User) error {
 
 // ListUsers fetches all users from the db.
 func (db *DB) ListAvailableAPIsForUser(user_id int) (map[string]Api, error) {
-	//query := "SELECT id, username, password_hash,  created_at FROM users"
-
 	rows, err := db.SQL.QueryContext(db.ctx, getUserApis, user_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
@@ -56,19 +53,4 @@ func (db *DB) ListAvailableAPIsForUser(user_id int) (map[string]Api, error) {
 func (db *DB) DeleteApiForUser(user_id, api_id int) error {
 	_, err := db.SQL.ExecContext(db.ctx, deleteApi, user_id, api_id)
 	return err
-}
-
-// HELPERS ------------------------------------------------------------------------------------
-func (db *DB) queryApiSql(query string, args ...any) (Api, error) {
-	var a Api
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	err := row.Scan(&a.ID, &a.Name, &a.Key, &a.Expires, &a.Created)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return a, ErrNotFound
-		}
-		return a, err
-	}
-
-	return a, nil
 }

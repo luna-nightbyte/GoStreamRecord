@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -124,28 +123,4 @@ func (db *DB) GroupNameToID(groupName string) int {
 		return -1
 	}
 	return group.ID
-}
-
-// // GetUserByUsername retrieves a single user by their username.
-// func (db *User) GetAllUserGroupRelations() (user_group_relations, error) {
-// 	return db.queryUserGroupRelationsSql(getUserGroupRelations)
-// }
-
-// HELPERS ------------------------------------------------------------------------------------
-func (db *DB) queryGroupSql(query string, args ...any) (Group, error) {
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	var group Group
-	var createdAt string
-	err := row.Scan(&group.ID, &group.Name, &group.Description, &createdAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return group, ErrNotFound
-		}
-		return group, err
-	}
-
-	if group.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
-		return group, err
-	}
-	return group, nil
 }

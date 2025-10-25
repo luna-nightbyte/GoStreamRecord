@@ -1,46 +1,102 @@
 package db
 
 import (
-	"encoding/json"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/utils"
 	"sort"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
-	"golang.org/x/crypto/bcrypt"
 )
 
-// marshalIntSlice converts a slice of integers to a JSON string for database storage.
-// SQLite does not have a native array type, so storing as JSON is a common workaround.
-func marshalIntSlice(slice []int) (string, error) {
-	bytes, err := json.Marshal(slice)
+func (db *DB) queryApiSql(query string, args ...any) (Api, error) {
+	var a Api
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	err := row.Scan(&a.ID, &a.Name, &a.Key, &a.Expires, &a.Created)
 	if err != nil {
-		return "", fmt.Errorf("could not marshal int slice: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return a, ErrNotFound
+		}
+		return a, err
 	}
-	return string(bytes), nil
-}
 
-// unmarshalIntSlice converts a JSON string from the database back into a slice of integers.
-func unmarshalIntSlice(data string) ([]int, error) {
-	var slice []int
-	if err := json.Unmarshal([]byte(data), &slice); err != nil {
-		return nil, fmt.Errorf("could not unmarshal int slice from json '%s': %w", data, err)
+	return a, nil
+}
+func (db *DB) queryGroupSql(query string, args ...any) (Group, error) {
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	var group Group
+	var createdAt string
+	err := row.Scan(&group.ID, &group.Name, &group.Description, &createdAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return group, ErrNotFound
+		}
+		return group, err
 	}
-	return slice, nil
+
+	if group.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return group, err
+	}
+	return group, nil
+}
+func (db *DB) queryStreamerSql(query string, args ...any) (Streamer, error) {
+	var s Streamer
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	err := row.Scan(&s.ID, &s.Name, &s.Provider)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return s, ErrNotFound
+		}
+		return s, err
+	}
+
+	return s, nil
 }
 
-// hashPassword generates a bcrypt hash of the password.
-func hashPassword(password string) ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (db *DB) queryStreamerGroupRelationsSql(query string, args ...any) (streamer_group_relations, error) {
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	var streamerGrp streamer_group_relations
+	err := row.Scan(&streamerGrp.StreamerID, &streamerGrp.GroupID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return streamerGrp, ErrUserNotFound
+		}
+		return streamerGrp, err
+	}
+
+	return streamerGrp, nil
+}
+func (db *DB) queryTabSql(query string, args ...any) (Tab, error) {
+	var t Tab
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	err := row.Scan(&t.ID, &t.Name, &t.Description)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return t, ErrNotFound
+		}
+		return t, err
+	}
+
+	return t, nil
 }
 
-// checkPasswordHash compares a plaintext password with its hash.
-func checkPasswordHash(password string, hash []byte) bool {
-	err := bcrypt.CompareHashAndPassword(hash, []byte(password))
-	return err == nil
+func (db *DB) queryTabGroupRelationsSql(query string, args ...any) (tab_group_relations, error) {
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	var usrGrp tab_group_relations
+	err := row.Scan(&usrGrp.TabID, &usrGrp.GroupID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return usrGrp, ErrUserNotFound
+		}
+		return usrGrp, err
+	}
+
+	return usrGrp, nil
 }
 
 // username, newPassword
@@ -68,7 +124,8 @@ func ResetUserPassword(args ...string) {
 	// Loop over the users in the database to find a matching username.
 	for _, u := range usrs {
 		if u.Username == username {
-			DataBase.UpdateUser(u.ID, u.Username, string(utils.HashedPassword(newPassword)))
+			hash, _ := utils.HashPassword(newPassword)
+			DataBase.UpdateUser(u.ID, u.Username, string(hash))
 			userFound = true
 			break
 		}

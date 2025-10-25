@@ -113,7 +113,7 @@ type Video struct {
 // Database structure
 const (
 
-	// User, Group, Tabs, Streamers, Apis Videos
+	// User, Group, Tabs, Streamers, Apis Videos ----------------------
 	q_create_users string = `CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -169,7 +169,7 @@ const (
     enable_telegram INTEGER
 );`
 
-	// Relations
+	// Relations --------------------------------------------
 
 	q_create_user_group_relations string = `CREATE TABLE user_group_relations (
     user_id INTEGER NOT NULL,
@@ -206,7 +206,7 @@ const (
 // Queries
 const (
 
-	// USERS --------------------------------------------------
+	// USERS ----------------------
 
 	createUser        = `INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)`
 	getUserByID       = `SELECT id, username, password_hash, created_at FROM users WHERE id = ?`
@@ -215,7 +215,7 @@ const (
 	updateUser        = `UPDATE users SET username = ?, password_hash = ? WHERE id = ?`
 	deleteUser        = `DELETE FROM users WHERE id = ?`
 
-	// APIS --------------------------------------------------
+	// APIS ----------------------
 
 	createApi   = `INSERT INTO apis (name, owner_id, key, expires, created) VALUES (?, ?, ?, ?, ?)`
 	listApis    = `SELECT id, name, owner_id, key, expires, created FROM apis ORDER BY id`
@@ -226,7 +226,7 @@ const (
 		ORDER BY a.id DESC`
 	deleteApi = `DELETE FROM apis WHERE owner = ? AND id = ?`
 
-	// GROUPS --------------------------------------------------
+	// GROUPS ----------------------
 
 	createGroup       = `INSERT INTO groups (name, description, created_at) VALUES (?, ?, ?)`
 	getGroupByGroupID = `SELECT id, name, description, created_at FROM groups WHERE id = ?`
@@ -236,17 +236,17 @@ const (
 	updateGroup       = `UPDATE groups SET name = ?, description = ? WHERE id = ?`
 	deleteGroup       = `DELETE FROM groups WHERE id = ?`
 
-	// STREAMERS --------------------------------------------------
+	// STREAMERS ----------------------
 
 	createStreamer = `INSERT INTO streamers (name, provider, uploader_user_id) VALUES (?, ?, ?)`
 	listStreamer   = `SELECT id, name, provider, uploader_user_id FROM streamers ORDER BY id`
 
-	// TABS --------------------------------------------------
+	// TABS ----------------------
 
 	createTab = `INSERT INTO tabs (name, description) VALUES (?, ?)`
 	listTabs  = `SELECT id, name, description FROM tabs ORDER BY id`
 
-	// CONFG --------------------------------------------------
+	// CONFG ----------------------
 
 	saveConfig = `INSERT INTO config (
     id, port, enable_rate_limit, rate_limit, output_folder, 
@@ -271,15 +271,14 @@ ON CONFLICT(id) DO UPDATE SET
     chat_id, token, enable_telegram 
 FROM config WHERE id = 1;`
 
-	// VIDEOS --------------------------------------------------
+	// VIDEOS ----------------------
 
 	createVideo   = `INSERT INTO videos (filepath, name, sha256, uploader_user_id, created_at) VALUES (?, ?, ?, ?, ?)`
 	getVideoByID  = `SELECT id, filepath, name, uploader_user_id, created_at FROM videos WHERE id = ?`
 	listAllVideos = `SELECT id, filepath, name, uploader_user_id, created_at FROM videos ORDER BY name`
 	deleteVideo   = `DELETE FROM videos WHERE id = ?`
 
-	// RELATIONS ------------------------------------------------------
-
+	// RELATIONS (aka groups) ------------------------------------------------------
 	// USER & GROUPS ----------------------
 
 	get_users_and_relations  = `SELECT user_id, group_id, role FROM user_group_relations WHERE user_id = ?`
@@ -341,6 +340,7 @@ FROM config WHERE id = 1;`
         ORDER BY t.id`
 
 	// STREAMERS & GROUPS/USERS ----------------------
+
 	shareStreamerWithGroup         = `INSERT OR IGNORE INTO streamer_group_relations (streamer_id, group_id) VALUES (?, ?)`
 	unshareStreamerFromGroup       = `DELETE FROM streamer_group_relations WHERE streamer_id = ? AND group_id = ?`
 	removeUploaderUserFromStreamer = `DELETE FROM streamers WHERE id = ? AND uploader_user_id = ?`

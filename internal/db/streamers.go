@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -19,6 +18,7 @@ func (db *DB) NewStreamer(streamer_name, provider string, user_id int, share boo
 		}
 	}
 }
+
 // AddUser hashes the password and inserts a new user record.
 func (db *DB) newStreamer(streamerName, provider string, user_id int) error {
 	if streamerName == "" {
@@ -36,7 +36,7 @@ func (db *DB) newStreamer(streamerName, provider string, user_id int) error {
 }
 
 // GetAvailableStreamersForUser retrieves all tabs a user has access to.
-// It takes a database connection pointer and InternalUsera user ID. 
+// It takes a database connection pointer and InternalUsera user ID.
 func (db *DB) GetAvailableStreamersForUser(userID int) (map[string]Streamer, error) {
 	rows, err := db.SQL.Query(getVisibleStreamerForUser, userID)
 	if err != nil {
@@ -79,9 +79,9 @@ func (db *DB) GetAvailableStreamersForGroup(groupID int) (map[string]Streamer, e
 
 	return tabsMap, nil
 }
-func (db *DB) DeleteStreamerForUser(user_id, streamer_id int) ( error) { 
+func (db *DB) DeleteStreamerForUser(user_id, streamer_id int) error {
 	_, err := db.SQL.ExecContext(db.ctx, removeUploaderUserFromStreamer, streamer_id, user_id)
-	return  err
+	return err
 }
 
 func (db *DB) DeleteStreamerForGroup(groupID, streamerID int) error {
@@ -121,33 +121,4 @@ func (db *DB) ListStreamers() (map[string]Streamer, error) {
 	}
 
 	return streamerMap, rows.Err()
-}
-
-// HELPERS ------------------------------------------------------------------------------------
-func (db *DB) queryStreamerSql(query string, args ...any) (Streamer, error) {
-	var s Streamer
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	err := row.Scan(&s.ID, &s.Name, &s.Provider)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return s, ErrNotFound
-		}
-		return s, err
-	}
-
-	return s, nil
-}
-
-func (db *DB) queryStreamerGroupRelationsSql(query string, args ...any) (streamer_group_relations, error) {
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	var streamerGrp streamer_group_relations
-	err := row.Scan(&streamerGrp.StreamerID, &streamerGrp.GroupID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return streamerGrp, ErrUserNotFound
-		}
-		return streamerGrp, err
-	}
-
-	return streamerGrp, nil
 }

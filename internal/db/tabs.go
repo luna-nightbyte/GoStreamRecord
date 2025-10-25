@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -87,33 +86,4 @@ func (db *DB) ShareTab(tabID, groupID int) error {
 func (db *DB) DeleteTabForGroup(groupID, tabID int) error {
 	_, err := db.SQL.ExecContext(db.ctx, unshareTabFromGroup, tabID, groupID)
 	return err
-}
-
-// HELPERS ------------------------------------------------------------------------------------
-func (db *DB) queryTabSql(query string, args ...any) (Tab, error) {
-	var t Tab
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	err := row.Scan(&t.ID, &t.Name, &t.Description)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return t, ErrNotFound
-		}
-		return t, err
-	}
-
-	return t, nil
-}
-
-func (db *DB) queryTabGroupRelationsSql(query string, args ...any) (tab_group_relations, error) {
-	row := db.SQL.QueryRowContext(db.ctx, query, args...)
-	var usrGrp tab_group_relations
-	err := row.Scan(&usrGrp.TabID, &usrGrp.GroupID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return usrGrp, ErrUserNotFound
-		}
-		return usrGrp, err
-	}
-
-	return usrGrp, nil
 }

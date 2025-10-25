@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"remoteCtrl/internal/system/prettyprint"
+	"remoteCtrl/internal/utils"
 	"remoteCtrl/internal/web/handlers/cookie"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ func (db *DB) NewUser(username, raw_password string) error {
 	if username == "" || raw_password == "" {
 		return errors.New("username and password cannot be empty")
 	}
-	hash, err := hashPassword(raw_password)
+	hash, err := utils.HashPassword(raw_password)
 	if err != nil {
 		return fmt.Errorf("failed to hash pasd.ctx, csword: %w", err)
 	}
@@ -51,7 +52,7 @@ func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) err
 	var result sql.Result
 	var err error
 	if newPassword != "" {
-		hash, err := hashPassword(newPassword)
+		hash, err := utils.HashPassword(newPassword)
 		if err != nil {
 			return fmt.Errorf("failed to hash new password: %w", err)
 		}
@@ -104,7 +105,7 @@ func (db *DB) AuthenticateUser(username, password string) (bool, error) {
 		return false, err
 	}
 
-	if checkPasswordHash(password, user.PasswordHash) {
+	if utils.CheckPasswordHash(password, user.PasswordHash) {
 		return true, nil
 	}
 
@@ -142,7 +143,7 @@ func (db *DB) GetUserByName(username string) (User, error) {
 
 func (db *DB) UserNameToID(username string) int {
 	usr, err := db.query_row_UserSql(getUserByUsername, username)
-	if err != nil { 
+	if err != nil {
 		return -1
 
 	}

@@ -36,7 +36,7 @@ const exampleAdmin, defaultPass string = "admin", "password"
 const exampleViewer string = "viewer"
 const exampleMod string = "mod"
 
-var randPass, _ = hashPassword(utils.RandString(15))
+var randPass, _ = utils.HashPassword(utils.RandString(15))
 
 // createSchema executes the necessary SQL statements to build the database tables.
 func createSchema(ctx context.Context, db *sql.DB) error {
@@ -61,7 +61,7 @@ func createSchema(ctx context.Context, db *sql.DB) error {
 		q_create_video_group_relations,
 		q_create_tab_group_relations,
 		q_create_user_group_relations,
-		q_create_streamer_group_relations, 
+		q_create_streamer_group_relations,
 		q_create_config,
 	)
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
