@@ -174,6 +174,11 @@ func AddNewUser(args ...string) {
 	role := args[2]
 	group := args[3]
 
+	group_id := DataBase.GroupNameToID(group)
+	if group_id == -1 {
+		prettyprint.P.BoldRed.Println("Group does not exist")
+		return
+	}
 	err := DataBase.NewUser(username, newPassword)
 	if err != nil {
 		log.Println(err)
@@ -182,12 +187,6 @@ func AddNewUser(args ...string) {
 	}
 
 	user_id := DataBase.UserNameToID(username)
-
-	group_id := DataBase.GroupNameToID(group)
-	if group_id == -1 {
-		prettyprint.P.BoldRed.Println("Group does not exist")
-		return
-	}
 
 	err = DataBase.AddUserToGroup(user_id, group_id, role)
 	if err != nil {
