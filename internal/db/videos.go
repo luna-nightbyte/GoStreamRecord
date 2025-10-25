@@ -11,7 +11,7 @@ import (
 )
 
 // AddVideo inserts a new video record.
-func (v *Video) Add(ctx context.Context, videoFilepath string, user_id int) error {
+func (db *DB) AddVideo(videoFilepath string, user_id int) error {
 	if videoFilepath == "" {
 		return errors.New("video filepath and downloader username cannot be empty")
 	}
@@ -19,8 +19,7 @@ func (v *Video) Add(ctx context.Context, videoFilepath string, user_id int) erro
 	videoName := filepath.Base(videoFilepath)
 
 	sha256, _ := utils.FileSHA256(videoFilepath)
-	_, err := DataBase.SQL.ExecContext(ctx, createVideo, videoFilepath, videoName, sha256, user_id, now)
-
+	err := db.execQuery(createVideo, videoFilepath, videoName, sha256, user_id, now)
 	if err != nil {
 		return err
 	}
@@ -28,22 +27,19 @@ func (v *Video) Add(ctx context.Context, videoFilepath string, user_id int) erro
 	return nil
 }
 
-// AddVideo inserts a new video record.
-func (v *Video) Share(videoID, groupID int) error {
-
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareVideoWithGroup, videoID, groupID)
-	return err
+func (db *DB) ShareVideo(videoID, groupID int) error {
+	return db.execQuery(shareVideoWithGroup, videoID, groupID)
 }
-func (v *Video) NameToID(name string) int {
-	r, _ := v.ListAll(DataBase.ctx)
+func (db *DB) VideoNameToID(name string) int {
+	r, _ := db.ListVideos()
 	return r[name].ID
 
 }
 
 // ListAllVideos retrieves all videos from the database.
-func (v *Video) ListAll(ctx context.Context) (map[string]Video, error) {
-	usr_id := strconv.Itoa(DataBase.Users.NameToID(InternalUser))
-	rows, err := DataBase.SQL.QueryContext(ctx, getVisibleVideosForUser, usr_id, usr_id)
+func (db *DB) ListVideos() (map[string]Video, error) {
+	usr_id := strconv.Itoa(db.UserNameToID(InternalUser))
+	rows, err := db.query(getVisibleVideosForUser, usr_id, usr_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query videos: %w", err)
 	}
@@ -65,18 +61,15 @@ func (v *Video) ListAll(ctx context.Context) (map[string]Video, error) {
 	return videoMap, rows.Err()
 }
 
-// In db/video.go
+func (db *DB) ListAvailableVideosForUser(userID int) ([]Video, error) {
 
-func (v *Video) ListAvailable(ctx context.Context, userID int) ([]Video, error) {
-
-	rows, err := DataBase.SQL.QueryContext(ctx, getVisibleVideosForUser, userID, userID)
+	rows, err := db.query(getVisibleVideosForUser, userID, userID)
 	if err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("failed to query visible videos: %w", err)
 	}
 	defer rows.Close()
 
-	// Using a map to handle potential duplicates from the UNION
 	videoMap := make(map[int]Video)
 	for rows.Next() {
 		var v Video
@@ -97,16 +90,12 @@ func (v *Video) ListAvailable(ctx context.Context, userID int) ([]Video, error) 
 
 	return videos, rows.Err()
 }
-
-// UserHasAccessToVideo checks if a user has access to a specific video.
-// This is a simplified check based on who downloaded it.
-// A more robust implementation would check against user groups.
-func (v *Video) CheckUserAccess(ctx context.Context, username string, videoName string) (bool, error) {
-	query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
+func (db *DB) CheckUserVideoAccess(ctx context.Context, username string, videoName string) (bool, error) {
+	//query := "SELECT COUNT(*) FROM videos WHERE downloaded_by = ? AND name = ?"
 	var count int
-	err := DataBase.SQL.QueryRowContext(ctx, query, username, videoName).Scan(&count)
-	if err != nil {
-		return false, fmt.Errorf("failed to query video access: %w", err)
-	}
+	userID := db.UserNameToID(username)
+	rows, _ := db.query(getVisibleVideosForUser, userID, userID)
+	defer rows.Close()
+	rows.Scan(count)
 	return count > 0, nil
 }

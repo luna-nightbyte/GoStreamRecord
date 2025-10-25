@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"remoteCtrl/internal/system/prettyprint"
 	"remoteCtrl/internal/web/handlers/cookie"
 	"strings"
 	"time"
@@ -12,22 +14,23 @@ import (
 
 // ErrUserNotFound is returned when a user is not found in the database.
 var ErrUserNotFound = errors.New("user not found")
+var ErrNotFound = errors.New("not found")
 
 const ErrIsExist = "UNIQUE constraint failed"
 
 // SQL QUERIES ---------------------------------------------------------------------
 
 // AddUser hashes the password and inserts a new user record.
-func (db *User) New(username, raw_password string) error {
+func (db *DB) NewUser(username, raw_password string) error {
 	if username == "" || raw_password == "" {
 		return errors.New("username and password cannot be empty")
 	}
 	hash, err := hashPassword(raw_password)
 	if err != nil {
-		return fmt.Errorf("failed to hash password: %w", err)
+		return fmt.Errorf("failed to hash pasd.ctx, csword: %w", err)
 	}
 	now := time.Now().Format(time.RFC3339)
-	_, err = DataBase.SQL.ExecContext(DataBase.ctx, createUser, username, hash, now)
+	_, err = DataBase.SQL.ExecContext(db.ctx, createUser, username, hash, now)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("Username already exists")
@@ -40,7 +43,7 @@ func (db *User) New(username, raw_password string) error {
 
 // UpdateUser updates an existing user's details.
 // If newPassword is an empty string, the password is not updated.
-func (db *User) Update(userID int, newUsername string, newPassword string) error {
+func (db *DB) UpdateUser(userID int, newUsername string, newPassword string) error {
 	if newUsername == "" {
 		return errors.New("username cannot be empty")
 	}
@@ -52,12 +55,12 @@ func (db *User) Update(userID int, newUsername string, newPassword string) error
 		if err != nil {
 			return fmt.Errorf("failed to hash new password: %w", err)
 		}
-		result, err = DataBase.SQL.ExecContext(DataBase.ctx, updateUser, newUsername, hash, userID)
+		result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, hash, userID)
 	} else {
-		usrs, _ := DataBase.Users.List()
+		usrs, _ := db.ListUsers()
 		for _, urs := range usrs {
 			if urs.ID == userID {
-				result, err = DataBase.SQL.ExecContext(DataBase.ctx, updateUser, newUsername, urs.PasswordHash, userID)
+				result, err = db.SQL.ExecContext(db.ctx, updateUser, newUsername, urs.PasswordHash, userID)
 
 			}
 		}
@@ -77,8 +80,8 @@ func (db *User) Update(userID int, newUsername string, newPassword string) error
 }
 
 // DeleteUser removes a user record by ID.
-func (db *User) Delete(userID int) error {
-	result, err := DataBase.SQL.ExecContext(DataBase.ctx, admin_del_user, userID)
+func (db *DB) DeleteUser(userID int) error {
+	result, err := db.SQL.ExecContext(db.ctx, admin_del_user, userID)
 	if err != nil {
 		return fmt.Errorf("database error during deletion: %w", err)
 	}
@@ -92,7 +95,7 @@ func (db *User) Delete(userID int) error {
 }
 
 // Authenticate checks a user's credentials against the database.
-func (db *User) Authenticate(username, password string) (bool, error) {
+func (db *DB) AuthenticateUser(username, password string) (bool, error) {
 	user, err := db.GetUserByName(username)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
@@ -108,46 +111,60 @@ func (db *User) Authenticate(username, password string) (bool, error) {
 	return false, errors.New("invalid username or password")
 }
 
-// IsAdmin checks ifunc (db *User) Authenticate(username, password string) (bool, error)f a user has admin privileges.
-func (db *User) IsAdmin(username string) (bool, error) {
+// IsAdmin checks ifunc (db *DB) Authenticate(username, password string) (bool, error)f a user has admin privileges.
+func (db *DB) IsUserAdmin(username string) (bool, error) {
 	user, err := db.GetUserByName(username)
 	if err != nil {
 		return false, err
 	}
-	_, role, err := DataBase.Groups.ListGroupsByUserID(user.ID)
+	_, role, err := db.ListGroupsByUserID(user.ID)
 	if role == RoleAdmin {
 		return true, nil
 	}
 	return false, err
 }
 
-func (db *User) HttpRequestID(r *http.Request) int {
-	name, _ := cookie.ValidateSession(r)
-	return db.NameToID(name)
+func (db *DB) GetUserIDFromCookie(r *http.Request) int {
+	name, err := cookie.ValidateSession(r)
+	if err != nil {
+		prettyprint.P.Error.Println(err)
+		log.Println(err)
+		return -1
+
+	}
+	return db.UserNameToID(name)
 }
 
-func (db *User) GetUserByName(username string) (*User, error) {
-	err := db.queryUserSql(getUserByUsername, username)
-	return db, err
+func (db *DB) GetUserByName(username string) (User, error) {
+	usr, err := db.queryUserSql(getUserByUsername, username)
+	return usr, err
 }
 
-func (u *User) NameToID(username string) int {
-	u.queryUserSql(getUserByUsername, username)
-	return u.ID
+func (db *DB) UserNameToID(username string) int {
+	usr, err := db.queryUserSql(getUserByUsername, username)
+	if err != nil {
+		prettyprint.P.Error.Println(err)
+		log.Println(err)
+		return -1
+
+	}
+	return usr.ID
 }
-func (db *User) GetUserByID(id int) (*User, error) {
-	err := db.queryUserSql(getUserByID, id)
-	return db, err
+func (db *DB) GetUserByID(id int) (User, error) {
+	return db.queryUserSql(getUserByID, id)
 }
 
-func (db *User) GetUserGroupRelations(user_id int) (user_group_relations, error) {
+func (db *DB) GetUserGroupRelations(user_id int) ([]user_group_relations, error) {
+	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
+}
+func (db *DB) AddUserGroupRelations(user_id int) ([]user_group_relations, error) {
 	return db.queryUserGroupRelationsSql(getUserGroupRelations, user_id)
 }
 
 // ListUsers fetches all users from the database.
-func (db *User) List() (map[string]User, error) {
+func (db *DB) ListUsers() (map[string]User, error) {
 	//query := "SELECT id, username, password_hash,  created_at FROM users"
-	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, listUsers)
+	rows, err := db.SQL.QueryContext(DataBase.ctx, listUsers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
@@ -170,34 +187,38 @@ func (db *User) List() (map[string]User, error) {
 }
 
 // HELPERS ------------------------------------------------------------------------------------
-func (u *User) queryUserSql(query string, args ...any) error {
-	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
-
+func (db *DB) queryUserSql(query string, args ...any) (User, error) {
+	row := db.SQL.QueryRowContext(DataBase.ctx, query, args...)
+	var usr User
 	var createdAt string
-	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &createdAt)
+	err := row.Scan(&usr.ID, &usr.Username, &usr.PasswordHash, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrUserNotFound
+			return usr, ErrUserNotFound
 		}
-		return err
+		return usr, err
 	}
 
-	if u.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
-		return err
+	if usr.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return usr, err
 	}
-	return nil
+	return usr, nil
 }
 
-func (u *User) queryUserGroupRelationsSql(query string, args ...any) (user_group_relations, error) {
-	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+func (db *DB) queryUserGroupRelationsSql(query string, args ...any) ([]user_group_relations, error) {
+
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
 	var usrGrp user_group_relations
+	var usrGrpOutput []user_group_relations
 	err := row.Scan(&usrGrp.UserID, &usrGrp.GroupID, &usrGrp.Role)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return usrGrp, ErrUserNotFound
+			return usrGrpOutput, ErrUserNotFound
+			//return usrGrp, ErrUserNotFound
 		}
-		return usrGrp, err
+		usrGrpOutput = append(usrGrpOutput, usrGrp)
+		//	return usrGrp, err
 	}
 
-	return usrGrp, nil
+	return usrGrpOutput, nil
 }

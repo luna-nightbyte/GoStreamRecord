@@ -22,9 +22,7 @@ type Config struct {
 	TelegramToken  string `json:"token"`
 	EnableTelegram bool   `json:"enable_telegram"`
 }
-
-type telegram struct {
-}
+ 
 
 type User struct {
 	ID           int       `json:"id"`
@@ -63,7 +61,7 @@ type Api struct {
 
 type user_group_relations struct {
 	UserID  int    `json:"user_id"`
-	GroupID string `json:"group_id"`
+	GroupID int    `json:"group_id"`
 	Role    string `json:"role"`
 }
 
@@ -247,7 +245,7 @@ FROM config WHERE id = 1;`
 	listApis = `SELECT id, name, owner_id, key, expires, created FROM apis ORDER BY id`
 
 	getUserApis = `
-		SELECT DISTINCT a.id, a.name, a.key, a.expires, a.created
+		SELECT DISTINCT a.id, a.name, a.owner_id, a.key, a.expires, a.created
 		FROM apis a 
 		WHERE a.owner_id = ? 
 		ORDER BY a.id DESC`

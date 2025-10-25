@@ -10,11 +10,11 @@ import (
 // SQL QUERIES ---------------------------------------------------------------------
 
 // AddUser hashes the password and inserts a new user record.
-func (db *Tab) New(tabName, description string) error {
+func (db *DB) NewTab(tabName, description string) error {
 	if tabName == "" {
 		return errors.New("tabName cannot be empty")
 	}
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, createTab, tabName, description)
+	_, err := db.SQL.ExecContext(db.ctx, createTab, tabName, description)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("tab already exists")
@@ -25,10 +25,10 @@ func (db *Tab) New(tabName, description string) error {
 	return nil
 }
 
-// ListUsers fetches all users from the database.
-func (db *Tab) List() (map[string]Tab, error) {
+// ListUsers fetches all users from the db.
+func (db *DB) ListTabs() (map[string]Tab, error) {
 	//query := "SELECT id, username, password_hash,  created_at FROM users"
-	rows, err := DataBase.SQL.QueryContext(DataBase.ctx, listTabs)
+	rows, err := db.SQL.QueryContext(db.ctx, listTabs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
 	}
@@ -36,11 +36,11 @@ func (db *Tab) List() (map[string]Tab, error) {
 
 	tabMap := make(map[string]Tab)
 	for rows.Next() {
-		var u Tab
-		if err := rows.Scan(&u.ID, &u.Name, &u.Description); err != nil {
+		var t Tab
+		if err := rows.Scan(&t.ID, &t.Name, &t.Description); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
-		tabMap[u.Name] = u
+		tabMap[t.Name] = t
 	}
 
 	return tabMap, rows.Err()
@@ -49,8 +49,8 @@ func (db *Tab) List() (map[string]Tab, error) {
 // GetAvailableTabsForUser retrieves all tabs a user has access to.
 // It takes a database connection pointer and InternalUsera user ID.
 // This function replaces your original `GetAvalable` method.
-func (db *Tab) GetAvailableTabsForUser(userID int) (map[string]Tab, error) {
-	rows, err := DataBase.SQL.Query(getVisibleTabsForUser, userID)
+func (db *DB) GetAvailableTabsForUser(userID int) (map[string]Tab, error) {
+	rows, err := db.SQL.Query(getVisibleTabsForUser, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute getVisibleTabsForUser query: %w", err)
 	}
@@ -69,10 +69,11 @@ func (db *Tab) GetAvailableTabsForUser(userID int) (map[string]Tab, error) {
 	}
 
 	return tabsMap, nil
-} 
+}
+
 // AddGroup inserts a new group with a given set of permissions.
-func (db *Tab) ShareTab(tabID, groupID int) error {
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, shareTabWithGroup, tabID, groupID)
+func (db *DB) ShareTab(tabID, groupID int) error {
+	_, err := db.SQL.ExecContext(db.ctx, shareTabWithGroup, tabID, groupID)
 	if err != nil {
 		if strings.Contains(err.Error(), ErrIsExist) {
 			return errors.New("Username exists")
@@ -83,27 +84,28 @@ func (db *Tab) ShareTab(tabID, groupID int) error {
 	return nil
 }
 
-func (db *Tab) DeleteForGroup(groupID, tabID int) error {
-	_, err := DataBase.SQL.ExecContext(DataBase.ctx, unshareTabFromGroup, tabID, groupID)
+func (db *DB) DeleteTabForGroup(groupID, tabID int) error {
+	_, err := db.SQL.ExecContext(db.ctx, unshareTabFromGroup, tabID, groupID)
 	return err
 }
 
 // HELPERS ------------------------------------------------------------------------------------
-func (u *Tab) queryTabSql(query string, args ...any) error {
-	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
-	err := row.Scan(&u.ID, &u.Name, &u.Description)
+func (db *DB) queryTabSql(query string, args ...any) (Tab, error) {
+	var t Tab
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
+	err := row.Scan(&t.ID, &t.Name, &t.Description)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrUserNotFound
+			return t, ErrNotFound
 		}
-		return err
+		return t, err
 	}
 
-	return nil
+	return t, nil
 }
 
-func (u *Tab) queryTabrGroupRelationsSql(query string, args ...any) (tab_group_relations, error) {
-	row := DataBase.SQL.QueryRowContext(DataBase.ctx, query, args...)
+func (db *DB) queryTabGroupRelationsSql(query string, args ...any) (tab_group_relations, error) {
+	row := db.SQL.QueryRowContext(db.ctx, query, args...)
 	var usrGrp tab_group_relations
 	err := row.Scan(&usrGrp.TabID, &usrGrp.GroupID)
 	if err != nil {

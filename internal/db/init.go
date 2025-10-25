@@ -87,113 +87,111 @@ func Init(ctx context.Context, path string) {
 		}
 		// Groups
 
-		if err := DataBase.Groups.New(GroupAdmins, "admins with full control"); err != nil {
+		if err := DataBase.NewGroup(GroupAdmins, "admins with full control"); err != nil {
 			log.Fatalf("Fatal: Could not create default group: %v", err)
 		}
 
-		if err := DataBase.Groups.New(GroupViewerOnly, "only viewing content"); err != nil {
+		if err := DataBase.NewGroup(GroupViewerOnly, "only viewing content"); err != nil {
 			log.Fatalf("Fatal: Could not create default group: %v", err)
 		}
-		if err := DataBase.Groups.New(GroupDownloadAndView, "downloading and viewing content"); err != nil {
+		if err := DataBase.NewGroup(GroupDownloadAndView, "downloading and viewing content"); err != nil {
 			log.Fatalf("Fatal: Could not create default group: %v", err)
 		}
 		// Users
-		if err := DataBase.Users.New(exampleAdmin, defaultPass); err != nil {
+		if err := DataBase.NewUser(exampleAdmin, defaultPass); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.Users.New(exampleViewer, exampleViewer); err != nil {
+		if err := DataBase.NewUser(exampleViewer, exampleViewer); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
-		if err := DataBase.Users.New(exampleMod, exampleMod); err != nil {
+		if err := DataBase.NewUser(exampleMod, exampleMod); err != nil {
 			log.Fatalf("Fatal: Could not add default admin user: %v", err)
 		}
 		// Add to group
 
 		// -- main user
-		viewer_id := DataBase.Users.NameToID(exampleViewer)
-		viewer_group_id := DataBase.Groups.NameToID(GroupViewerOnly)
-		DataBase.Groups.AddUser(viewer_id, viewer_group_id, RoleUsers)
+		viewer_id := DataBase.UserNameToID(exampleViewer)
+		viewer_group_id := DataBase.GroupNameToID(GroupViewerOnly)
+		DataBase.AddUserToGroup(viewer_id, viewer_group_id, RoleUsers)
 
 		// -- example moderator user
-		mod_id := DataBase.Users.NameToID(exampleMod)
-		mod_group_id := DataBase.Groups.NameToID(GroupDownloadAndView)
-		DataBase.Groups.AddUser(mod_id, mod_group_id, RoleUsers)
+		mod_id := DataBase.UserNameToID(exampleMod)
+		mod_group_id := DataBase.GroupNameToID(GroupDownloadAndView)
+		DataBase.AddUserToGroup(mod_id, mod_group_id, RoleUsers)
 
 		// -- example viewer user
-		admin_id := DataBase.Users.NameToID(exampleAdmin)
-		admin_group_id := DataBase.Groups.NameToID(GroupAdmins)
-		DataBase.Groups.AddUser(admin_id, admin_group_id, RoleAdmin)
+		admin_id := DataBase.UserNameToID(exampleAdmin)
+		admin_group_id := DataBase.GroupNameToID(GroupAdmins)
+		DataBase.AddUserToGroup(admin_id, admin_group_id, RoleAdmin)
 
 		// -- internal server user
-		DataBase.Users.New(InternalUser, string(randPass))
-		internalID := DataBase.Users.NameToID(InternalUser)
-		DataBase.Groups.AddUser(internalID, admin_group_id, RoleAdmin)
+		DataBase.NewUser(InternalUser, string(randPass))
+		internalID := DataBase.UserNameToID(InternalUser)
+		DataBase.AddUserToGroup(internalID, admin_group_id, RoleAdmin)
 
 		prettyprint.P.Yellow.Println("New database created:")
-		prettyprint.P.BoldWhite.Println("	User:	| Password:")
-		prettyprint.P.BoldGrey.Print("	", exampleAdmin)
-		prettyprint.P.BoldWhite.Print("	| ")
+		prettyprint.P.BoldWhite.Print("User:")
+		prettyprint.P.BoldGrey.Println("	", exampleAdmin)
+		prettyprint.P.BoldWhite.Print("User:")
+		prettyprint.P.BoldGrey.Println("	", exampleMod)
+		prettyprint.P.BoldWhite.Print("User:")
+		prettyprint.P.BoldGrey.Println("	", exampleViewer)
+		prettyprint.P.BoldWhite.Print("Password (for all): ")
 		prettyprint.P.FaintWhite.Println(defaultPass)
-		prettyprint.P.BoldGrey.Print("	", exampleMod)
-		prettyprint.P.BoldWhite.Print("	| ")
-		prettyprint.P.FaintWhite.Println(exampleMod)
-		prettyprint.P.BoldGrey.Print("	", exampleViewer)
-		prettyprint.P.BoldWhite.Print("	| ")
-		prettyprint.P.FaintWhite.Println(exampleViewer)
 		// TABS --------------------------------------------
 
-		err := DataBase.Tabs.New(TabDownload, "Download videos directly from websites")
+		err := DataBase.NewTab(TabDownload, "Download videos directly from websites")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.New(TabGallery, "View downloaded videos and recordings")
+		err = DataBase.NewTab(TabGallery, "View downloaded videos and recordings")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.New(TabLiveStream, "Watch models live")
+		err = DataBase.NewTab(TabLiveStream, "Watch models live")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.New(TabRecorder, "Record videos from livestreams")
+		err = DataBase.NewTab(TabRecorder, "Record videos from livestreams")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
 
 		// TODO
-		err = DataBase.Tabs.New(TabSettings, "General settings")
+		err = DataBase.NewTab(TabSettings, "General settings")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.New(TabAbout, "About us")
+		err = DataBase.NewTab(TabAbout, "About us")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.New(TabLogs, "System logs")
+		err = DataBase.NewTab(TabLogs, "System logs")
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
 
-		tabs, err := DataBase.Tabs.List()
+		tabs, err := DataBase.ListTabs()
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
 
 		// Share all with admins and mods
 		for _, tab := range tabs {
-			err = DataBase.Tabs.ShareTab(tab.ID, admin_group_id)
+			err = DataBase.ShareTab(tab.ID, admin_group_id)
 			if err != nil {
-				log.Fatalf("Fatal: Could not create tab: %v", err)
+				log.Fatalf("Fatal: Could not share tab: %v", err)
 			}
-			err = DataBase.Tabs.ShareTab(tab.ID, mod_group_id)
+			err = DataBase.ShareTab(tab.ID, mod_group_id)
 			if err != nil {
-				log.Fatalf("Fatal: Could not create tab: %v", err)
+				log.Fatalf("Fatal: Could not share tab: %v", err)
 			}
 		}
-		err = DataBase.Tabs.ShareTab(tabs[TabGallery].ID, viewer_group_id)
+		err = DataBase.ShareTab(tabs[TabGallery].ID, viewer_group_id)
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
-		err = DataBase.Tabs.ShareTab(tabs[TabLiveStream].ID, viewer_group_id)
+		err = DataBase.ShareTab(tabs[TabLiveStream].ID, viewer_group_id)
 		if err != nil {
 			log.Fatalf("Fatal: Could not create tab: %v", err)
 		}
@@ -210,17 +208,6 @@ func Init(ctx context.Context, path string) {
 	}
 }
 
-func (s *DB) NewStreamer(streamer_name, provider string, user_id int, share bool) {
-	DataBase.Streamers.New(streamer_name, provider, user_id)
-	if share {
-		groups, _, _ := DataBase.Groups.ListGroupsByUserID(user_id)
-		streamers, _ := DataBase.Streamers.List()
-		for _, group := range groups {
-			DataBase.Streamers.Share(streamers[streamer_name].ID, group.ID)
-		}
-	}
-}
-
 // Open establishes a new database connection.
 func open(path string) (*sql.DB, error) {
 	// Using "_pragma=foreign_keys(1)" to enforce foreign key constraints.
@@ -233,4 +220,12 @@ func open(path string) (*sql.DB, error) {
 	db.SetMaxOpenConns(1)
 
 	return db, nil
+}
+
+func (db *DB) execQuery(query string, args ...any) error {
+	_, err := db.SQL.ExecContext(db.ctx, deleteApi, query, args)
+	return err
+}
+func (db *DB) query(query string, args ...any) (*sql.Rows, error) {
+	return db.SQL.QueryContext(db.ctx, query, args...)
 }
